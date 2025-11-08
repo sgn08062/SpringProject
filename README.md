@@ -32,9 +32,9 @@
 | 행동 | API | method |
 | :--- | :--- | :--- |
 | 농작물 조회 | /crops | GET |
-| 농작물 추가 html | /crops/add-crop | GET |
-| 농작물 추가 | /crops/add-crop | POST |
-| 농작물 삭제 | /crops/delete-crop/{id} | DELETE |
+| 농작물 추가 html | /crops/addCrop | GET |
+| 농작물 추가 | /crops/addCrop | POST |
+| 농작물 삭제 | /crops/deleteCrop/{id} | DELETE |
 | 농작물 활성화 | /crops/enable/{id} | POST |
 | 농작물 비활성화 | /crops/disable/{id} | POST |
 
