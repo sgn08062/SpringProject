@@ -4,5 +4,8 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.example.myFarm.admin.AdminCropMapper">
-
+    <insert id="addCrop" parameterType="CropVO">
+        INSERT INTO CROP(CROP_NAME, REG_DATE, GROWTH_TIME, QUANTITY, UNIT_NAME)
+        VALUES(#{cropName}, #{regDate}, #{growthTime}, #{quantity}, #{unitName})
+    </insert>
 </mapper>
