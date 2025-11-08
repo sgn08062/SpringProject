@@ -8,19 +8,30 @@
     <!-- DB 테이블명과 매개변수명은 추후 DB 테이블 완성 시 한 번 더 체크해야함   -->
     <insert id="userRegisterDB" parameterType="UserVO">
         INSERT INTO
-        FARM_USER (
+        USERS (
+           LOGIN_ID,
            USER_PW,
            USER_NAME,
-           USER_PHONE,
-           USER_EMAIL
+           PHONE,
+           EMAIL
         )
         VALUES (
+            #{loginId},
             #{userPw},
             #{userName},
-            #{userPhone},
-            #{userEmail}
+            #{phone},
+            #{email}
         )
     </insert>
+
+    <!--   유저 로그인 DB 쿼리, 받아올 매개변수는 UserVO, 내보낼 반환 타입은 Int(insert는 자동 int) -->
+    <!-- DB 테이블명과 매개변수명은 추후 DB 테이블 완성 시 한 번 더 체크해야함   -->
+    <select id="userLoginDB" parameterType="UserVO" resultType="int">
+        SELECT COUNT(*)
+        FROM USERS
+        WHERE LOGIN_ID = #{loginId}
+          AND USER_PW = #{userPw}
+    </select>
 
 
 </mapper>

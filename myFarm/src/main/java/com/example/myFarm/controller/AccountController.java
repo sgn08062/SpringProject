@@ -2,13 +2,11 @@ package com.example.myFarm.controller;
 
 import com.example.myFarm.account.AccountService;
 import com.example.myFarm.command.UserVO;
-import java.util.Map;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -20,9 +18,49 @@ public class AccountController {
 
     // 회원가입 요청
     @PostMapping(value = "/register", consumes = "application/x-www-form-urlencoded;charset=UTF-8", produces = "text/plain")
-    public String register(@RequestParam Map<String, Object> map){
-        System.out.println(map.toString());
-        return "success";
+    public String register(UserVO uservo){
+        System.out.println(uservo.toString());
+        int result = accountService.userRegister((uservo));
+        if (result == 1) {
+            return "success";
+        }
+        else {
+            return "fail";
+        }
     }
 
+    // 로그인 요청
+    @PostMapping(value = "/login", consumes = "application/x-www-form-urlencoded;charset=UTF-8", produces = "text/plain")
+    public String login(UserVO uservo, HttpSession session){
+        System.out.println(uservo.toString());
+        int result = accountService.userLogin((uservo));
+        if (result == 1) {
+            session.setAttribute("loginUser", uservo);
+            System.out.println("로그인 세션 생성 완료 : " + session.getId());
+            return "success";
+        }
+        else {
+            return "fail";
+        }
+    }
+
+    // 로그인 이후 다른 요청에서 세션 사용하기 -> 추후 필요 시 기능 이용
+//    @GetMapping("/getUserInfo")
+//    public String getUserInfo(HttpSession session) {
+//        UserVO loginUser = (UserVO) session.getAttribute("loginUser");
+//
+//        if (loginUser == null) {
+//            return "로그인 필요";
+//        }
+//
+//        return "현재 로그인 중: " + loginUser.getLoginId();
+//    }
+
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        System.out.println("로그아웃 요청 들어옴. Session ID : " + session.getId());
+        session.invalidate();  // 해당 세션 삭제
+        System.out.println("세션 삭제 완료 : " + session.getId());
+        return "logout success";
+    }
 }

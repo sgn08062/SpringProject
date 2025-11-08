@@ -15,4 +15,9 @@ public class AccountServiceImpl implements AccountService {
     public int userRegister(UserVO userVO) {
         return accountMapper.userRegisterDB(userVO);
     }
+
+    @Override
+    public int userLogin(UserVO userVO) {
+        return accountMapper.userLoginDB(userVO);
+    }
 }

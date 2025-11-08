@@ -11,9 +11,10 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UserVO {
     private int userId; //USER_ID
+    private String loginId; //LOGIN_ID
     private String userPw; //USER_PW
     private String userName; //USER_NAME
-    private String userPhone; //USER_PHONE
-    private String userEmail; //USER_EMAIL
+    private String phone; //PHONE
+    private String email; //EMAIL
     private String auth; //AUTH
 }

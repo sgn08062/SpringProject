@@ -7,4 +7,5 @@ import org.apache.ibatis.annotations.Mapper;
 public interface AccountMapper {
     int userRegisterDB(UserVO userVO); // 신규 유저 회원가입
 
+    int userLoginDB(UserVO userVO); // 유저 로그인
 }
