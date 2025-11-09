@@ -11,7 +11,12 @@ public class AdminCropServiceImpl implements AdminCropService {
     private AdminCropMapper adminCropMapper;
 
     @Override
-    public void addCrop(CropVO vo) {
-        adminCropMapper.addCrop(vo);
+    public int addCrop(CropVO vo) {
+        return adminCropMapper.addCrop(vo);
+    }
+
+    @Override
+    public int deleteCrop(long cropId) {
+        return adminCropMapper.deleteCrop(cropId);
     }
 }

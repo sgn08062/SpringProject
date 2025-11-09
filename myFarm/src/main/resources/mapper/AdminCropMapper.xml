@@ -8,4 +8,8 @@
         INSERT INTO CROP(CROP_NAME, REG_DATE, GROWTH_TIME, QUANTITY, UNIT_NAME)
         VALUES(#{cropName}, #{regDate}, #{growthTime}, #{quantity}, #{unitName})
     </insert>
+
+    <delete id="deleteCrop" parameterType="long">
+        DELETE FROM CROP WHERE CROP_ID = #{cropId}
+    </delete>
 </mapper>

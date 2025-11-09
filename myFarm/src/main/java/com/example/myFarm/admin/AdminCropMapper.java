@@ -5,6 +5,6 @@ import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface AdminCropMapper {
-    public void addCrop(CropVO vo);
-
+    public int addCrop(CropVO vo);
+    public int deleteCrop(long cropId);
 }

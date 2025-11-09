@@ -4,6 +4,7 @@ import com.example.myFarm.admin.AdminCropService;
 import com.example.myFarm.command.CropVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -27,20 +28,29 @@ public class AdminCropController {
     public String addCrop(CropVO cropVO, RedirectAttributes redirectAttributes){
         System.out.println(cropVO.toString());
 
-        adminCropService.addCrop(cropVO);
+        int result = adminCropService.addCrop(cropVO);
 
         // API확인용
-        return "success";
+        if(result == 1){
+            return "success";
+        }else{
+            return "fail";
+        }
 
         // 실제 경로
         //return "redirect:/admin/crops";
     }
 
     @DeleteMapping("/deleteCrop/{id}")
-    public String deleteCrop(@PathVariable int id){
+    public String deleteCrop(@PathVariable("id") long id,  RedirectAttributes redirectAttributes){
+        int result = adminCropService.deleteCrop(id);
 
+        if(result == 1){
+            redirectAttributes.addFlashAttribute("message", "Delete Crop successfully");
+        }else{
+            redirectAttributes.addFlashAttribute("message", "Delete Crop failed");
+        }
 
-        // API확인용
-        return "success";
+        return "redirect:/admin/crops";
     }
 }
