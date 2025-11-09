@@ -7,4 +7,6 @@ import org.apache.ibatis.annotations.Mapper;
 public interface AdminCropMapper {
     public int addCrop(CropVO vo);
     public int deleteCrop(long cropId);
+    public int enableCrop(long cropId);
+    public int disableCrop(long cropId);
 }

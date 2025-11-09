@@ -19,4 +19,14 @@ public class AdminCropServiceImpl implements AdminCropService {
     public int deleteCrop(long cropId) {
         return adminCropMapper.deleteCrop(cropId);
     }
+
+    @Override
+    public int enableCrop(long cropId) {
+        return adminCropMapper.enableCrop(cropId);
+    }
+
+    @Override
+    public int disableCrop(long cropId) {
+        return adminCropMapper.disableCrop(cropId);
+    }
 }

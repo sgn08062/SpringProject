@@ -53,4 +53,26 @@ public class AdminCropController {
 
         return "redirect:/admin/crops";
     }
+
+    @PostMapping("/enable/{id}")
+    public String enableCrop(@PathVariable("id") long id, RedirectAttributes redirectAttributes){
+        int result = adminCropService.enableCrop(id);
+
+        if(result==1){
+            return "success";
+        }else {
+            return "fail";
+        }
+    }
+
+    @PostMapping("/disable/{id}")
+    public String disableCrop(@PathVariable("id") long id, RedirectAttributes redirectAttributes){
+        int result = adminCropService.disableCrop(id);
+
+        if(result==1){
+            return "success";
+        }else {
+            return "fail";
+        }
+    }
 }

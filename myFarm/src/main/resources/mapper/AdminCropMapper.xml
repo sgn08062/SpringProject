@@ -12,4 +12,16 @@
     <delete id="deleteCrop" parameterType="long">
         DELETE FROM CROP WHERE CROP_ID = #{cropId}
     </delete>
+
+    <update id="enableCrop" parameterType="long">
+        UPDATE CROP
+        SET STATUS = 1
+        WHERE CROP_ID = #{cropId}
+    </update>
+
+    <update id="disableCrop" parameterType="long">
+        UPDATE CROP
+        SET STATUS = 0
+        WHERE CROP_ID = #{cropId}
+    </update>
 </mapper>
