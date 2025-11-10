@@ -16,43 +16,39 @@
     <section class="auth-card">
         <h1 class="auth-title">회원가입</h1>
 
-        <form id="signupForm" class="auth-form" novalidate>
+        <form id="signupForm" class="auth-form" action="register" method="post">
             <div class="form-group">
-                <label for="signupId">아이디</label>
+                <label for="loginId">아이디</label>
                 <div class="inline">
-                    <input id="signupId" name="signupId" type="text" placeholder="6~20자 영문/숫자" minlength="6" maxlength="20" required />
+                    <input id="loginId" name="loginId" type="text" placeholder="6~20자 영문/숫자" minlength="6" maxlength="20" required />
                     <button type="button" id="idCheckBtn" class="btn-secondary">중복확인</button>
                 </div>
-                <p class="field-msg" data-for="signupId"></p>
+                <p class="field-msg" data-for="loginId"></p>
             </div>
 
             <div class="form-group">
-                <label for="signupPw">비밀번호</label>
-                <input id="signupPw" name="signupPw" type="password"
+                <label for="userPw">비밀번호</label>
+                <input id="userPw" name="userPw" type="password"
                        placeholder="문자/숫자/특수문자 포함 8~20자"
                        pattern="^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&]).{8,20}$" required />
-                <p class="field-msg" data-for="signupPw"></p>
+                <p class="field-msg" data-for="userPw"></p>
             </div>
 
             <div class="form-group">
-                <label for="signupPw2">비밀번호 재입력</label>
-                <input id="signupPw2" name="signupPw2" type="password" placeholder="비밀번호 확인" required />
-                <p class="field-msg" data-for="signupPw2"></p>
+                <label for="userPw2">비밀번호 재입력</label>
+                <input id="userPw2" name="userPw2" type="password" placeholder="비밀번호 확인" required />
+                <p class="field-msg" data-for="userPw2"></p>
             </div>
 
             <div class="form-group">
-                <label for="name">이름</label>
-                <input id="name" name="name" type="text" placeholder="이름" required />
-                <p class="field-msg" data-for="name"></p>
+                <label for="userName">이름</label>
+                <input id="userName" name="userName" type="text" placeholder="이름" required />
+                <p class="field-msg" data-for="userName"></p>
             </div>
 
             <div class="form-group">
-                <label>이메일</label>
-                <div class="inline">
-                    <input id="emailId" type="text" placeholder="example" required />
-                    <span class="at">@</span>
-                    <input id="emailDomain" type="text" placeholder="naver.com" required />
-                </div>
+                <label for="email">이메일</label>
+                <input id="email" name="email" type="text" placeholder="example@naver.com" required />
                 <p class="field-msg" data-for="email"></p>
             </div>
 
@@ -62,30 +58,15 @@
                 <p class="field-msg" data-for="phone"></p>
             </div>
 
-            <div class="form-group">
-                <label>주소</label>
-                <div class="inline">
-                    <input id="addrMain" type="text" placeholder="주소" readonly required />
-                    <button type="button" id="addrSearchBtn" class="btn-secondary">검색</button>
-                </div>
-                <p class="field-msg" data-for="addrMain"></p>
-            </div>
-
-            <div class="form-group">
-                <label for="addrDetail">상세주소</label>
-                <input id="addrDetail" name="addrDetail" type="text" placeholder="상세주소" />
-            </div>
-
             <button type="submit" class="btn-primary">가입하기</button>
 
             <p class="auth-links">
-                이미 계정이 있으신가요? <a href="login.html">로그인</a>
+                이미 계정이 있으신가요? <a href="login">로그인</a>
             </p>
         </form>
     </section>
 </main>
 
 <footer class="auth-footer">© 2025 FARM | 자연 그대로의 신선함</footer>
-<script src="auth.js"></script>
 </body>
 </html>
