@@ -33,5 +33,11 @@
           AND USER_PW = #{userPw}
     </select>
 
+<!--    세션에 넣을 USER_ID만 조회 후 반환-->
+    <select id="findUserIdForSessionDB" resultType="int">
+        SELECT USER_ID
+        FROM USERS
+        WHERE LOGIN_ID = #{loginId}
+    </select>
 
 </mapper>

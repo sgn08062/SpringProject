@@ -22,15 +22,15 @@ public class LoginCheckAspect {
     // @annotation(LoginCheck) : @LoginCheck가 붙은 메서드만 검사
     @Before("@annotation(com.example.myFarm.common.security.LoginCheck)")
     public void checkLoginSession() {
-        Object loginUser = session.getAttribute("loginUser");
+        Object userId = session.getAttribute("userId");
 
-        if (loginUser == null) {
+        if (userId == null) {
             // 해당 기능은 추후에 로그인 화면으로 연결해줘야 함
             System.out.println("접근 차단 : 로그인 세션이 없습니다.");
             throw new RuntimeException("로그인이 필요합니다.");
         }
         else {
-            System.out.println("세션 인증 통과 " + loginUser);
+            System.out.println("세션 인증 통과 userId=" + userId.toString());
         }
     }
 

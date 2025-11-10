@@ -35,26 +35,15 @@ public class AccountController {
         System.out.println(uservo.toString());
         int result = accountService.userLogin((uservo));
         if (result == 1) {
-            session.setAttribute("loginUser", uservo);
-            System.out.println("로그인 세션 생성 완료 : " + session.getId());
+            int userId = accountService.findUserIdForSession(uservo.getLoginId());
+            session.setAttribute("userId", userId); // 세션에 오직 USER_ID만 저장
+            System.out.println("로그인 세션 생성 완료 : " + session.getId() + ", userId=" + userId);
             return "success";
         }
         else {
             return "fail";
         }
     }
-
-    // 로그인 이후 다른 요청에서 세션 사용하기 -> 추후 필요 시 기능 이용
-//    @GetMapping("/getUserInfo")
-//    public String getUserInfo(HttpSession session) {
-//        UserVO loginUser = (UserVO) session.getAttribute("loginUser");
-//
-//        if (loginUser == null) {
-//            return "로그인 필요";
-//        }
-//
-//        return "현재 로그인 중: " + loginUser.getLoginId();
-//    }
 
     @GetMapping("/logout")
     public String logout(HttpSession session) {
