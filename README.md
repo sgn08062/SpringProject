@@ -92,3 +92,4 @@
 | :--- | :--- | :--- |
 | 주소 추가 | /address | POST |
 | 주소 수정 | /address/{id} | POST |
+| 주소 삭제 | /address/{id} | POST |
