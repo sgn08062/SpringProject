@@ -2,21 +2,25 @@ package com.example.myFarm.controller;
 
 import com.example.myFarm.admin.AdminCropService;
 import com.example.myFarm.command.CropVO;
+import com.example.myFarm.inventory.InventoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-@RestController
+@Controller
 @RequestMapping("/admin/crops")
 public class AdminCropController {
     @Autowired
     private AdminCropService adminCropService;
 
-    @GetMapping
-    public String getList(){
-        return "/admin/crops";
+    @GetMapping("/list")
+    public String getList(Model model) {
+
+        return "/admin/crops/list";
     }
 
     @GetMapping("/addCrop")
@@ -38,12 +42,12 @@ public class AdminCropController {
         }
 
         // 실제 경로
-        //return "redirect:/admin/crops";
+        //return "redirect:/admin/crops/list";
     }
 
-    @DeleteMapping("/deleteCrop/{id}")
-    public String deleteCrop(@PathVariable("id") long id,  RedirectAttributes redirectAttributes){
-        int result = adminCropService.deleteCrop(id);
+    @PostMapping("/deleteCrop/{uuid}")
+    public String deleteCrop(@PathVariable("uuid") String uuid,  RedirectAttributes redirectAttributes){
+        int result = adminCropService.deleteCrop(uuid);
 
         if(result == 1){
             redirectAttributes.addFlashAttribute("message", "Delete Crop successfully");
@@ -51,12 +55,12 @@ public class AdminCropController {
             redirectAttributes.addFlashAttribute("message", "Delete Crop failed");
         }
 
-        return "redirect:/admin/crops";
+        return "redirect:/admin/crops/list";
     }
 
-    @PostMapping("/enable/{id}")
-    public String enableCrop(@PathVariable("id") long id, RedirectAttributes redirectAttributes){
-        int result = adminCropService.enableCrop(id);
+    @PostMapping("/enable/{uuid}")
+    public String enableCrop(@PathVariable("uuid") String uuid, RedirectAttributes redirectAttributes){
+        int result = adminCropService.enableCrop(uuid);
 
         if(result==1){
             return "success";
@@ -65,9 +69,9 @@ public class AdminCropController {
         }
     }
 
-    @PostMapping("/disable/{id}")
-    public String disableCrop(@PathVariable("id") long id, RedirectAttributes redirectAttributes){
-        int result = adminCropService.disableCrop(id);
+    @PostMapping("/disable/{uuid}")
+    public String disableCrop(@PathVariable("uuid") String uuid, RedirectAttributes redirectAttributes){
+        int result = adminCropService.disableCrop(uuid);
 
         if(result==1){
             return "success";

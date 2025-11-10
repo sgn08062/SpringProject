@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.myFarm.inventory.InventoryMapper">
+    <insert id="initInventoryForCrop">
+        INSERT INTO INVENTORY(AMOUNT, UUID)
+        VALUES (0, #{uuid})
+    </insert>
+
+    <update id="increaseInventoryAmount">
+        UPDATE INVENTORY
+        SET AMOUNT = AMOUNT + #{amount}
+        WHERE uuid = #{uuid}
+    </update>
+
+    <insert id="insertInventory">
+        INSERT INTO INVENTORY (AMOUNT, UUID)
+        VALUES (#{amount}, #{uuid})
+    </insert>
+
+    <select id="selectByCropId" parameterType="string" resultType="InventoryVO">
+        SELECT STOR_ID, AMOUNT, UUID
+        FROM INVENTORY
+        WHERE uuid = #{uuid}
+    </select>
+
+    <select id="selectAll">
+        SELECT STOR_ID, AMOUNT, UUID
+        FROM INVENTORY
+        ORDER BY STOR_ID DESC
+    </select>
+</mapper>

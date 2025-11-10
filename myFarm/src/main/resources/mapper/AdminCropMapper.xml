@@ -5,23 +5,39 @@
 
 <mapper namespace="com.example.myFarm.admin.AdminCropMapper">
     <insert id="addCrop" parameterType="CropVO">
-        INSERT INTO CROP(CROP_NAME, REG_DATE, GROWTH_TIME, QUANTITY, UNIT_NAME)
-        VALUES(#{cropName}, #{regDate}, #{growthTime}, #{quantity}, #{unitName})
+        INSERT INTO CROP(CROP_NAME, UUID, GROWTH_TIME, QUANTITY, UNIT_NAME)
+        VALUES(#{cropName}, #{uuid}, #{growthTime}, #{quantity}, #{unitName})
     </insert>
 
     <delete id="deleteCrop" parameterType="long">
-        DELETE FROM CROP WHERE CROP_ID = #{cropId}
+        DELETE FROM CROP WHERE UUID = #{uuid}
     </delete>
 
     <update id="enableCrop" parameterType="long">
         UPDATE CROP
         SET STATUS = 1
-        WHERE CROP_ID = #{cropId}
+        WHERE UUID = #{uuid}
     </update>
 
     <update id="disableCrop" parameterType="long">
         UPDATE CROP
         SET STATUS = 0
-        WHERE CROP_ID = #{cropId}
+        WHERE UUID = #{uuid}
+    </update>
+
+    <update id="tickActiveCrops">
+        UPDATE CROP
+        SET ELAPSED_TICK = ELAPSED_TICK + 1
+        WHERE STATUS = 1
+    </update>
+
+    <select id="selectMatureCrops" resultType="map">
+        SELECT UUID, QUANTITY
+        FROM CROP
+        WHERE STATUS = 1 AND ELAPSED_TICK >= GROWTH_TIME
+    </select>
+
+    <update id="resetCropAfterHarvest" parameterType="long">
+        UPDATE CROP SET ELAPSED_TICK = 0 WHERE UUID = #{uuid}
     </update>
 </mapper>
