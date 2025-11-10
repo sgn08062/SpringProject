@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>FARM | 로그인</title>
+    <link rel="stylesheet"  type="text/css" href="/css/auth.css" />
+    <script src="/js/auth.js"></script>
+</head>
+<body class="auth-body">
+<header class="auth-header">
+    <button class="logo" onclick="location.href='signup.html'">🌿 FARM</button>
+</header>
+
+<main class="auth-main">
+    <section class="auth-card">
+        <h1 class="auth-title">로그인</h1>
+
+        <form id="loginForm" class="auth-form" novalidate>
+            <div class="form-group">
+                <label for="loginId">아이디</label>
+                <input id="loginId" name="loginId" type="text" placeholder="아이디" required />
+                <p class="field-msg" data-for="loginId"></p>
+            </div>
+
+            <div class="form-group">
+                <label for="loginPw">비밀번호</label>
+                <input id="loginPw" name="loginPw" type="password" placeholder="비밀번호" required />
+                <p class="field-msg" data-for="loginPw"></p>
+            </div>
+
+            <button type="submit" class="btn-primary">로그인</button>
+
+            <p class="auth-links">
+                아직 계정이 없으신가요? <a href="signup.html">회원가입</a>
+            </p>
+        </form>
+    </section>
+</main>
+
+<footer class="auth-footer">© 2025 FARM | 자연 그대로의 신선함</footer>
+<script src="auth.js"></script>
+</body>
+</html>
