@@ -90,8 +90,9 @@
 
 | 행동 | API | method |
 | :--- | :--- | :--- |
-| 주소 추가 | /address | POST |
-| 주소 수정 | /address/{id} | POST |
-| 주소 삭제 | /address/{id} | POST |
-| 주소 추가 페이지 | /address | GET |
-| 주소 수정 페이지 | /address/{id} | GET |
+| 주소 추가 | /address/insert/{id} | POST |
+| 주소 수정 | /address/update/{id} | POST |
+| 주소 삭제 | /address/delete/{id} | POST |
+| 주소 조회 페이지 | /address | GET |
+| 주소 추가 페이지 | /address/insert/{id} | GET |
+| 주소 수정 페이지 | /address/update/{id} | GET |
