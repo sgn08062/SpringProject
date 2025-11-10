@@ -16,7 +16,7 @@
     <section class="auth-card">
         <h1 class="auth-title">로그인</h1>
 
-        <form id="loginForm" class="auth-form" novalidate>
+        <form id="loginForm" class="auth-form" action="login" method="post">
             <div class="form-group">
                 <label for="loginId">아이디</label>
                 <input id="loginId" name="loginId" type="text" placeholder="아이디" required />
@@ -24,21 +24,21 @@
             </div>
 
             <div class="form-group">
-                <label for="loginPw">비밀번호</label>
-                <input id="loginPw" name="loginPw" type="password" placeholder="비밀번호" required />
+                <label for="userPw">비밀번호</label>
+                <input id="userPw" name="userPw" type="password" placeholder="비밀번호" required />
                 <p class="field-msg" data-for="loginPw"></p>
             </div>
 
             <button type="submit" class="btn-primary">로그인</button>
 
             <p class="auth-links">
-                아직 계정이 없으신가요? <a href="signup.html">회원가입</a>
+                아직 계정이 없으신가요? <a href="register">회원가입</a>
             </p>
         </form>
     </section>
 </main>
 
 <footer class="auth-footer">© 2025 FARM | 자연 그대로의 신선함</footer>
-<script src="auth.js"></script>
+
 </body>
 </html>
