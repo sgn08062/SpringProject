@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>주문/결제</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; text-align: center; }
+        th, td { border: 1px solid #ddd; padding: 10px; }
+        th { background-color: #f2f2f2; }
+        td:nth-child(2), td:nth-child(4) { text-align: right; }
+        h2 { margin-top: 20px; }
+        #finalTotal { font-size: 1.5em; color: #dc3545; font-weight: bold; }
+        button[type="submit"] { padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1.1em; margin-top: 20px; }
+    </style>
+</head>
+<body>
+<h1>🛒 주문/결제</h1>
+
+<form th:action="@{/user/placeOrder}" method="post" id="orderForm">
+
+    <h2>배송 정보</h2>
+
+    <div style="margin-bottom: 15px;" th:with="addr=${defaultAddress}">
+        <label>
+            <input type="radio" name="addressOption" value="default" checked> 기본 배송지 사용
+            (<span th:text="${addr.address}">서울시 강남구</span>, <span th:text="${addr.phone}">010-1234-5678</span>)
+        </label><br>
+        <label>
+            <input type="radio" name="addressOption" value="new"> 새로운 배송지 입력
+            <a th:href="@{/user/orders?tab=addressManageTab}" target="_blank" style="margin-left: 10px;">(주소 관리)</a>
+        </label>
+    </div>
+
+    <div id="newAddressFields" style="display: none;">
+        <p>
+            <label for="address">주소:</label>
+            <input type="text" id="address" name="address">
+        </p>
+        <p>
+            <label for="phone">연락처:</label>
+            <input type="text" id="phone" name="phone">
+        </p>
+    </div>
+
+    <hr>
+
+    <h2>주문 상품 목록</h2>
+
+    <table>
+        <thead>
+        <tr>
+            <th>상품명</th>
+            <th>단가</th>
+            <th>수량</th>
+            <th>합계</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${checkoutItems}">
+            <td th:text="${item.itemName}">유기농 감자</td>
+            <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')}">5,000원</td>
+            <td th:text="${item.amount}">2</td>
+            <td th:with="total=${item.amount * item.price}" th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT')}">10,000원</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <hr>
+
+    <h2>최종 결제 금액: <span id="finalTotal" th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT')}">20,000원</span></h2>
+
+    <button type="submit">결제하기 (주문 확정)</button>
+
+</form>
+
+<script>
+    $(document).ready(function() {
+        $('input[name="addressOption"]').on('change', function() {
+            if ($(this).val() === 'new') {
+                $('#newAddressFields').show();
+            } else {
+                $('#newAddressFields').hide();
+            }
+        });
+    });
+</script>
+</body>
+</html>

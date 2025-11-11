@@ -1,0 +1,462 @@
+/* ==============================
+   기본 테마 변수 (라이트/다크)
+   ============================== */
+:root {
+    --font-size: 16px;
+    --background: #ffffff;
+    --foreground: oklch(0.145 0 0); /* 거의 검은색 */
+    --card: #ffffff;
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: #030213; /* 이미지의 검은색 배경 */
+    --primary-foreground: oklch(1 0 0); /* 흰색 */
+    --secondary: #4CAF50; /* 농작물 연상시키는 초록색 */
+    --secondary-foreground: oklch(1 0 0); /* 흰색 */
+    --muted: #ececf0; /* 연한 회색 */
+    --muted-foreground: #717182; /* 회색 */
+    --accent: #e9ebef;
+    --accent-foreground: #030213;
+    --destructive: #d4183d;
+    --destructive-foreground: #ffffff;
+    --border: rgba(0, 0, 0, 0.1); /* 연한 테두리 */
+    --input: transparent;
+    --input-background: #f3f3f5;
+    --switch-background: #cbced4;
+    --font-weight-medium: 500;
+    --font-weight-normal: 400;
+    --ring: oklch(0.708 0 0);
+    --radius: 0.625rem;
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+}
+
+/* 다크 모드 */
+.dark {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.145 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.985 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.396 0.141 25.723);
+    --destructive-foreground: oklch(0.637 0.237 25.331);
+    --border: oklch(0.269 0 0);
+    --input: oklch(0.269 0 0);
+    --ring: oklch(0.439 0 0);
+}
+
+/* ==============================
+   기본 레이아웃 & 리셋
+   ============================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-size: var(--font-size);
+    font-family: 'Noto Sans KR', sans-serif; /* 한국어 폰트 추가 */
+    background-color: var(--background);
+    color: var(--foreground);
+    line-height: 1.5;
+    min-height: 100vh; /* 푸터를 하단에 고정하기 위함 */
+    display: flex;
+    flex-direction: column;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* ==============================
+   헤더 & 네비게이션
+   ============================== */
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: var(--card); /* 헤더 배경색은 card 변수 사용 */
+    border-bottom: 1px solid var(--border);
+    max-width: 1200px; /* 컨텐츠 중앙 정렬을 위한 최대 너비 */
+    margin: 0 auto;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-medium);
+    display: flex;
+    align-items: center;
+}
+
+.logo img {
+    height: 30px; /* 로고 이미지 크기 */
+    margin-right: 8px;
+}
+
+.header-top {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.header-top a {
+    color: var(--foreground);
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.header-top a:hover {
+    color: var(--primary); /* 호버 시 강조색으로 변경 */
+}
+
+/* ==============================
+   메인 배너
+   ============================== */
+.main-banner {
+    background-color: var(--primary); /* 이미지와 같이 검은색 배경 */
+    color: var(--primary-foreground); /* 흰색 글자 */
+    padding: 80px 20px;
+    text-align: center;
+    margin-bottom: 40px;
+    /* max-width: 1200px; -- 전체 너비로 확장 */
+    width: 100%;
+}
+
+.main-banner h1 {
+    font-size: 2.8em;
+    font-weight: var(--font-weight-medium);
+    margin-bottom: 15px;
+}
+
+.main-banner p {
+    font-size: 1.3em;
+    color: var(--muted-foreground); /* 너무 밝지 않게 muted-foreground 사용 */
+}
+
+
+/* ==============================
+   검색 컨테이너
+   ============================== */
+.search-container {
+    max-width: 1200px;
+    margin: 0 auto 40px auto; /* 중앙 정렬 및 하단 여백 */
+    padding: 0 20px;
+}
+
+.search-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background-color: var(--card); /* 검색바 배경은 card 색상 */
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 8px 15px;
+}
+
+.search-form input[type="text"] {
+    flex-grow: 1; /* 최대한 넓게 */
+    border: none;
+    background-color: transparent; /* input-background 대신 투명 */
+    color: var(--foreground);
+    padding: 0.5rem 0.5rem;
+    font-size: var(--font-size);
+    outline: none; /* 포커스 시 아웃라인 제거 */
+}
+
+.search-form input[type="text"]::placeholder {
+    color: var(--muted-foreground);
+}
+
+.search-form select {
+    border: none;
+    background-color: transparent;
+    color: var(--foreground);
+    padding: 0.5rem 0.5rem;
+    font-size: var(--font-size);
+    cursor: pointer;
+    outline: none;
+    appearance: none; /* 기본 드롭다운 화살표 숨기기 */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); /* 커스텀 화살표 */
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+    padding-right: 30px; /* 화살표 공간 확보 */
+}
+
+.search-form button[type="submit"] {
+    display: none; /* 이미지에 검색 버튼이 없으므로 숨김 */
+}
+
+
+/* ==============================
+   상품 목록 (카드)
+   ============================== */
+#productList {
+    display: grid;
+    /* 이미지와 같이 3열, 반응형 고려 */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 24px; /* 상품 카드 사이 간격 */
+    max-width: 1200px;
+    margin: 0 auto; /* 중앙 정렬 */
+    padding: 0 20px;
+    flex-grow: 1; /* 푸터가 바닥에 붙도록 공간 차지 */
+}
+
+.crop-item {
+    background-color: var(--card);
+    color: var(--card-foreground);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md); /* 둥근 모서리 */
+    overflow: hidden; /* 이미지 둥근 모서리 적용 */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* 은은한 그림자 */
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column; /* 내용이 위에서 아래로 쌓이도록 */
+    position: relative; /* sold-out 오버레이를 위해 */
+}
+
+.crop-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+.item-image {
+    width: 100%;
+    padding-top: 75%; /* 4:3 비율 유지 */
+    position: relative;
+    overflow: hidden;
+}
+
+.item-image img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-md); /* 이미지도 둥글게 */
+    border-bottom-left-radius: 0; /* 아래쪽은 직각으로 유지 */
+    border-bottom-right-radius: 0;
+}
+
+.sold-out-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* 반투명 검은색 */
+    color: var(--primary-foreground); /* 흰색 글자 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.8em;
+    font-weight: var(--font-weight-medium);
+    z-index: 10;
+    border-radius: var(--radius-md);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+
+.item-info {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.flex-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.item-info h2 {
+    font-size: 1.1em;
+    font-weight: var(--font-weight-medium);
+    color: var(--foreground);
+    margin: 0;
+}
+
+.badge {
+    background-color: var(--muted);
+    color: var(--muted-foreground);
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.75em;
+    font-weight: var(--font-weight-normal);
+}
+
+.farmer-name {
+    font-size: 0.9em;
+    color: var(--muted-foreground);
+    margin-bottom: 10px;
+}
+
+.price {
+    font-size: 1.2em;
+    font-weight: var(--font-weight-medium);
+    color: var(--primary); /* 가격은 primary 색상으로 강조 */
+    margin-bottom: 15px;
+}
+
+.btn-wrapper {
+    margin-top: auto; /* 버튼을 카드 하단에 배치 */
+}
+
+.btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    padding: 0.7rem 1rem;
+    border-radius: var(--radius-sm);
+    font-weight: var(--font-weight-medium);
+    transition: background-color 0.2s, color 0.2s;
+    background-color: var(--primary); /* 담기 버튼은 primary */
+    color: var(--primary-foreground);
+}
+
+.btn:hover {
+    background-color: var(--secondary); /* 호버 시 secondary 색상 (초록) */
+    color: var(--secondary-foreground);
+}
+
+/* 품절 버튼 스타일 */
+.btn[style*="background-color: var(--muted)"] { /* 인라인 스타일로 적용된 품절 버튼 감지 */
+    background-color: var(--muted) !important;
+    color: var(--muted-foreground) !important;
+    cursor: not-allowed !important;
+    opacity: 0.8;
+}
+
+/* ==============================
+   푸터
+   ============================== */
+.main-footer {
+    background-color: var(--primary); /* 이미지와 같이 검은색 배경 */
+    color: var(--primary-foreground); /* 흰색 글자 */
+    padding: 40px 20px;
+    margin-top: 60px; /* 상품 목록과의 간격 */
+    font-size: 0.9em;
+    width: 100%;
+    /* max-width: 1200px; -- 전체 너비로 확장 */
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 30px;
+}
+
+.footer-section h3 {
+    font-size: 1.1em;
+    font-weight: var(--font-weight-medium);
+    margin-bottom: 15px;
+    color: var(--primary-foreground);
+}
+
+.footer-section p, .footer-section a {
+    color: var(--muted-foreground); /* 푸터의 글자색은 muted-foreground로 */
+    margin-bottom: 8px;
+    display: block;
+    font-size: 0.95em;
+}
+
+.footer-section a:hover {
+    color: var(--secondary); /* 호버 시 초록색으로 변경 */
+}
+
+/* ==============================
+   반응형
+   ============================== */
+@media (max-width: 1024px) {
+    #productList {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .header-container {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1rem;
+    }
+
+    .header-top {
+        margin-top: 1rem;
+        width: 100%;
+        justify-content: space-around;
+        gap: 0.5rem;
+    }
+
+    .main-banner h1 {
+        font-size: 2em;
+    }
+
+    .main-banner p {
+        font-size: 1em;
+    }
+
+    .search-container {
+        padding: 0 15px;
+    }
+
+    .search-form {
+        flex-direction: column;
+        padding: 10px;
+    }
+
+    .search-form input[type="text"],
+    .search-form select {
+        width: 100%;
+        padding: 0.75rem 1rem;
+    }
+
+    #productList {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        padding: 0 15px;
+    }
+
+    .footer-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .footer-section {
+        margin-bottom: 20px;
+    }
+    .footer-section:last-child {
+        margin-bottom: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-top a {
+        font-size: 0.8rem;
+        margin: 0 5px;
+    }
+
+    #productList {
+        grid-template-columns: 1fr; /* 모바일에서는 1열 */
+        padding: 0 10px;
+    }
+
+    .crop-item {
+        margin-bottom: 15px;
+    }
+}
