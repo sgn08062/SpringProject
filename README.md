@@ -9,11 +9,20 @@
 ## COMMON API
 
 ### 🧑‍💻 계정 (/account)
+🧭 페이지 (Controller, SSR)
+| 행동          | API                | method | 비고            |
+| :---------- | :----------------- | :----- | :------------ |
+| 로그인 페이지     | /account/login     | GET    | 로그인 화면 반환     |
+| 회원가입 페이지    | /account/register  | GET    | 회원가입 화면 반환    |
 
-| 행동 | API | method | 비고 |
-| :--- | :--- | :--- | :--- |
-| 로그인 | /login | POST | ex) /account/login |
-| 로그아웃 | /logout | POST | |
+🔌 백엔드 API (RestController, JSON)
+| 행동       | API                   | method | 비고                                                                                        |
+| :------- | :-------------------- | :----- | :---------------------------------------------------------------------------------------- |
+| 로그인      | /api/account/login    | POST   | 본문: x-www-form-urlencoded(loginId, userPw) / 응답: "success" 또는 "fail" / 성공 시 세션에 userId 저장 |
+| 로그아웃     | /api/account/logout   | POST   | 세션 무효화 / 응답: "logout success" 또는 204                                                      |
+| 회원가입(선택) | /api/account/register | POST   | 본문: x-www-form-urlencoded(...) / 응답: "success" 또는 "fail"                                  |
+
+
 
 ### 🛍️ 상품 목록 (/common)
 
