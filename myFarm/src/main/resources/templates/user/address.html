@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>배송지 관리</title>
+    <link rel="stylesheet" href="/css/style.css"> <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* 모달 스타일 (추가) */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); padding-top: 60px; }
+        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
+        .close:hover, .close:focus { color: #000; text-decoration: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+<h1>배송지 관리</h1>
+
+<div th:if="${successMessage}" style="color: green; font-weight: bold; margin-bottom: 15px;" th:text="${successMessage}">성공 메시지</div>
+
+<button id="openModalBtn" class="btn">➕ 새 배송지 추가</button>
+
+<hr>
+
+<h2>등록된 배송지 목록</h2>
+<table>
+    <thead>
+    <tr>
+        <th>별칭</th>
+        <th>주소</th>
+        <th>관리</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="addr : ${addressList}">
+        <td th:text="${addr.addName}">집</td>
+        <td th:text="${addr.address}">서울시 강남구</td>
+        <td>
+            <button type="button" class="editBtn"
+                    th:data-add-id="${addr.addId}"
+                    th:data-add-name="${addr.addName}"
+                    th:data-address="${addr.address}">수정</button>
+
+            <form th:action="@{/templates/product/address/delete/{id}(id=${addr.addId})}" method="post" style="display:inline;">
+                <button type="submit" class="deleteBtn cancelBtn">삭제</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<div id="addressModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="modalTitle">배송지 추가</h2>
+
+        <form id="addressForm" th:action="@{/templates/product/address}" method="post">
+            <input type="hidden" id="addId" name="addId" value="">
+
+            <p>
+                <label for="addNameInput">배송지 별칭:</label>
+                <input type="text" id="addNameInput" name="addName" required>
+            </p>
+            <p>
+                <label for="addressFormInput">주소:</label>
+                <input type="text" id="addressFormInput" name="address" required>
+            </p>
+
+            <button type="submit" id="submitBtn" class="btn">저장</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const modal = document.getElementById('addressModal');
+    const openBtn = document.getElementById('openModalBtn');
+    const closeBtn = document.getElementsByClassName('close')[0];
+    const form = $('#addressForm');
+
+    // 모달 열기 (추가 모드)
+    openBtn.onclick = function() {
+        $('#modalTitle').text('새 배송지 추가');
+        $('#addId').val('');
+        form[0].reset();
+        modal.style.display = 'block';
+    }
+
+    // 모달 열기 (수정 모드)
+    $('.editBtn').on('click', function() {
+        const data = $(this).data();
+
+        $('#modalTitle').text('배송지 수정 (ID: ' + data.addId + ')');
+        $('#addId').val(data.addId);
+        $('#addNameInput').val(data.addName);
+        $('#addressFormInput').val(data.address);
+
+        modal.style.display = 'block';
+    });
+
+    // 모달 닫기
+    closeBtn.onclick = function() { modal.style.display = 'none'; }
+    window.onclick = function(event) {
+        if (event.target == modal) { modal.style.display = 'none'; }
+    }
+</script>
+</body>
+</html>

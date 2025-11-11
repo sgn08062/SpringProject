@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 상세</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div th:fragment="itemDetails" class="crop-item" th:object="${item}">
+    <h2 th:text="*{itemName}">유기농 감자</h2>
+    <p th:text="|가격: ${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')}원 / ${item.unitName}|">가격: 5,000원 / kg</p>
+    <p>농작물 이름 (원산지): <span th:text="*{itemName}">감자</span></p>
+    <p>성장 기간: 60일 (더미 데이터)</p>
+
+    <hr>
+
+    <div>
+        <p th:text="|현재 재고: *{amount} *{unitName}|">현재 재고: 50 kg</p>
+
+        <div style="margin-bottom: 10px;">
+            <label for="quantity">수량:</label>
+            <input type="number" id="detail-quantity" name="amount" value="1" min="1" th:max="*{amount}" style="width: 50px;">
+        </div>
+
+        <form th:action="@{/user/pushCart}" method="post" id="addToCartForm" style="display: inline-block; margin-right: 10px;">
+            <input type="hidden" name="itemId" th:value="*{itemId}">
+            <input type="hidden" name="amount" id="cart-amount-value">
+            <button type="submit" th:disabled="*{amount <= 0}" onclick="document.getElementById('cart-amount-value').value = document.getElementById('detail-quantity').value;">
+                🛒 장바구니 담기
+            </button>
+        </form>
+
+        <form th:action="@{/user/checkout}" method="get" id="buyNowForm" style="display: inline-block;">
+            <input type="hidden" name="itemId" th:value="*{itemId}">
+            <input type="hidden" name="amount" id="checkout-amount-value">
+            <input type="hidden" name="selectedItems" th:value="*{itemId}"> <button type="submit" th:disabled="*{amount <= 0}" onclick="document.getElementById('checkout-amount-value').value = document.getElementById('detail-quantity').value;">
+            💰 바로 구매
+        </button>
+        </form>
+
+        <span th:if="*{amount <= 0}" class="sold-out" style="margin-left: 10px; color: red; font-weight: bold;">SOLD OUT</span>
+    </div>
+</div>
+
+</body>
+</html>

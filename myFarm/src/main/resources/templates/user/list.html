@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품 목록 - 농장직송</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 8% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .modal-content input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            border-radius: 4px;
+        }
+        .btn-wrapper {
+            display: flex;
+            gap: 5px;
+        }
+        .btn-wrapper .btn {
+            flex-grow: 1;
+            text-align: center;
+        }
+        .btn.buy {
+            background-color: #ffc107;
+        }
+        .btn.cart {
+            background-color: #28a745;
+        }
+        .cart-form-inline {
+            flex-grow: 1;
+            display: flex;
+        }
+        .cart-form-inline .btn.cart {
+            width: 100%;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+            color: white;
+        }
+        #loginModal .modal-content button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            margin: 8px 0;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            border-radius: 4px;
+        }
+        #detailModal .modal-content button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            width: auto;
+            margin-top: 10px;
+        }
+    </style>
+
+</head>
+<body class="light">
+
+<header>
+    <div class="header-container">
+        <div class="logo">
+            <img src="#" alt="농장직송 로고">
+            <span>농장직송</span>
+        </div>
+        <div class="header-top">
+            <a th:href="@{/product/list}">상품</a>
+            <a th:href="@{/user/orders}">마이페이지</a>
+
+            <a th:href="@{/user/cart}">장바구니</a>
+
+            <th:block th:if="${!isLoggedIn}">
+                <a href="#" id="loginModalBtn">로그인</a>
+                <a href="#">회원가입</a>
+            </th:block>
+
+            <a th:href="@{/logout}" th:if="${isLoggedIn}">로그아웃</a>
+        </div>
+    </div>
+</header>
+
+<div class="main-banner">
+    <h1>신선한 농산물 직거래</h1>
+    <p>농부가 직접 키운 유기농 농산물을 만나보세요</p>
+</div>
+
+<div class="search-container">
+    <form th:action="@{/product/list}" method="get" class="search-form">
+        <input type="text" name="searchKeyword" placeholder="🔍 상품 검색..." th:value="${searchKeyword}">
+        <select name="sortField">
+            <option value="regDate" th:selected="${sortField == 'regDate'}">전체</option>
+            <option value="priceAsc" th:selected="${sortField == 'priceAsc'}">가격 낮은순</option>
+        </select>
+    </form>
+</div>
+
+<div id="productList" th:if="${itemList != null}">
+    <div class="crop-item" th:each="item : ${itemList}">
+
+        <a th:href="@{/product/detail(itemId=${item.itemId})}" class="item-image-link">
+            <div class="item-image">
+                <th:block th:switch="${item.itemId}">
+                    <img th:case="1" src="https://images.unsplash.com/photo-1745791562822-7ac21012bbb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080" th:alt="${item.itemName} + ' 이미지'">
+                    <img th:case="2" src="https://images.unsplash.com/photo-1657411658279-e32af8636eb1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080" th:alt="${item.itemName} + ' 이미지'">
+                    <img th:case="3" src="https://images.unsplash.com/photo-1717959159782-98c42b1d4f37?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080" th:alt="${item.itemName} + ' 이미지'">
+                    <img th:case="4" src="https://images.unsplash.com/photo-1710528184650-fc75ae862c13?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080" th:alt="${item.itemName} + ' 이미지'">
+                    <img th:case="5" src="https://images.unsplash.com/photo-1730202252661-bd76bd26378f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080" th:alt="${item.itemName} + ' 이미지'">
+                    <img th:case="*" src="https://images.unsplash.com/photo-1745791562822-7ac21012bbb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080" th:alt="${item.itemName} + ' 이미지'">
+                </th:block>
+
+                <div th:unless="${item.amount != null and item.amount > 0}" class="sold-out-overlay">SOLD OUT</div>
+            </div>
+        </a>
+
+        <div class="item-info">
+            <div class="flex-item-header">
+                <h2 th:text="${item.itemName ?: '상품명'}">상품명</h2>
+                <span class="badge">수확시기</span>
+            </div>
+            <p class="farmer-name">판매자 정보</p>
+            <p class="price" th:text="|${#numbers.formatDecimal(item.price ?: 0, 0, 'COMMA', 0, 'POINT')}원 / 개|">가격 / 단위</p>
+
+            <div class="btn-wrapper">
+                <th:block th:if="${item.amount != null and item.amount > 0}">
+                    <a th:href="@{/user/checkout(itemId=${item.itemId})}" class="btn buy">바로 구매</a>
+                    <form th:action="@{/user/pushCart}" method="post" class="cart-form-inline">
+                        <input type="hidden" name="itemId" th:value="${item.itemId}">
+                        <input type="hidden" name="amount" value="1">
+                        <button type="submit" class="btn cart">장바구니</button>
+                    </form>
+                </th:block>
+                <th:block th:unless="${item.amount != null and item.amount > 0}">
+                    <span class="btn" style="background-color: var(--muted); color: var(--muted-foreground); cursor: default; width: 100%;">품절</span>
+                </th:block>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="main-footer">
+    <div class="footer-content">
+        <div class="footer-section">
+            <h3>농장직송</h3>
+            <p>신선한 농산물을 농장에서 직접 소비자에게 전달하는 직거래 플랫폼입니다.</p>
+        </div>
+        <div class="footer-section">
+            <h3>고객센터</h3>
+            <p>📞 1588-1234</p>
+            <p>✉️ support@farm.com</p>
+        </div>
+        <div class="footer-section">
+            <a th:href="@{/user/orders}">주문 목록</a>
+            <a th:href="@{/user/checkout}">결제</a>
+            <a href="#">이용약관</a>
+            <a href="#">개인정보처리방침</a>
+        </div>
+        <div class="footer-section">
+            <h3>회사 정보</h3>
+            <p>📍 서울특별시 강남구 테헤란로 123</p>
+            <p>대표이사 : 김농부</p>
+        </div>
+    </div>
+</footer>
+
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+        <span class="close login-close">&times;</span>
+        <h2>로그인</h2>
+        <form action="/login" method="post">
+            <label for="username">아이디</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">비밀번호</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">로그인</button>
+        </form>
+        <p style="text-align: center; margin-top: 15px;">
+            <a href="#" style="color: #007bff;">비밀번호 찾기</a> |
+            <a href="#" style="color: #007bff;">회원가입</a>
+        </p>
+    </div>
+</div>
+
+<div id="detailModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <span class="close detail-close">&times;</span>
+        <div id="detailContentContainer">
+            <p style="text-align: center;">Loading...</p>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+    const loginModal = document.getElementById("loginModal");
+    const loginBtn = document.getElementById("loginModalBtn");
+    const loginClose = document.querySelector("#loginModal .close");
+
+    if(loginBtn) {
+        loginBtn.onclick = function(event) {
+            event.preventDefault();
+            loginModal.style.display = "block";
+        }
+    }
+    if(loginClose) {
+        loginClose.onclick = function() {
+            loginModal.style.display = "none";
+        }
+    }
+
+    window.onclick = function(event) {
+        if (event.target == loginModal) {
+            loginModal.style.display = "none";
+        }
+    }
+</script>
+
+</body>
+</html>
