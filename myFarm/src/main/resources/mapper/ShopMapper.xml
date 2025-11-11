@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.myFarm.shop.ShopMapper">
+
+    <select id="findAllItems" resultType="com.example.myFarm.command.ShopVO">
+        SELECT
+            ITEM_ID,
+            ITEM_NAME,
+            PRICE,
+            STOR_ID
+        FROM SHOP_ITEM_TABLE
+    </select>
+
+    <insert id="insertItem" parameterType="com.example.myFarm.command.ShopVO">
+        INSERT INTO SHOP_ITEM_TABLE (ITEM_NAME, PRICE, STOR_ID)
+        VALUES (#{itemName}, #{price}, #{storId})
+    </insert>
+
+    <update id="updateItem" parameterType="com.example.myFarm.command.ShopVO">
+        UPDATE SHOP_ITEM_TABLE
+        SET
+            ITEM_NAME = #{itemName},
+            PRICE = #{price},
+            STOR_ID = #{storId}
+        WHERE ITEM_ID = #{itemId}
+    </update>
+
+    <delete id="deleteItem">
+        DELETE FROM SHOP_ITEM_TABLE WHERE ITEM_ID = #{itemId}
+    </delete>
+
+</mapper>
