@@ -9,7 +9,7 @@ import java.util.Map;
 public interface AdminCropService {
     int addCrop(CropVO vo);
 
-    int deleteCrop(String uuid);
-    int enableCrop(String uuid);
-    int disableCrop(String uuid);
+    int deleteCrop(long cropId);
+    int enableCrop(long cropId);
+    int disableCrop(long cropId);
 }

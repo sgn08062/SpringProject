@@ -4,25 +4,28 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.example.myFarm.admin.AdminCropMapper">
-    <insert id="addCrop" parameterType="CropVO">
-        INSERT INTO CROP(CROP_NAME, UUID, GROWTH_TIME, QUANTITY, UNIT_NAME)
-        VALUES(#{cropName}, #{uuid}, #{growthTime}, #{quantity}, #{unitName})
+    <insert id="addCrop"
+            parameterType="CropVO"
+            useGeneratedKeys="true"
+            keyProperty="cropId"
+            keyColumn="CROP_ID">
+        INSERT INTO CROP (
+            CROP_NAME, STATUS, GROWTH_TIME, QUANTITY, UNIT_NAME, ELAPSED_TICK
+        ) VALUES (
+            #{cropName}, #{status}, #{growthTime}, #{quantity}, #{unitName}, #{elapsedTick}
+        )
     </insert>
 
     <delete id="deleteCrop" parameterType="long">
-        DELETE FROM CROP WHERE UUID = #{uuid}
+        DELETE FROM CROP WHERE CROP_ID = #{cropId}
     </delete>
 
     <update id="enableCrop" parameterType="long">
-        UPDATE CROP
-        SET STATUS = 1
-        WHERE UUID = #{uuid}
+        UPDATE CROP SET STATUS = 1 WHERE CROP_ID = #{cropId}
     </update>
 
     <update id="disableCrop" parameterType="long">
-        UPDATE CROP
-        SET STATUS = 0
-        WHERE UUID = #{uuid}
+        UPDATE CROP SET STATUS = 0 WHERE CROP_ID = #{cropId}
     </update>
 
     <update id="tickActiveCrops">
@@ -32,12 +35,12 @@
     </update>
 
     <select id="selectMatureCrops" resultType="map">
-        SELECT UUID, QUANTITY
+        SELECT CROP_ID as cropId, QUANTITY as quantity
         FROM CROP
         WHERE STATUS = 1 AND ELAPSED_TICK >= GROWTH_TIME
     </select>
 
     <update id="resetCropAfterHarvest" parameterType="long">
-        UPDATE CROP SET ELAPSED_TICK = 0 WHERE UUID = #{uuid}
+        UPDATE CROP SET ELAPSED_TICK = 0 WHERE CROP_ID = #{cropId}
     </update>
 </mapper>

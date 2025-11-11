@@ -3,6 +3,7 @@ package com.example.myFarm.inventory;
 import com.example.myFarm.command.InventoryVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -12,23 +13,25 @@ public class InventoryServiceImpl implements InventoryService {
     private InventoryMapper inventoryMapper;
 
     @Override
-    public int initForCrop(String uuid) {
-        return inventoryMapper.initInventoryForCrop(uuid);
+    @Transactional
+    public int initForCrop(long cropId) {
+        return inventoryMapper.initInventoryForCrop(cropId);
     }
 
     @Override
-    public void addAmount(String uuid, int amount) {
-        if(amount<=0) throw new IllegalArgumentException("Amount must be greater than 0");
-        int updated = inventoryMapper.increaseInventoryAmount(uuid, amount);
-        if(updated==0) {
-            inventoryMapper.insertInventory(uuid, 0);
-            inventoryMapper.increaseInventoryAmount(uuid, amount);
+    @Transactional
+    public void addAmount(long cropId, int amount) {
+        if (amount <= 0) throw new IllegalArgumentException("amount must be > 0");
+        int updated = inventoryMapper.increaseInventoryAmount(cropId, amount);
+        if (updated == 0) {
+            inventoryMapper.insertInventory(cropId, 0);
+            inventoryMapper.increaseInventoryAmount(cropId, amount);
         }
     }
 
     @Override
-    public InventoryVO getByCropId(String uuid) {
-        return inventoryMapper.selectByCropId(uuid);
+    public InventoryVO getByCropId(long cropId) {
+        return inventoryMapper.selectByCropId(cropId);
     }
 
     @Override

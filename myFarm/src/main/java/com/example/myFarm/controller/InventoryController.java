@@ -22,11 +22,22 @@ public class InventoryController {
         return "admin/inventory/list";
     }
 
-    @GetMapping("/{uuid}")
-    public String detail(@PathVariable("uuid") String uuid, Model model) {
-        InventoryVO vo = inventoryService.getByCropId(uuid);
-        model.addAttribute("vo", vo);
-        return "admin/inventory/detail";
+    @GetMapping("/{id}")
+    public String detail(@PathVariable("id") long cropId, Model model, RedirectAttributes redirectAttributes) {
+        InventoryVO vo = inventoryService.getByCropId(cropId);
+        if (vo == null) {
+            redirectAttributes.addFlashAttribute("msg", "해당 작물 재고가 없습니다. 먼저 초기화 해주세요.");
+            return "redirect:/admin/inventory";
+        }
+        model.addAttribute("item", vo);
+        return "admin/inventory/detail"; // templates/admin/inventory/detail.html
+    }
+
+    @PostMapping("/init/{cropId}")
+    public String init(@PathVariable long cropId, RedirectAttributes ra) {
+        inventoryService.initForCrop(cropId);
+        ra.addFlashAttribute("msg", "재고가 초기화되었습니다.");
+        return "redirect:/admin/inventory/" + cropId;
     }
 
 }

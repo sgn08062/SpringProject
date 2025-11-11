@@ -10,10 +10,10 @@ import lombok.NoArgsConstructor;
 public class CropVO {
     private int cropId;
     private String cropName;
-    private String uuid;
     private String regDate;
     private int status;
     private int growthTime;
     private int quantity;
     private String unitName;
+    private int elapsedTick;
 }

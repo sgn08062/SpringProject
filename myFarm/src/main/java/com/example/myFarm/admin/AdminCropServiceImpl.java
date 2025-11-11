@@ -5,6 +5,7 @@ import com.example.myFarm.command.CropVO;
 import com.example.myFarm.inventory.InventoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -16,28 +17,29 @@ public class AdminCropServiceImpl implements AdminCropService {
     private InventoryService inventoryService;
 
     @Override
+    @Transactional
     public int addCrop(CropVO vo) {
-        String uuid = UUID.randomUUID().toString();
-        vo.setUuid(uuid);
-        System.out.println("uuid:"+uuid);
-        int result = adminCropMapper.addCrop(vo);
-        System.out.println(vo.getUuid());
-        if(result == 1) result = inventoryService.initForCrop(uuid);
-        return result;
+        int r = adminCropMapper.addCrop(vo); // useGeneratedKeys로 cropId 채워짐
+        if (r == 1) {
+            r = inventoryService.initForCrop(vo.getCropId());
+        }
+        return r;
     }
 
     @Override
-    public int deleteCrop(String uuid) {
-        return adminCropMapper.deleteCrop(uuid);
+    public int deleteCrop(long cropId) {
+        return adminCropMapper.deleteCrop(cropId);
     }
 
-    @Override
-    public int enableCrop(String uuid) {
-        return adminCropMapper.enableCrop(uuid);
-    }
 
     @Override
-    public int disableCrop(String uuid) {
-        return adminCropMapper.disableCrop(uuid);
+    public int enableCrop(long cropId) {
+        return adminCropMapper.enableCrop(cropId);
+    }
+
+
+    @Override
+    public int disableCrop(long cropId) {
+        return adminCropMapper.disableCrop(cropId);
     }
 }

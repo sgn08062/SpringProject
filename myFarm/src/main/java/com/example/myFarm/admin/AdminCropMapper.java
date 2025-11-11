@@ -10,11 +10,12 @@ import java.util.Map;
 @Mapper
 public interface AdminCropMapper {
     int addCrop(CropVO vo);
-    int deleteCrop(@Param("uuid") String uuid);
-    int enableCrop(@Param("uuid") String uuid);
-    int disableCrop(@Param("uuid") String uuid);
 
-    void tickActiveCrops();
+    int deleteCrop(@Param("cropId") long cropId);
+    int enableCrop(@Param("cropId") long cropId);
+    int disableCrop(@Param("cropId") long cropId);
+
+    int tickActiveCrops();
     List<Map<String, Object>> selectMatureCrops();
-    void resetCropAfterHarvest(@Param("uuid") String uuid);
+    int resetCropAfterHarvest(@Param("cropId") long cropId);
 }

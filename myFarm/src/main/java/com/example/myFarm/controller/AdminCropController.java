@@ -30,53 +30,26 @@ public class AdminCropController {
 
     @PostMapping("/addCrop")
     public String addCrop(CropVO cropVO, RedirectAttributes redirectAttributes){
-        System.out.println(cropVO.toString());
-
         int result = adminCropService.addCrop(cropVO);
-
-        // API확인용
-        if(result == 1){
-            return "success";
-        }else{
-            return "fail";
-        }
-
-        // 실제 경로
-        //return "redirect:/admin/crops/list";
+        redirectAttributes.addFlashAttribute("msg", result==1? "등록 성공" : "등록 실패");
+        return "redirect:/admin/crops";
     }
 
-    @PostMapping("/deleteCrop/{uuid}")
-    public String deleteCrop(@PathVariable("uuid") String uuid,  RedirectAttributes redirectAttributes){
-        int result = adminCropService.deleteCrop(uuid);
-
-        if(result == 1){
-            redirectAttributes.addFlashAttribute("message", "Delete Crop successfully");
-        }else{
-            redirectAttributes.addFlashAttribute("message", "Delete Crop failed");
-        }
-
-        return "redirect:/admin/crops/list";
+    @PostMapping("/delete/{id}")
+    public String delete(@PathVariable long id, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("msg", adminCropService.deleteCrop(id)==1? "삭제" : "실패");
+        return "redirect:/admin/crops";
     }
 
-    @PostMapping("/enable/{uuid}")
-    public String enableCrop(@PathVariable("uuid") String uuid, RedirectAttributes redirectAttributes){
-        int result = adminCropService.enableCrop(uuid);
-
-        if(result==1){
-            return "success";
-        }else {
-            return "fail";
-        }
+    @PostMapping("/enable/{id}")
+    public String enableCrop(@PathVariable("id") long id, RedirectAttributes redirectAttributes){
+        redirectAttributes.addFlashAttribute("msg", adminCropService.enableCrop(id)==1? "활성화" : "실패");
+        return "redirect:/admin/crops";
     }
 
-    @PostMapping("/disable/{uuid}")
-    public String disableCrop(@PathVariable("uuid") String uuid, RedirectAttributes redirectAttributes){
-        int result = adminCropService.disableCrop(uuid);
-
-        if(result==1){
-            return "success";
-        }else {
-            return "fail";
-        }
+    @PostMapping("/disable/{id}")
+    public String disable(@PathVariable long id, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("msg", adminCropService.disableCrop(id)==1? "비활성화" : "실패");
+        return "redirect:/admin/crops";
     }
 }

@@ -8,12 +8,13 @@ import java.util.List;
 
 @Mapper
 public interface InventoryMapper {
-    int initInventoryForCrop(@Param("uuid") String uuid);
-    int increaseInventoryAmount(@Param("uuid") String uuid,
+    int initInventoryForCrop(@Param("cropId") long cropId);
+    int increaseInventoryAmount(@Param("cropId") long cropId,
                                 @Param("amount") int amount);
-    void insertInventory(@Param("uuid") String uuid,
-                         @Param("amount") int amount);
+    int insertInventory(@Param("cropId") long cropId,
+                        @Param("amount") int amount);
 
-    InventoryVO selectByCropId(@Param("uuid") String uuid);
+
+    InventoryVO selectByCropId(@Param("cropId") long cropId);
     List<InventoryVO> selectAll();
 }
