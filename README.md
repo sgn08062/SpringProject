@@ -4,7 +4,7 @@
 > 수정 날짜 입력란
 > (수정을 하게 된다면 "(갱신됨) 수정 날짜"를 표시하세요)
 
-2025년 11월 10일 - 주소 관리 메서드에 주소 삭제 메서드 추가
+2025년 11월 10일 - 주소 관리 메서드에 주소 삭제 메서드 추가 <br>
 2025년 11월 11일 - 어드민 관리 페이지 입장 url 및 controller 방식을 REST API 방식으로 수정한 api 추가
 
 ## COMMON API
@@ -21,8 +21,8 @@
 | :------- | :-------------------- | :----- | :---------------------------------------------------------------------------------------- |
 | 로그인      | /api/account/login    | POST   | 본문: x-www-form-urlencoded(loginId, userPw) / 응답: "success" 또는 "fail" / 성공 시 세션에 userId 저장 |
 | 로그아웃     | /api/account/logout   | POST   | 세션 무효화 / 응답: "logout success" 또는 204                                                      |
-| 회원가입(선택) | /api/account/register | POST   | 본문: x-www-form-urlencoded(...) / 응답: "success" 또는 "fail"                                  |
-
+| 회원가입 | /api/account/register | POST   | 본문: x-www-form-urlencoded(...) / 응답: "success" 또는 "fail"                                  |
+| 중복 아이디 체크 | /api/account/idcheck | POST | 본문: x-www-form-urlencoded(loginId) / 응답: "dup" 또는 "unique" |
 
 
 ### 🛍️ 상품 목록 (/common)
