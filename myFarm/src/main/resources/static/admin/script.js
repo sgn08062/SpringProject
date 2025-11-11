@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ✅ 기존 더미 렌더링 대신 서버 데이터로 교체
     fetchCrops()
-        .then(renderCropListFromData)
+        .then(cropList => renderCropListFromData(cropList))
         .catch(() => {
             // 실패 시 기존 더미 데이터로 대체 렌더(선택)
             if (typeof renderCropList === 'function') renderCropList();
@@ -161,10 +161,8 @@ function renderCropList() {
 
 // ✅ 서버에서 농작물 목록 요청
 async function fetchCrops() {
-    const res = await fetch('/api/admin/crops', {
-        // 분리 배포(다른 포트/도메인)라면 아래 주석 해제하고 오리진 맞추세요.
-        // credentials: 'include',
-        // headers: { 'Content-Type': 'application/json' }
+    const res = await fetch('/admin/api/crops', {
+        headers: { 'Content-Type': 'application/json' }
     });
     if (!res.ok) throw new Error('Failed to load crops');
     return await res.json();
@@ -181,7 +179,7 @@ function renderCropListFromData(cropList) {
       <!-- ✅ 재배수량: quantity + unitName -->
       <td>${
         (crop.quantity ?? crop.quantity === 0 ? crop.quantity : '-') +
-        (crop.unitName ? '' + crop.unitName : '')
+        (crop.unitName ? ' ' + crop.unitName : '')
     }</td>
       <td>${crop.regDate ?? '-'}</td>
       <td>${
