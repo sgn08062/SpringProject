@@ -5,6 +5,7 @@
 > (수정을 하게 된다면 "(갱신됨) 수정 날짜"를 표시하세요)
 
 2025년 11월 10일 - 주소 관리 메서드에 주소 삭제 메서드 추가
+2025년 11월 11일 - 어드민 관리 페이지 입장 url 및 controller 방식을 REST API 방식으로 수정한 api 추가
 
 ## COMMON API
 
@@ -35,6 +36,10 @@
 ---
 
 ## 🔒 관리자 API (/admin)
+### 관리자 전용 페이지
+| 행동 | API | method |
+| :--- | :--- | :--- |
+| 관리자 페이지 입장 | /admin | GET
 
 ### 🌿 농작물 관리 메서드 (/crops)
 
@@ -42,7 +47,7 @@
 
 | 행동 | API | method |
 | :--- | :--- | :--- |
-| 농작물 조회 | /crops | GET |
+| 농작물 조회 | /api/crops | GET |
 | 농작물 추가 html | /crops/addCrop | GET |
 | 농작물 추가 | /crops/addCrop | POST |
 | 농작물 삭제 | /crops/deleteCrop/{id} | DELETE |
