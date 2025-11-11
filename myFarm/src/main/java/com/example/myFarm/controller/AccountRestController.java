@@ -5,7 +5,6 @@ import com.example.myFarm.command.UserVO;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -63,7 +62,12 @@ public class AccountRestController {
     // 아이디 중복 확인 기능 API
     @PostMapping(value = "/idcheck", consumes = "application/x-www-form-urlencoded;charset=UTF-8", produces = "text/plain")
     public String idcheck(@RequestParam("loginId") String loginId){
-        //int result = accountService.
-        return "dup";
+        int result = accountService.isLoginIdExist(loginId);
+        if (result >= 1) {
+            return "dup";
+        }
+        else {
+            return "unique";
+        }
     }
 }

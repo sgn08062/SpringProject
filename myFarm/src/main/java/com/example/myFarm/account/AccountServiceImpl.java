@@ -26,4 +26,10 @@ public class AccountServiceImpl implements AccountService {
     // 세션 저장용 유저ID 조회
     @Override
     public int findUserIdForSession(String userId) { return accountMapper.findUserIdForSessionDB(userId); }
+
+    // 아이디 중복 체크
+    @Override
+    public int isLoginIdExist(String loginId) {
+        return accountMapper.isLoginIdExistDB(loginId);
+    }
 }

@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (res.ok && text === "success") {
                     // 성공: 메인 페이지로 이동
-                    location.href = "/common/main";
+                    location.href = "/account/login";
                 } else {
                     // 실패: 이동하지 않고 토스트만
                     toast("로그아웃 실패. 잠시 후 다시 시도하세요.");
@@ -90,6 +90,114 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 })();
+
+
+// ===== 회원가입 - 아이디 중복확인 & 제출 버튼 제어 =====
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("signupForm");
+    const loginIdInput = document.getElementById("loginId");
+    const idCheckBtn = document.getElementById("idCheckBtn");
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const loginIdMsg = document.querySelector('.field-msg[data-for="loginId"]');
+
+    // 제출 버튼은 기본 비활성화
+    submitBtn.disabled = true;
+
+    // 상태 플래그: 아이디가 서버에서 'unique'로 확인되었는지
+    let isLoginIdUnique = false;
+
+    // 입력이 바뀌면 다시 검증 필요 → 제출 비활성화
+    loginIdInput.addEventListener("input", () => {
+        isLoginIdUnique = false;
+        submitBtn.disabled = true;
+        setFieldMsg(loginIdMsg, "아이디 중복 확인을 해주세요.", "warn");
+    });
+
+    // 중복 확인 버튼 클릭
+    idCheckBtn.addEventListener("click", async () => {
+        const loginId = (loginIdInput.value || "").trim();
+
+        // 1) 형식 검증: 4~20자 영문/숫자
+        const idPattern = /^[A-Za-z0-9]{4,20}$/;
+        if (!idPattern.test(loginId)) {
+            setFieldMsg(loginIdMsg, "아이디는 4~20자의 영문/숫자만 가능합니다.", "error");
+            loginIdInput.focus();
+            return;
+        }
+
+        try {
+            // 2) 서버 중복 확인
+            const body = new URLSearchParams({ loginId }).toString();
+            const res = await fetch("/api/account/idcheck", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+                body,
+                credentials: "include",
+            });
+
+            const text = (await res.text()).trim(); // "dup" | "unique"
+
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}`);
+            }
+
+            if (text === "unique") {
+                isLoginIdUnique = true;
+                submitBtn.disabled = false;
+                setFieldMsg(loginIdMsg, "사용 가능한 아이디입니다.", "success");
+                safeToast("사용 가능한 아이디입니다.");
+            } else if (text === "dup") {
+                isLoginIdUnique = false;
+                submitBtn.disabled = true;
+                setFieldMsg(loginIdMsg, "이미 사용 중인 아이디입니다.", "error");
+                safeToast("중복된 아이디입니다.");
+            } else {
+                // 예상치 못한 응답
+                isLoginIdUnique = false;
+                submitBtn.disabled = true;
+                setFieldMsg(loginIdMsg, "중복 확인에 실패했습니다. 잠시 후 다시 시도하세요.", "error");
+                safeToast("중복 확인 실패");
+            }
+        } catch (err) {
+            console.error(err);
+            isLoginIdUnique = false;
+            submitBtn.disabled = true;
+            setFieldMsg(loginIdMsg, "네트워크 오류가 발생했습니다. 잠시 후 다시 시도하세요.", "error");
+            safeToast("네트워크 오류");
+        }
+    });
+
+    // 폼 제출 시 안전장치 (혹시 사용자가 DOM 조작했을 경우 대비)
+    form.addEventListener("submit", (e) => {
+        if (!isLoginIdUnique) {
+            e.preventDefault();
+            setFieldMsg(loginIdMsg, "아이디 중복 확인을 먼저 해주세요.", "warn");
+            safeToast("아이디 중복 확인을 먼저 해주세요.");
+        }
+    });
+
+    // 유틸: 필드 메시지 표시
+    function setFieldMsg(el, msg, type /* 'success' | 'error' | 'warn' */) {
+        if (!el) return;
+        el.textContent = msg || "";
+        el.classList.remove("success", "error", "warn");
+        if (type) el.classList.add(type);
+    }
+
+    // 유틸: toast()가 있으면 사용, 없으면 alert 대체
+    function safeToast(message) {
+        if (typeof toast === "function") {
+            toast(message);
+        } else {
+            // 프로젝트에 toast 미구현 시 임시 대체
+            // 필요 없으면 이 줄 삭제 가능
+            console.log("[TOAST]", message);
+        }
+    }
+
+    // 초기 안내
+    setFieldMsg(loginIdMsg, "아이디 중복 확인을 해주세요.", "warn");
+});
 
 
 /*************************
