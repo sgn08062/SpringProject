@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -41,5 +42,10 @@ public class AdminCropServiceImpl implements AdminCropService {
     @Override
     public int disableCrop(long cropId) {
         return adminCropMapper.disableCrop(cropId);
+    }
+
+    @Override
+    public List<CropVO> getCropList() {
+        return adminCropMapper.getCropList();
     }
 }

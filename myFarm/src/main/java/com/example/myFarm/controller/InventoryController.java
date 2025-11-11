@@ -16,7 +16,7 @@ public class InventoryController {
     @Autowired
     private InventoryService inventoryService;
 
-    @GetMapping
+    @GetMapping("/list")
     public String list(Model model) {
         model.addAttribute("items", inventoryService.getAll());
         return "admin/inventory/list";
@@ -27,10 +27,10 @@ public class InventoryController {
         InventoryVO vo = inventoryService.getByCropId(cropId);
         if (vo == null) {
             redirectAttributes.addFlashAttribute("msg", "해당 작물 재고가 없습니다. 먼저 초기화 해주세요.");
-            return "redirect:/admin/inventory";
+            return "redirect:/admin/inventory/list";
         }
         model.addAttribute("item", vo);
-        return "admin/inventory/detail"; // templates/admin/inventory/detail.html
+        return "admin/inventory/detail/" + vo.getCropId();
     }
 
     @PostMapping("/init/{cropId}")
@@ -39,5 +39,4 @@ public class InventoryController {
         ra.addFlashAttribute("msg", "재고가 초기화되었습니다.");
         return "redirect:/admin/inventory/" + cropId;
     }
-
 }

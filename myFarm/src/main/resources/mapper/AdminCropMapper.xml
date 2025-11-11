@@ -28,6 +28,20 @@
         UPDATE CROP SET STATUS = 0 WHERE CROP_ID = #{cropId}
     </update>
 
+    <select id="getCropList" resultType="CropVO">
+        SELECT
+            CROP_ID,
+            CROP_NAME,
+            REG_DATE AS regDate,
+            STATUS,
+            GROWTH_TIME,
+            QUANTITY,
+            UNIT_NAME,
+            ELAPSED_TICK
+        FROM CROP
+        ORDER BY CROP_ID DESC
+    </select>
+
     <update id="tickActiveCrops">
         UPDATE CROP
         SET ELAPSED_TICK = ELAPSED_TICK + 1

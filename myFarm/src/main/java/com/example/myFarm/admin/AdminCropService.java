@@ -12,4 +12,6 @@ public interface AdminCropService {
     int deleteCrop(long cropId);
     int enableCrop(long cropId);
     int disableCrop(long cropId);
+
+    List<CropVO> getCropList();
 }

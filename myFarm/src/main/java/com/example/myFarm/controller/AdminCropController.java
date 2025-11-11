@@ -32,24 +32,24 @@ public class AdminCropController {
     public String addCrop(CropVO cropVO, RedirectAttributes redirectAttributes){
         int result = adminCropService.addCrop(cropVO);
         redirectAttributes.addFlashAttribute("msg", result==1? "등록 성공" : "등록 실패");
-        return "redirect:/admin/crops";
+        return "redirect:/admin/crops/list";
     }
 
     @PostMapping("/delete/{id}")
     public String delete(@PathVariable long id, RedirectAttributes redirectAttributes) {
         redirectAttributes.addFlashAttribute("msg", adminCropService.deleteCrop(id)==1? "삭제" : "실패");
-        return "redirect:/admin/crops";
+        return "redirect:/admin/crops/list";
     }
 
     @PostMapping("/enable/{id}")
     public String enableCrop(@PathVariable("id") long id, RedirectAttributes redirectAttributes){
         redirectAttributes.addFlashAttribute("msg", adminCropService.enableCrop(id)==1? "활성화" : "실패");
-        return "redirect:/admin/crops";
+        return "redirect:/admin/crops/list";
     }
 
     @PostMapping("/disable/{id}")
     public String disable(@PathVariable long id, RedirectAttributes redirectAttributes) {
         redirectAttributes.addFlashAttribute("msg", adminCropService.disableCrop(id)==1? "비활성화" : "실패");
-        return "redirect:/admin/crops";
+        return "redirect:/admin/crops/list";
     }
 }

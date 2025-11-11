@@ -15,7 +15,11 @@ public interface AdminCropMapper {
     int enableCrop(@Param("cropId") long cropId);
     int disableCrop(@Param("cropId") long cropId);
 
+    List<CropVO> getCropList();
+
     int tickActiveCrops();
     List<Map<String, Object>> selectMatureCrops();
     int resetCropAfterHarvest(@Param("cropId") long cropId);
+
+
 }
