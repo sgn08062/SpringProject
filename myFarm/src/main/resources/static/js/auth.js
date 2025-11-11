@@ -15,110 +15,145 @@ function toast(msg, type="info"){
     setTimeout(()=>{ t.style.opacity="0"; t.style.top="86px"; setTimeout(()=>t.remove(),200); }, 2000);
 }
 
-// 로컬 “유저 DB”
-const loadUsers = () => JSON.parse(localStorage.getItem("userDatabase")||"[]");
-const saveUsers = (db) => localStorage.setItem("userDatabase", JSON.stringify(db));
+/*************************
+ * 로그인: /account/login 페이지에서 동작
+ *************************/
+// ===== 로그인 =====(동작 확인 완료)
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('loginForm');
+    if (!form) return;
 
-// ===== 회원가입 =====
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const body = new URLSearchParams(new FormData(form));
+
+        try {
+            const res = await fetch('/api/account/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                body,
+                credentials: 'include'
+            });
+
+            const text = (await res.text()).trim();
+            if (res.ok && text === 'success') {
+                location.href = '/common/main';
+            } else {
+                toast('로그인 실패. 아이디/비밀번호를 확인하세요.');
+            }
+        } catch (err) {
+            console.error(err);
+            toast('로그인 중 오류가 발생했습니다.');
+        }
+    });
+});
+
+/*************************
+ * 로그아웃: 아무 페이지에서나 사용 가능
+ * <button id="logoutBtn"> 또는
+ * <a href="#" data-action="logout">
+ *************************/
+// ===== 로그아웃 ===== (확인 필요)
+(() => {
+    // 타겟 수집: #logoutBtn 1개 + data-action="logout" 여러 개
+    const targets = [];
+    const btn = document.getElementById("logoutBtn");
+    if (btn) targets.push(btn);
+    document.querySelectorAll('[data-action="logout"]').forEach(el => targets.push(el));
+
+    // 바인딩
+    targets.forEach(el => {
+        el.addEventListener("click", async (e) => {
+            e.preventDefault();
+            try {
+                const res = await fetch("/api/account/logout", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+                    body: "",                 // 바디 없음
+                    credentials: "include"    // 세션 쿠키 포함
+                });
+
+                const text = (await res.text()).trim();
+
+                if (res.ok && text === "success") {
+                    // 성공: 메인 페이지로 이동
+                    location.href = "/common/main";
+                } else {
+                    // 실패: 이동하지 않고 토스트만
+                    toast("로그아웃 실패. 잠시 후 다시 시도하세요.");
+                }
+            } catch (err) {
+                console.error(err);
+                location.href = "/account/login";
+            }
+        });
+    });
+})();
+
+
+/*************************
+ * 회원가입: /account/register 페이지에서 동작(선택)
+ *************************/
+// ===== 회원가입 =====(동작 확인 완료)
 (() => {
     const form = document.getElementById("signupForm");
     if (!form) return;
 
-    const idInput = document.getElementById("signupId");
-    const pwInput = document.getElementById("signupPw");
-    const pw2Input = document.getElementById("signupPw2");
-    const nameInput = document.getElementById("name");
-    const emailId = document.getElementById("emailId");
-    const emailDomain = document.getElementById("emailDomain");
-    const phone = document.getElementById("phone");
-    const addrMain = document.getElementById("addrMain");
-    const addrDetail = document.getElementById("addrDetail");
-    const idCheckBtn = document.getElementById("idCheckBtn");
-    const addrSearchBtn = document.getElementById("addrSearchBtn");
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-    const setMsg = (key, text, type="error") => {
-        const el = document.querySelector(`.field-msg[data-for="${key}"]`);
-        if (!el) return;
-        el.textContent = text;
-        el.classList.remove("error","success");
-        if (text) el.classList.add(type);
-        else el.style.display="none";
-    };
+        // 필드 참조
+        const loginId = document.getElementById("loginId")?.value.trim() || "";
+        const userPw  = document.getElementById("userPw")?.value || "";
+        const userPw2 = document.getElementById("userPw2")?.value || "";
+        const emailEl = document.getElementById("email");
+        const phoneEl = document.getElementById("phone");
 
-    let idChecked = false;
-
-    idInput.addEventListener("input", () => { idChecked = false; setMsg("signupId",""); });
-
-    idCheckBtn.addEventListener("click", () => {
-        const id = idInput.value.trim();
-        if (id.length < 6 || id.length > 20) {
-            setMsg("signupId","아이디는 6~20자로 입력하세요.","error");
+        // 간단 유효성 체크
+        if (!loginId || !userPw || !userPw2) {
+            toast("아이디/비밀번호를 입력하세요.");
             return;
         }
-        if (loadUsers().some(u => u.id === id)) {
-            setMsg("signupId","이미 사용 중인 아이디입니다.","error");
-            idChecked = false;
-        } else {
-            setMsg("signupId","사용 가능한 아이디입니다.","success");
-            idChecked = true;
+        if (userPw !== userPw2) {
+            toast("비밀번호가 일치하지 않습니다.");
+            return;
         }
-    });
-
-    // 주소 검색 (데모)
-    addrSearchBtn.addEventListener("click", () => {
-        addrMain.value = "서울특별시 강남구 테헤란로 (샘플)";
-        toast("주소가 선택되었습니다.");
-    });
-
-    form.addEventListener("submit", (e) => {
-        e.preventDefault();
-
-        if (!idChecked) { toast("아이디 중복확인을 해주세요."); return; }
-        const pwRule = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&]).{8,20}$/;
-        if (!pwRule.test(pwInput.value)) { setMsg("signupPw","문자/숫자/특수문자 포함 8~20자","error"); return; }
-        if (pwInput.value !== pw2Input.value) { setMsg("signupPw2","비밀번호가 일치하지 않습니다.","error"); return; }
-
-        if (!idInput.value || !nameInput.value || !emailId.value || !emailDomain.value || !phone.value || !addrMain.value) {
-            toast("필수 항목을 모두 입력하세요."); return;
+        // HTML5 유효성(이메일/휴대폰)도 함께 확인
+        if (emailEl && !emailEl.checkValidity()) {
+            toast("올바른 이메일 형식을 입력하세요.");
+            emailEl.focus();
+            return;
+        }
+        if (phoneEl && !phoneEl.checkValidity()) {
+            toast("휴대폰 번호 형식을 확인하세요.");
+            phoneEl.focus();
+            return;
         }
 
-        const db = loadUsers();
-        db.push({
-            id: idInput.value.trim(),
-            password: pwInput.value,
-            name: nameInput.value.trim(),
-            email: `${emailId.value.trim()}@${emailDomain.value.trim()}`,
-            phone: phone.value.trim(),
-            address: `${addrMain.value.trim()} ${addrDetail.value.trim()}`.trim()
-        });
-        saveUsers(db);
+        // x-www-form-urlencoded 본문 생성
+        const body = new URLSearchParams(new FormData(form));
+        body.delete("userPw2"); // 서버에서 쓰지 않는 확인용 필드는 제거(선택)
 
-        toast("회원가입 완료! 로그인으로 이동합니다.", "success");
-        setTimeout(() => location.href = "login.html", 900);
+        try {
+            const res = await fetch("/api/account/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+                body,
+            });
+
+            const text = (await res.text()).trim();
+
+            if (res.ok && text === "success") {
+                toast("회원가입 완료! 로그인 페이지로 이동합니다.", "success");
+                setTimeout(() => (location.href = "/account/login"), 700);
+            } else {
+                toast("회원가입 실패. 입력값을 확인하세요.");
+            }
+        } catch (err) {
+            console.error(err);
+            toast("회원가입 중 오류가 발생했습니다.");
+        }
     });
 })();
 
-// ===== 로그인 =====
-(() => {
-    const form = document.getElementById("loginForm");
-    if (!form) return;
-
-    const idInput = document.getElementById("loginId");
-    const pwInput = document.getElementById("loginPw");
-
-    form.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const id = idInput.value.trim();
-        const pw = pwInput.value;
-
-        if (!id || !pw) { toast("아이디/비밀번호를 입력하세요."); return; }
-
-        const user = loadUsers().find(u => u.id === id && u.password === pw);
-        if (!user) { toast("아이디 또는 비밀번호가 올바르지 않습니다."); return; }
-
-        localStorage.setItem("currentUser", JSON.stringify(user));
-        toast(`${user.name}님 환영합니다!`, "success");
-        // 필요 시 로그인 후 이동 경로 수정
-        // location.href = "index.html";
-    });
-})();

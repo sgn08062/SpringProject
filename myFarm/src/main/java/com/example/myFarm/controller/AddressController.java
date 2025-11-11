@@ -24,8 +24,8 @@ public class AddressController {
     public void getAddressUpdatePage() {}
 
     //  주소 수정 페이지 (추후 수정 필요)
-    @GetMapping("/update")
-    public void getAddressUpdatePage(@PathVariable String id) {
-
-    }
+//    @GetMapping("/update")
+//    public void getAddressUpdatePage(@PathVariable String id) {
+//
+//    }
 }
