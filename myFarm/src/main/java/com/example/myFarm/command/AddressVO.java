@@ -10,8 +10,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class AddressVO {
-    private int addId; // ADD_ID
-    private String address; //ADDRESS
-    private String addName; //ADD_NAME
+    private int addressId; // ADD_ID
     private int userId; //USER_ID
+    private String address; //ADDRESS
+    private String addressName; //ADDRESS_NAME
+    private String recipientName; //RECIPIENT_NAME
+    private String recipientPhone; //RECIPIENT_PHONE
 }

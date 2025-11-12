@@ -6,14 +6,18 @@
     <insert id="addressInsertDB" parameterType="AddressVO">
         INSERT INTO
         ADDRESS(
+                USER_ID,
                 ADDRESS,
-                ADD_NAME,
-                USER_ID
+                ADDRESS_NAME,
+                RECIPIENT_NAME,
+                RECIPIENT_PHONE
         )
         VALUES (
-                #{address},
-                #{adddName},
                 #{userId},
+                #{address},
+                #{addressName},
+                #{recipientName},
+                #{recipientPhone}
                )
     </insert>
 
@@ -24,4 +28,14 @@
     <delete id="addressDeleteDB">
 
     </delete>
+
+    <select id="getAddressListDB" resultType="AddressVO">
+        SELECT
+            ADDRESS,
+            ADDRESS_NAME,
+            RECIPIENT_NAME,
+            RECIPIENT_PHONE
+        FROM ADDRESS
+        WHERE USER_ID = #{userId};
+    </select>
 </mapper>

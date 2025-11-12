@@ -1,6 +1,7 @@
 package com.example.myFarm.address;
 
 import com.example.myFarm.command.AddressVO;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -11,7 +12,7 @@ public class AddressServiceImpl implements AddressService {
     @Autowired
     @Qualifier("addressMapper")
     private AddressMapper addressMapper;
-    
+
     // 새로운 주소 등록
     @Override
     public int addressInsert(AddressVO addressVO) {
@@ -28,6 +29,12 @@ public class AddressServiceImpl implements AddressService {
     @Override
     public int addressDelete(int addId) {
         return addressMapper.addressDeleteDB(addId);
+    }
+
+    // 사용자 주소 조회
+    @Override
+    public List<AddressVO> getAddressList(int userId) {
+        return addressMapper.getAddressListDB(userId);
     }
     
 }

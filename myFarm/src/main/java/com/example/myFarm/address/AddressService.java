@@ -2,6 +2,7 @@ package com.example.myFarm.address;
 
 
 import com.example.myFarm.command.AddressVO;
+import java.util.List;
 
 public interface AddressService {
 
@@ -11,4 +12,5 @@ public interface AddressService {
 
     int addressDelete(int addId); // 기존 주소 삭제
 
+    List<AddressVO> getAddressList(int userId); // 사용자 주소 목록 조회
 }
