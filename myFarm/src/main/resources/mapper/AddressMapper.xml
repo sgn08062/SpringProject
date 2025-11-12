@@ -21,16 +21,25 @@
                )
     </insert>
 
-    <update id="addressUpdateDB">
-
+    <update id="addressUpdateDB" parameterType="AddressVO">
+        UPDATE ADDRESS
+        SET
+            ADDRESS = #{address},
+            ADDRESS_NAME = #{addressName},
+            RECIPIENT_NAME = #{recipientName},
+            RECIPIENT_PHONE = #{recipientPhone}
+        WHERE USER_ID = #{userId} AND ADDRESS_ID = #{addressId}
     </update>
 
     <delete id="addressDeleteDB">
-
+        DELETE FROM ADDRESS
+        WHERE ADDRESS_ID = #{addressId}
+        AND USER_ID = #{userId}
     </delete>
 
     <select id="getAddressListDB" resultType="AddressVO">
         SELECT
+            ADDRESS_ID,
             ADDRESS,
             ADDRESS_NAME,
             RECIPIENT_NAME,

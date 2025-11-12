@@ -27,8 +27,8 @@ public class AddressServiceImpl implements AddressService {
     
     // 기존 주소 삭제
     @Override
-    public int addressDelete(int addId) {
-        return addressMapper.addressDeleteDB(addId);
+    public int addressDelete(int addressId, int userId) {
+        return addressMapper.addressDeleteDB(addressId, userId);
     }
 
     // 사용자 주소 조회

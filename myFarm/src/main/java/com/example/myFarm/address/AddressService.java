@@ -10,7 +10,7 @@ public interface AddressService {
 
     int addressUpdate(AddressVO addressVO); // 기존 주소 수정
 
-    int addressDelete(int addId); // 기존 주소 삭제
+    int addressDelete(int addressId, int userId); // 기존 주소 삭제
 
     List<AddressVO> getAddressList(int userId); // 사용자 주소 목록 조회
 }

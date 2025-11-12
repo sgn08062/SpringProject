@@ -5,7 +5,6 @@ import com.example.myFarm.command.AddressVO;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.amqp.RabbitConnectionDetails.Address;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,14 +47,35 @@ public class AddressRestController {
     }
 
     // 주소 수정 API
-    @PostMapping("/update")
-    public String updateAddress(@RequestBody Address address) {
-        return "not yet implemented";
+    @PostMapping(value = "/update", consumes = "application/json", produces = "text/plain")
+    public ResponseEntity<String> updateAddress(@RequestBody AddressVO addressVO,
+                                                HttpSession session) {
+        Object uid = session.getAttribute("userId");
+        addressVO.setUserId((Integer) uid);
+        int result = addressService.addressUpdate(addressVO);
+
+        if (result == 1) {
+            return ResponseEntity.ok("success");
+        }
+        else {
+            return ResponseEntity.status(500).body("fail");
+        }
     }
 
     // 주소 삭제 API
     @PostMapping("/delete")
-    public String deleteAddress(@RequestBody Address address) {
-        return "not yet implemented";
+    public ResponseEntity<String> deleteAddress(@RequestBody AddressVO addressVO,
+                                                HttpSession session) {
+
+        int addressId = addressVO.getAddressId();
+        Object uid = session.getAttribute("userId");
+        int result = addressService.addressDelete(addressId,(Integer)uid);
+
+        if (result == 1) {
+            return ResponseEntity.ok("success");
+        }
+        else {
+            return ResponseEntity.status(500).body("fail");
+        }
     }
 }
