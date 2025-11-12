@@ -1,6 +1,7 @@
 package com.example.myFarm.shop;
 
 import com.example.myFarm.command.ShopVO;
+import com.example.myFarm.command.StatVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,5 +36,15 @@ public class ShopServiceImpl implements ShopService {
     @Transactional
     public void deleteItem(Long itemId) {
         shopMapper.deleteItem(itemId);
+    }
+
+    @Override
+    public ShopVO getItemDetail(Long itemId) {
+        return shopMapper.getItemDetail(itemId);
+    }
+
+    @Override
+    public StatVO getShopStatistics() {
+        return shopMapper.getShopStatistics();
     }
 }

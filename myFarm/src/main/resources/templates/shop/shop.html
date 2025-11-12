@@ -66,7 +66,7 @@
     </section>
 
     <div class="main-content active" id="product-manage">
-        <h2>🛒 상품 목록 및 수정</h2>
+        <h2>상품 목록</h2>
         <button class="btn-primary" onclick="openModal('new-product-modal')">+ 새 상품 등록</button>
 
         <table class="data-table product-table">
@@ -114,10 +114,11 @@
 </div>
 
 <script>
-    const API_BASE_URL = '/shop'; // ShopController의 @RequestMapping("/shop")과 일치
+    const API_BASE_URL = '/admin/shop'; // ShopController의 @RequestMapping("/shop")과 일치
 
     document.addEventListener('DOMContentLoaded', () => {
         renderProductList();
+        renderStatistics();
         document.getElementById('new-product-form')?.addEventListener('submit', handleNewProduct);
         document.getElementById('edit-product-form')?.addEventListener('submit', handleEditProduct);
     });
@@ -182,6 +183,15 @@
     async function handleNewProduct(e) {
         e.preventDefault();
 
+        const itemName = document.getElementById('new-item-name').value;
+        const priceInput = document.getElementById('new-item-price').value;
+        const storId = document.getElementById('new-stor-id').value;
+
+        // 유효성 검사
+        if (!validateForm(itemName, parseInt(priceInput), storId)) {
+            return; // 검사 실패 시 함수 종료
+        }
+
         const itemVO = {
             itemName: document.getElementById('new-item-name').value,
             price: parseInt(document.getElementById('new-item-price').value || 0),
@@ -213,19 +223,20 @@
     // 수정 모달에 기존 데이터 채우기
     async function populateEditForm(itemId) {
         try {
-            const response = await fetch(API_BASE_URL);
-            const products = await response.json();
-            const item = products.find(p => p.itemId === itemId);
+            // 수정: 상세조회 전용 API 호출
+            const response = await fetch(API_BASE_URL + '/item/' + itemId); // GET /admin/shop/item/{itemId}
 
-            if (item) {
-                document.getElementById('edit-item-name').value = item.itemName || '';
-                document.getElementById('edit-item-price').value = item.price || 0;
-                document.getElementById('edit-stor-id').value = item.storId || '';
-            } else {
-                alert('수정할 상품 데이터를 찾을 수 없습니다.');
-            }
+            if (!response.ok) throw new Error('상세 상품 데이터를 찾을 수 없습니다.');
+
+            const item = await response.json(); // 특정 상품 객체 하나만 반환
+
+            document.getElementById('edit-item-name').value = item.itemName || '';
+            document.getElementById('edit-item-price').value = item.price || 0;
+            document.getElementById('edit-stor-id').value = item.storId || '';
+
         } catch (error) {
             console.error('데이터 로드 오류:', error);
+            alert('수정할 상품 데이터를 불러오는 데 실패했습니다.');
         }
     }
 
@@ -234,6 +245,15 @@
         e.preventDefault();
 
         const itemId = document.getElementById('edit-item-id').value;
+
+        const itemName = document.getElementById('new-item-name').value;
+        const priceInput = document.getElementById('new-item-price').value;
+        const storId = document.getElementById('new-stor-id').value;
+
+        // 유효성 검사
+        if (!validateForm(itemName, parseInt(priceInput), storId, true)) {
+            return; // 검사 실패 시 함수 종료
+        }
 
         const itemVO = {
             itemName: document.getElementById('edit-item-name').value,
@@ -285,6 +305,61 @@
             alert('상품 삭제 중 통신 오류가 발생했습니다.');
         }
     }
+
+    // 통계 데이터 렌더링 함수 (GET /admin/shop/stats)
+    async function renderStatistics() {
+        const STAT_API_URL = API_BASE_URL + '/stats';
+
+        try {
+            const response = await fetch(STAT_API_URL);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+            const stats = await response.json(); // StatVO 객체를 받음
+
+            // 1. 총 매출
+            document.getElementById('summary-total-sales').textContent =
+                (stats.totalSales || 0).toLocaleString() + '원';
+
+            // 2. 총 주문
+            document.getElementById('summary-total-orders').textContent =
+                (stats.totalOrders || 0).toLocaleString() + '건';
+
+            // 3. 등록 상품 (renderProductList에서 이미 처리되었으나, StatVO에도 있다면 업데이트)
+            // 만약 상품 개수만 여기서 처리한다면:
+            document.getElementById('summary-total-items').textContent =
+                (stats.totalItems || 0).toLocaleString() + '개';
+
+            // 4. 평균 주문액
+            document.getElementById('summary-avg-order').textContent =
+                (stats.avgOrderAmount || 0).toLocaleString() + '원';
+
+        } catch (error) {
+            console.error('통계 데이터 로딩 오류:', error);
+            // 오류 발생 시 0으로 표시 유지
+        }
+    }
+
+    // 유효성 검사
+    function validateForm(itemName, price, storId, isUpdate = false) {
+        if (!itemName || itemName.trim() === "") {
+            alert("상품명을 입력해 주세요.");
+            return false;
+        }
+
+        if (!price || isNaN(price) || price < 0) {
+            alert("가격을 정확한 숫자(0 이상)로 입력해 주세요.");
+            return false;
+        }
+
+        // 저장품목ID (storId)는 문자열이 허용되므로 필수 입력만 검사
+        if (!storId || storId.trim() === "") {
+            alert("저장품목ID를 입력해 주세요.");
+            return false;
+        }
+
+        return true;
+    }
+
 </script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 package com.example.myFarm.controller;
 
 import com.example.myFarm.command.ShopVO;
+import com.example.myFarm.command.StatVO;
 import com.example.myFarm.shop.ShopService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -9,8 +10,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController // <-- RESTful API를 위해 사용
-@RequestMapping("/admin/shop") // API Base URL
+@RestController
+@RequestMapping("/admin/shop")
 @RequiredArgsConstructor
 public class ShopController {
 
@@ -43,5 +44,23 @@ public class ShopController {
     public ResponseEntity<Void> deleteItem(@PathVariable Long itemId) {
         shopService.deleteItem(itemId);
         return ResponseEntity.noContent().build();
+    }
+
+    // 5. 상세 조회 (API) - http://localhost:8080/admin/shop/{itemId}
+    @GetMapping("/item/{itemId}")
+    public ResponseEntity<ShopVO> getItemDetail(@PathVariable Long itemId) {
+        ShopVO item = shopService.getItemDetail(itemId); // 새로운 서비스 호출
+        if (item != null) {
+            return ResponseEntity.ok(item);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // 6. 통계 조회 (API) - http://localhost:8080/admin/shop/stats
+    @GetMapping("/stats")
+    public ResponseEntity<StatVO> getShopStats() {
+        StatVO stats = shopService.getShopStatistics();
+        return ResponseEntity.ok(stats);
     }
 }

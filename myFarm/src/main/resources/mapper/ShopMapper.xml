@@ -31,4 +31,24 @@
         DELETE FROM SHOP_ITEM_TABLE WHERE ITEM_ID = #{itemId}
     </delete>
 
+    <select id="getItemDetail" resultType="com.example.myFarm.command.ShopVO">
+        SELECT
+            ITEM_ID,
+            ITEM_NAME,
+            PRICE,
+            STOR_ID
+        FROM SHOP_ITEM_TABLE
+        WHERE ITEM_ID = #{itemId}
+    </select>
+
+    <select id="getShopStatistics" resultType="com.example.myFarm.command.StatVO">
+        SELECT
+            COALESCE(SUM(T.TOTAL_AMOUNT), 0) AS totalSales,   -- 총 매출
+            COALESCE(COUNT(DISTINCT T.ORDER_ID), 0) AS totalOrders, -- 총 주문 건수 (주문 테이블 기준)
+            COALESCE(COUNT(I.ITEM_ID), 0) AS totalItems,          -- 등록 상품 수 (SHOP_ITEM_TABLE 기준)
+            COALESCE(AVG(T.TOTAL_AMOUNT), 0) AS avgOrderAmount     -- 평균 주문액
+        FROM ORDER_TABLE T
+                 JOIN SHOP_ITEM_TABLE I ON 1=1  -- 조인 조건은 통계 기준에 맞게 조정 (여기서는 상품 개수를 세기 위해 임시 조인)
+    </select>
+
 </mapper>
