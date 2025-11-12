@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FARM | 자연 그대로의 신선함</title>
+  <!-- [v8] CSS 파일 연결 -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body class="cart-hidden"> <!-- 장바구니 기본 숨김 -->
+
+  <!-- 헤더 -->
+  <header>
+    <div class="logo" onclick="location.href='index.html'">🌿 FARM</div>
+    <div class="search-bar">
+      <input type="text" placeholder="신선한 농작물을 찾아보세요 🍅">
+    </div>
+    <nav>
+        <div class="nav-links">
+            <div id="before-login">
+                <a id="auth-link">로그인/회원가입</a>
+            </div>
+            <div id="after-login" class="hidden"> 
+                <span id="user-greeting"></span>
+                <a href="#">주문목록</a>
+                <a href="#" id="logout-btn">로그아웃</a>
+            </div>
+            <a id="cart-toggle-btn">
+                🛒 장바구니 
+                <span class="cart-badge" style="display: none;">0</span>
+            </a>
+        </div>
+    </nav>
+  </header>
+
+  <!-- 메인 콘텐츠 영역 (사이드바 + 상품목록) -->
+  <div class="main-content-area">
+
+    <!-- 왼쪽 카테고리 사이드바 -->
+    <aside class="category-sidebar">
+      <h3>상품 카테고리</h3>
+      <ul>
+        <li><a href="#" class="active" data-category="all">전체보기</a></li>
+        <li><a href="#" data-category="fruit">과일</a></li>
+        <li><a href="#" data-category="veg">채소</a></li>
+        <li><a href="#" data-category="etc">기타</a></li>
+      </ul>
+    </aside>
+
+    <!-- 오른쪽 상품 목록 -->
+    <section class="product-section">
+      <!-- 검색 결과 없음 메시지 -->
+      <div class="no-results-msg" id="search-results-msg">
+        '<span></span>'에 대한 검색 결과가 없습니다.
+      </div>
+
+      <!-- 상품 카드 -->
+      <div class="product-card" data-category="veg">
+        <a href="#" class="product-link" 
+           data-name="오이 1개" 
+           data-price="1,500" 
+           data-img-src="https://images.unsplash.com/photo-1590080875839-47fb6e27f67e?q=80&w=600&auto-format&fit=crop"
+           data-desc="아삭하고 신선한 국내산 오이입니다. 샐러드나 무침에 활용해 보세요.">
+          <img src="https://images.unsplash.com/photo-1590080875839-47fb6e27f67e?q=80&w=600&auto-format&fit=crop" alt="오이" 
+               onerror="this.src='https://placehold.co/600x400/E9F5E4/4A7C2C?text=오이'">
+          <h3>오이 1개</h3>
+        </a>
+        <p class="price">₩1,500</p>
+        <button class="add-btn">장바구니 담기</button>
+      </div>
+      
+      <div class="product-card" data-category="veg">
+        <a href="#" class="product-link" 
+           data-name="배추 1포기" 
+           data-price="1,800" 
+           data-img-src="https://images.unsplash.com/photo-1603052875301-48b65f5a6ec1?q=80&w=600&auto-format&fit=crop"
+           data-desc="김장철 필수품! 아삭하고 달콤한 고랭지 배추입니다. 겉절이로도 좋습니다.">
+          <img src="https://images.unsplash.com/photo-1603052875301-48b65f5a6ec1?q=80&w=600&auto-format&fit=crop" alt="배추"
+               onerror="this.src='https://placehold.co/600x400/E9F5E4/4A7C2C?text=배추'">
+          <h3>배추 1포기</h3>
+        </a>
+        <p class="price">₩1,800</p>
+        <button class="add-btn">장바구니 담기</button>
+      </div>
+      
+      <div class="product-card" data-category="veg">
+        <a href="#" class="product-link" 
+           data-name="대파 1단" 
+           data-price="2,000" 
+           data-img-src="https://images.unsplash.com/photo-1615485297643-5b6b8e8d0e76?q=80&w=600&auto-format&fit=crop"
+           data-desc="향긋한 풍미가 일품인 대파입니다. 국물 요리나 볶음 요리에 빠질 수 없죠.">
+          <img src="https://images.unsplash.com/photo-1615485297643-5b6b8e8d0e76?q=80&w=600&auto-format&fit=crop" alt="대파"
+               onerror="this.src='https://placehold.co/600x400/E9F5E4/4A7C2C?text=대파'">
+          <h3>대파 1단</h3>
+        </a>
+        <p class="price">₩2,000</p>
+        <button class="add-btn">장바구니 담기</button>
+      </div>
+      
+      <div class="product-card" data-category="veg">
+        <a href="#" class="product-link" 
+           data-name="무 1개" 
+           data-price="1,200" 
+           data-img-src="https://images.unsplash.com/photo-1617196031326-7fcd2f03e9f2?q=80&w=600&auto-format&fit=crop"
+           data-desc="시원하고 달큰한 맛이 좋은 가을 무입니다. 뭇국이나 깍두기로 담가보세요.">
+          <img src="https://images.unsplash.com/photo-1617196031326-7fcd2f03e9f2?q=80&w=600&auto-format&fit=crop" alt="무"
+               onerror="this.src='https://placehold.co/600x400/E9F5E4/4A7C2C?text=무'">
+          <h3>무 1개</h3>
+        </a>
+        <p class="price">₩1,200</p>
+        <button class="add-btn">장바구니 담기</button>
+      </div>
+      
+      <div class="product-card" data-category="veg">
+        <a href="#" class="product-link" 
+           data-name="양파 1망" 
+           data-price="3,000" 
+           data-img-src="https://images.unsplash.com/photo-1587049352851-e5ffe2245741?q=80&w=600&auto-format&fit=crop"
+           data-desc="단단하고 알찬 햇양파 1망입니다. 어떤 요리에도 잘 어울리는 만능 식재료입니다.">
+          <img src="https://images.unsplash.com/photo-1587049352851-e5ffe2245741?q=80&w=600&auto-format&fit=crop" alt="양파"
+               onerror="this.src='https://placehold.co/600x400/E9F5E4/4A7C2C?text=양파'">
+          <h3>양파 1망</h3>
+        </a>
+        <p class="price">₩3,000</p>
+        <button class="add-btn">장바구니 담기</button>
+      </div>
+      
+      <div class="product-card" data-category="fruit"> 
+        <a href="#" class="product-link" 
+           data-name="토마토 1kg" 
+           data-price="4,200" 
+           data-img-src="https://images.unsplash.com/photo-1576402187878-974f70b74d38?q=80&w=600&auto-format&fit=crop"
+           data-desc="새콤달콤 맛있는 완숙 토마토입니다. 그냥 먹어도, 주스로 갈아 마셔도 좋습니다.">
+          <img src="https://images.unsplash.com/photo-1576402187878-974f70b74d38?q=80&w=600&auto-format&fit=crop" alt="토마토"
+               onerror="this.src='https://placehold.co/600x400/E9F5E4/4A7C2C?text=토마토'">
+          <h3>토마토 1kg</h3>
+        </a>
+        <p class="price">₩4,200</p>
+        <button class="add-btn">장바구니 담기</button>
+      </div>
+    </section>
+
+    <!-- 상품 상세 페이지 뷰 (숨겨진 상태) -->
+    <div id="product-detail-view">
+      <!-- JS가 여기에 상세 페이지 내용을 동적으로 생성합니다. -->
+    </div>
+
+  </div>
+
+  <!-- 오른쪽 장바구니 -->
+  <aside class="cart">
+    <h2>내 장바구니 🧺</h2>
+    <div class="cart-items-list">
+      <!-- JavaScript가 여기에 .cart-item을 추가합니다 -->
+    </div>
+    <div class="checkout">
+      <p><strong>총합계: ₩0</strong></p>
+      <!-- [v8 수정] 텍스트 변경 및 ID 추가 -->
+      <button id="start-order-btn">주문하기</button>
+    </div>
+  </aside>
+
+  <!-- 로그인/회원가입 모달 -->
+  <div class="modal-overlay" id="login-modal-overlay">
+    <div class="modal-container">
+      <div class="modal-form-section">
+        <button class="modal-close-btn" data-close-target="login-modal-overlay">&times;</button>
+        <h2>🔐 로그인</h2>
+        <div class="form-group">
+          <label for="login-id">아이디</label>
+          <input type="text" placeholder="아이디 입력" id="login-id">
+        </div>
+        <div class="form-group">
+          <label for="login-password">비밀번호</label>
+          <input type="password" placeholder="비밀번호 입력" id="login-password">
+        </div>
+        <button class="modal-btn" id="login-submit-btn">로그인</button>
+        <div class="modal-links">
+          <a id="modal-switch-to-signup">회원가입</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-overlay" id="signup-modal-overlay">
+    <div class="modal-container">
+      <div class="modal-form-section">
+        <button class="modal-close-btn" data-close-target="signup-modal-overlay">&times;</button>
+        <h2>🌿 회원가입</h2>
+        <!-- (아이디) -->
+        <div class="form-group">
+          <label for="signup-id">아이디</label>
+          <div class="form-inline">
+            <input type="text" placeholder="아이디 입력 (6~20자)" id="signup-id">
+            <button class="inline-btn" id="id-check-btn">중복확인</button>
+          </div>
+          <div class="validation-msg" id="id-msg"></div>
+        </div>
+        <!-- (비밀번호) -->
+        <div class="form-group">
+          <label for="signup-password">비밀번호</label>
+          <input type="password" placeholder="문자, 숫자, 특수문자 포함 8~20자" id="signup-password">
+          <div class="validation-msg" id="pass-msg"></div>
+        </div>
+        <!-- (비밀번호 재입력) -->
+        <div class="form-group">
+          <label for="signup-password-confirm">비밀번호 재입력</label>
+          <input type="password" placeholder="비밀번호 확인" id="signup-password-confirm">
+          <div class="validation-msg" id="pass-confirm-msg">비밀번호가 일치하지 않습니다.</div>
+        </div>
+        <!-- (이름) -->
+        <div class="form-group">
+          <label for="signup-name">이름</label>
+          <input type="text" placeholder="이름 입력" id="signup-name">
+        </div>
+        <!-- (이메일) -->
+        <div class="form-group">
+          <label for="signup-email">이메일</label>
+          <div class="form-inline">
+            <input type="text" id="signup-email-id">
+            <span style="align-self: center;">@</span>
+            <input type="text" id="signup-email-domain" placeholder="naver.com">
+          </div>
+        </div>
+        <!-- (휴대폰) -->
+        <div class="form-group">
+          <label for="signup-phone">휴대폰 번호</label>
+          <input type="text" placeholder="010-0000-0000" id="signup-phone">
+        </div>
+        <!-- (주소) -->
+        <div class="form-group">
+          <label for="signup-address">주소</label>
+          <div class="form-inline">
+            <input type="text" placeholder="주소 입력" id="signup-address" readonly>
+            <button class="inline-btn" id="address-search-btn">검색</button>
+          </div>
+        </div>
+        <!-- (상세주소) -->
+        <div class="form-group">
+          <label for="signup-address-detail">상세주소</label>
+          <input type="text" placeholder="상세주소 입력" id="signup-address-detail">
+        </div>
+        <button class="modal-btn" id="signup-submit-btn">가입 하기</button>
+        <div class="modal-links">
+          <a id="modal-switch-to-login">이미 회원이신가요? 로그인</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- 푸터 (공유 영역) -->
+  <footer>
+    © 2025 FARM | 자연 그대로의 신선함<br>
+    이용약관 | 개인정보처리방침 | 고객센터
+  </footer>
+
+  <!-- [v8] JS 파일 연결 -->
+<script th:src="@{/js/script.js}"></script>
+</body>
+</html>
