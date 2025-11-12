@@ -131,21 +131,23 @@
             <form id="new-crop-form">
                 <label for="crop-name">농작물명</label>
                 <input type="text" id="crop-name" placeholder="예: 방울토마토">
-                
-                <label for="area">재배면적</label>
-                <input type="text" id="area" placeholder="예: 500㎡">
 
-                <label for="sowing-date">파종일</label>
-                <input type="date" id="sowing-date">
+                <label for="growth-time">생육 기간(일)</label>
+                <input type="number" id="growth-time" placeholder="예: 60" min="1" step="1">
 
-                <label for="expected-harvest">예상 수확일</label>
-                <input type="date" id="expected-harvest">
+                <label for="quantity">수량</label>
+                <input type="text" id="quantity" placeholder="예: 20">
+
+                <label for="unit-name">단위</label>
+                <input type="text" id="unit-name" placeholder="예: kg">
+
+                <label for="reg-date">파종일</label>
+                <input type="date" id="reg-date">
 
                 <label for="status">상태</label>
                 <select id="status">
-                    <option value="재배중">재배중</option>
-                    <option value="수확가능">수확가능</option>
-                    <option value="재배종료">재배종료</option>
+                    <option value="enable">재배중</option>
+                    <option value="disable">재배중단</option>
                 </select>
 
                 <button type="submit" class="btn-primary">등록하기</button>

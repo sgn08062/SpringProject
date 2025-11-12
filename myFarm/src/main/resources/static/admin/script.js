@@ -189,27 +189,27 @@ function renderCropListFromData(cropList) {
     list.innerHTML = cropList.map(crop => {
         const isOn = Number(crop.status) === 1 || crop.status === true || crop.status === '1';
         return `
-      <tr data-id="${crop.cropId}">
-        <td>${crop.cropName ?? '-'}</td>
-        <td>${
-            (crop.quantity ?? crop.quantity === 0 ? crop.quantity : '-') +
-            (crop.unitName ? ' ' + crop.unitName : '')
-        }</td>
-        <td>${crop.regDate ?? '-'}</td>
-        <!-- ✅ 퍼센트 변경 함수 -->
-        <td id="crop-progress-${crop.cropId}">${percentOf(crop)}</td>
-        <td>
-          <label class="switch">
-            <!-- ✅ 초기 상태 반영 -->
-            <input type="checkbox" class="crop-status" ${isOn ? 'checked' : ''}>
-            <span class="slider"></span>
-          </label>
-        </td>
-        <td>
-          <button class="btn-small btn-edit" onclick="openModal('edit-crop-modal', ${crop.cropId})">수정</button>
-          <button class="btn-small btn-delete" onclick="handleDelete('crop', ${crop.cropId})">삭제</button>
-        </td>
-      </tr>
+            <tr data-id="${crop.cropId}">
+                <td>${crop.cropName ?? '-'}</td>
+                <td>${
+                    (crop.quantity ?? crop.quantity === 0 ? crop.quantity : '-') +
+                    (crop.unitName ? ' ' + crop.unitName : '')
+                }</td>
+                <td>${crop.regDate ?? '-'}</td>
+                <!-- ✅ 퍼센트 변경 함수 -->
+                <td id="crop-progress-${crop.cropId}">${percentOf(crop)}</td>
+                <td>
+                  <label class="switch">
+                    <!-- ✅ 초기 상태 반영 -->
+                    <input type="checkbox" class="crop-status" ${isOn ? 'checked' : ''}>
+                    <span class="slider"></span>
+                  </label>
+                </td>
+                <td>
+                  <button class="btn-small btn-edit" onclick="openModal('edit-crop-modal', ${crop.cropId})">수정</button>
+                  <button class="btn-small btn-delete" onclick="handleDelete('crop', ${crop.cropId})">삭제</button>
+                </td>
+            </tr>
     `;
     }).join('');
 
@@ -326,30 +326,49 @@ function handleNewFarm(e) {
     renderFarmList();
 }
 
-// [수정됨] 새 농작물 등록 (quantity 사용, expectedHarvest 제거)
-function handleNewCrop(e) {
+// ✅ 새 농작물 등록: 백엔드와 연결
+async function handleNewCrop(e) {
     e.preventDefault();
-    const name = document.getElementById('crop-name')?.value || '새 농작물';
-    // HTML의 'area' input을 'quantity' (재배수량) 데이터로 사용
-    const quantity = document.getElementById('area')?.value || 'N/A'; 
-    const sowingDate = document.getElementById('sowing-date')?.value || new Date().toISOString().slice(0, 10);
-    // 'expected-harvest' 값은 더 이상 수집하지 않음
-    const status = document.getElementById('status')?.value || '재배중';
-    
-    crops.push({ 
-        id: Date.now(), 
-        name: name, 
-        quantity: quantity, // quantity로 저장
-        sowingDate: sowingDate, 
-        status: status, 
-        isActive: true 
-        // expectedHarvest 필드 제거
-    });
 
-    alert(`농작물 '${name}' 등록 완료 (DB FIELD INSERT 필요)`);
-    closeModal('new-crop-modal');
-    renderCropList();
+    const name       = document.getElementById('crop-name')?.value?.trim();
+    const quantity   = parseInt(document.getElementById('quantity')?.value || '0', 10) || 0;
+    const unitName   = document.getElementById('unit-name')?.value?.trim() || '';
+    const regDate    = document.getElementById('reg-date')?.value || null; // ✅ 파종일 → regDate
+    const statusSel  = document.getElementById('status')?.value;              // enable/disable
+    const gtRaw      = document.getElementById('growth-time')?.value || '';
+    let   growthTime = parseInt(gtRaw, 10);
+    if (!Number.isFinite(growthTime) || growthTime <= 0) growthTime = 60;
+
+    if (!name) { alert('농작물명을 입력하세요.'); return; }
+
+    const payload = {
+        cropName: name,
+        quantity: quantity,
+        unitName: unitName,
+        regDate: regDate,                         // ✅ 서버 필드명 regDate로 보냄
+        status: (statusSel === 'enable') ? 1 : 0,
+        growthTime: growthTime,
+        elapsedTick: 0
+    };
+
+    try {
+        const res = await fetch('/admin/api/crops', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error(await res.text().catch(()=> '등록 실패'));
+
+        const list = await fetchCrops();
+        renderCropListFromData(list);
+        closeModal('new-crop-modal');
+        document.getElementById('new-crop-form')?.reset();
+        alert('농작물이 등록되었습니다.');
+    } catch (err) {
+        alert('등록 중 오류가 발생했습니다.\n' + (err?.message || ''));
+    }
 }
+
 
 function handleNewProduct(e) {
     e.preventDefault();

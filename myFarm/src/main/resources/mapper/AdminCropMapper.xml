@@ -10,9 +10,9 @@
             keyProperty="cropId"
             keyColumn="CROP_ID">
         INSERT INTO CROP (
-            CROP_NAME, STATUS, GROWTH_TIME, QUANTITY, UNIT_NAME, ELAPSED_TICK
+            CROP_NAME, REG_DATE, STATUS, GROWTH_TIME, QUANTITY, UNIT_NAME, ELAPSED_TICK
         ) VALUES (
-            #{cropName}, #{status}, #{growthTime}, #{quantity}, #{unitName}, #{elapsedTick}
+            #{cropName}, COALESCE(#{regDate}, CURRENT_DATE), #{status}, #{growthTime}, #{quantity}, #{unitName}, #{elapsedTick}
         )
     </insert>
 

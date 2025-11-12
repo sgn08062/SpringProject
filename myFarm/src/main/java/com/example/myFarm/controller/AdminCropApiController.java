@@ -21,8 +21,23 @@ public class AdminCropApiController {
         return adminCropService.getCropList();
     }
 
-    @PostMapping("/enable/{id}")
-    public ResponseEntity<?> enable(@PathVariable("id") long cropId){
+    // 새 농작물 등록
+    @PostMapping
+    public ResponseEntity<CropVO> create(@RequestBody CropVO cropVO){
+        if(cropVO.getGrowthTime() <= 0) cropVO.setGrowthTime(60); // 기본 성장 틱
+        cropVO.setElapsedTick(0);
+
+        int r = adminCropService.addCrop(cropVO);
+        if(r == 1){
+            return ResponseEntity.ok().body(cropVO);
+        }else{
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // 농작물 활성화
+    @PostMapping("/enable/{cropid}")
+    public ResponseEntity<?> enable(@PathVariable("cropid") long cropId){
         int r = adminCropService.enableCrop(cropId);
         if(r==1){
             return ResponseEntity.ok().build();
@@ -31,8 +46,9 @@ public class AdminCropApiController {
         }
     }
 
-    @PostMapping("/disable/{id}")
-    public ResponseEntity<?> disable(@PathVariable("id") long cropId){
+    // 농작물 비활성
+    @PostMapping("/disable/{cropid}")
+    public ResponseEntity<?> disable(@PathVariable("cropid") long cropId){
         int r = adminCropService.disableCrop(cropId);
         if(r==1){
             return ResponseEntity.ok().build();
