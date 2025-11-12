@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/schema/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.myFarm.user.OrderMapper">
+
+    <insert id="insertOrder" parameterType="OrderVO" useGeneratedKeys="true" keyProperty="orderId">
+        INSERT INTO ORDERS ( STATUS, ADDRESS, PHONE, USER_ID, ORDER_DATE )
+        VALUES ( #{status}, #{address}, #{phone}, #{userId}, NOW() )
+    </insert>
+
+    <insert id="insertOrderAmount" parameterType="OrderVO">
+        INSERT INTO ORDER_AMOUNT (ORDER_ID, ITEM_ID, AMOUNT, UNIT_PRICE, TOTAL_PRICE )
+        SELECT
+        #{orderId},
+        C.ITEM_ID,
+        C.AMOUNT,
+        S.PRICE AS UNIT_PRICE,
+        C.AMOUNT * S.PRICE AS TOTAL_PRICE
+        FROM CART C
+        JOIN SHOP S ON C.ITEM_ID = S.ITEM_ID
+        WHERE C.USER_ID = #{userId}
+    </insert>
+
+    <select id="selectOrderList" parameterType="int" resultType="OrderVO">
+        SELECT
+        o.ORDER_ID AS orderId,
+        o.STATUS AS status,
+
+        /* 💡 최종 수정: 날짜 컬럼이 없으므로, ORDER_ID를 문자열로 캐스팅하여 임시로 사용 */
+        CAST(o.ORDER_ID AS CHAR) AS orderDate,
+
+        SUM(oa.AMOUNT * oa.UNIT_PRICE) AS totalAmount,
+
+        /* 대표 상품명 서브쿼리 */
+        (
+        SELECT s.ITEM_NAME
+        FROM ORDER_AMOUNT sub_oa
+        JOIN SHOP s ON sub_oa.ITEM_ID = s.ITEM_ID
+        WHERE sub_oa.ORDER_ID = o.ORDER_ID
+        ORDER BY sub_oa.ITEM_ID ASC
+        LIMIT 1
+        ) AS representativeItemName
+
+        FROM ORDERS o
+        JOIN ORDER_AMOUNT oa ON o.ORDER_ID = oa.ORDER_ID
+        WHERE o.USER_ID = #{userId}
+        /* ORDER_ID를 GROUP BY 기준으로 사용 */
+        GROUP BY o.ORDER_ID, o.STATUS, o.ORDER_ID
+        ORDER BY o.ORDER_ID DESC
+    </select>
+
+    <select id="selectOrderDetail" parameterType="long" resultType="OrderVO">
+        SELECT
+        ORDER_ID,
+        STATUS,
+        ORDER_DATE,
+        ADDRESS,
+        PHONE,
+        USER_ID
+        FROM ORDERS
+        WHERE ORDER_ID = #{orderId}
+    </select>
+
+    <update id="updateOrderStatus" parameterType="map">
+        UPDATE ORDERS
+        SET STATUS = #{status} WHERE ORDER_ID = #{orderId}
+        AND USER_ID = #{userId} </update>
+
+</mapper>

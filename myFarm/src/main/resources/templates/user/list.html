@@ -9,6 +9,7 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
     <style>
+        /* ... (기존 스타일 유지) ... */
         .modal {
             display: none;
             position: fixed;
@@ -66,11 +67,12 @@
             background-color: #28a745;
         }
         .cart-form-inline {
-            flex-grow: 1;
+            /* flex-grow: 1; 제거 */
             display: flex;
+            width: 100%; /* 수정: 너비 꽉 차게 */
         }
         .cart-form-inline .btn.cart {
-            width: 100%;
+            width: 100%; /* 수정: 너비 꽉 차게 */
             padding: 10px 15px;
             border: none;
             cursor: pointer;
@@ -98,6 +100,29 @@
             width: auto;
             margin-top: 10px;
         }
+
+        /* 상세 모달 콘텐츠 스타일 */
+        #detailContentContainer h2 {
+            margin-top: 0;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 10px;
+        }
+        #detailContentContainer p {
+            margin-bottom: 5px;
+        }
+        #detailContentContainer .detail-price {
+            font-size: 1.5em;
+            color: #d9534f;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        .detail-item-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
     </style>
 
 </head>
@@ -110,8 +135,8 @@
             <span>농장직송</span>
         </div>
         <div class="header-top">
-            <a th:href="@{/product/list}">상품</a>
-            <a th:href="@{/user/orders}">마이페이지</a>
+            <a th:href="@{/user/list}">상품</a>
+            <a th:href="@{/user/order}">마이페이지</a>
 
             <a th:href="@{/user/cart}">장바구니</a>
 
@@ -131,7 +156,7 @@
 </div>
 
 <div class="search-container">
-    <form th:action="@{/product/list}" method="get" class="search-form">
+    <form th:action="@{/user/list}" method="get" class="search-form">
         <input type="text" name="searchKeyword" placeholder="🔍 상품 검색..." th:value="${searchKeyword}">
         <select name="sortField">
             <option value="regDate" th:selected="${sortField == 'regDate'}">전체</option>
@@ -143,15 +168,15 @@
 <div id="productList" th:if="${itemList != null}">
     <div class="crop-item" th:each="item : ${itemList}">
 
-        <a th:href="@{/product/detail(itemId=${item.itemId})}" class="item-image-link">
+        <a href="javascript:void(0)" th:onclick="|openDetailModal(${item.itemId})|" class="item-image-link">
             <div class="item-image">
                 <th:block th:switch="${item.itemId}">
-                    <img th:case="1" src="https://images.unsplash.com/photo-1745791562822-7ac21012bbb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080" th:alt="${item.itemName} + ' 이미지'">
-                    <img th:case="2" src="https://images.unsplash.com/photo-1657411658279-e32af8636eb1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080" th:alt="${item.itemName} + ' 이미지'">
-                    <img th:case="3" src="https://images.unsplash.com/photo-1717959159782-98c42b1d4f37?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080" th:alt="${item.itemName} + ' 이미지'">
-                    <img th:case="4" src="https://images.unsplash.com/photo-1710528184650-fc75ae862c13?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080" th:alt="${item.itemName} + ' 이미지'">
-                    <img th:case="5" src="https://images.unsplash.com/photo-1730202252661-bd76bd26378f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080" th:alt="${item.itemName} + ' 이미지'">
-                    <img th:case="*" src="https://images.unsplash.com/photo-1745791562822-7ac21012bbb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080" th:alt="${item.itemName} + ' 이미지'">
+                    <img th:case="1" th:src="@{https://images.unsplash.com/photo-1745791562822-7ac21012bbb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080}" th:alt="${item.itemName} + ' 이미지'">
+                    <img th:case="2" th:src="@{https://images.unsplash.com/photo-1657411658279-e32af8636eb1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080}" th:alt="${item.itemName} + ' 이미지'">
+                    <img th:case="3" th:src="@{https://images.unsplash.com/photo-1717959159782-98c42b1d4f37?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080}" th:alt="${item.itemName} + ' 이미지'">
+                    <img th:case="4" th:src="@{https://images.unsplash.com/photo-1710528184650-fc75ae862c13?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080}" th:alt="${item.itemName} + ' 이미지'">
+                    <img th:case="5" th:src="@{https://images.unsplash.com/photo-1730202252661-bd76bd26378f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080}" th:alt="${item.itemName} + ' 이미지'">
+                    <img th:case="*" th:src="@{https://images.unsplash.com/photo-1745791562822-7ac21012bbb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080}" th:alt="${item.itemName} + ' 이미지'">
                 </th:block>
 
                 <div th:unless="${item.amount != null and item.amount > 0}" class="sold-out-overlay">SOLD OUT</div>
@@ -168,12 +193,10 @@
 
             <div class="btn-wrapper">
                 <th:block th:if="${item.amount != null and item.amount > 0}">
-                    <a th:href="@{/user/checkout(itemId=${item.itemId})}" class="btn buy">바로 구매</a>
                     <form th:action="@{/user/pushCart}" method="post" class="cart-form-inline">
                         <input type="hidden" name="itemId" th:value="${item.itemId}">
                         <input type="hidden" name="amount" value="1">
-                        <button type="submit" class="btn cart">장바구니</button>
-                    </form>
+                        <button type="submit" class="btn cart">주문하기</button> </form>
                 </th:block>
                 <th:block th:unless="${item.amount != null and item.amount > 0}">
                     <span class="btn" style="background-color: var(--muted); color: var(--muted-foreground); cursor: default; width: 100%;">품절</span>
@@ -195,8 +218,7 @@
             <p>✉️ support@farm.com</p>
         </div>
         <div class="footer-section">
-            <a th:href="@{/user/orders}">주문 목록</a>
-            <a th:href="@{/user/checkout}">결제</a>
+            <a th:href="@{/user/order}">주문 목록</a>
             <a href="#">이용약관</a>
             <a href="#">개인정보처리방침</a>
         </div>
@@ -238,8 +260,9 @@
 </div>
 
 
-<script>
+<script th:inline="javascript">
 
+    // 로그인 모달 스크립트 (기존 유지)
     const loginModal = document.getElementById("loginModal");
     const loginBtn = document.getElementById("loginModalBtn");
     const loginClose = document.querySelector("#loginModal .close");
@@ -256,11 +279,79 @@
         }
     }
 
+    // 💡 상세 모달 스크립트 추가
+    const detailModal = document.getElementById("detailModal");
+    const detailClose = document.querySelector("#detailModal .close");
+    const detailContentContainer = document.getElementById("detailContentContainer");
+
+    // 모달 닫기 이벤트 리스너
+    if (detailClose) {
+        detailClose.onclick = function() {
+            detailModal.style.display = "none";
+            // 모달 닫을 때 내용 초기화
+            detailContentContainer.innerHTML = '<p style="text-align: center;">Loading...</p>';
+        }
+    }
+
     window.onclick = function(event) {
         if (event.target == loginModal) {
             loginModal.style.display = "none";
         }
+        if (event.target == detailModal) {
+            detailModal.style.display = "none";
+            detailContentContainer.innerHTML = '<p style="text-align: center;">Loading...</p>';
+        }
     }
+
+    /**
+     * 상품 상세 모달을 열고 AJAX로 데이터를 불러오는 함수
+     * @param {number} itemId
+     */
+    function openDetailModal(itemId) {
+        detailModal.style.display = "block";
+        detailContentContainer.innerHTML = '<p style="text-align: center;">상품 정보를 불러오는 중...</p>';
+
+        $.ajax({
+            url: /*[[@{/user/detail}]]*/ '/user/detail', // 컨트롤러의 /user/detail 엔드포인트 사용
+            type: 'GET',
+            data: { itemId: itemId },
+            success: function(response) {
+                // 💡 응답 데이터(ItemVO)를 받아서 모달 내용을 동적으로 구성
+
+                // 임시 이미지 URL (실제 DB 데이터에 따라 변경해야 함)
+                let itemImage = '';
+                switch(itemId) {
+                    case 1: itemImage = 'https://images.unsplash.com/photo-1745791562822-7ac21012bbb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080'; break;
+                    case 2: itemImage = 'https://images.unsplash.com/photo-1657411658279-e32af8636eb1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080'; break;
+                    case 3: itemImage = 'https://images.unsplash.com/photo-1717959159782-98c42b1d4f37?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080'; break;
+                    default: itemImage = 'https://images.unsplash.com/photo-1745791562822-7ac21012bbb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080';
+                }
+
+                let content = `
+                    <img src="${itemImage}" alt="${response.itemName} 이미지" class="detail-item-image">
+                    <h2>${response.itemName}</h2>
+                    <p class="detail-price">${new Intl.NumberFormat('ko-KR').format(response.price)}원 / 개</p>
+                    <p>재고: ${response.amount > 0 ? response.amount + '개' : '품절'}</p>
+                    <p>판매자: 농부 김씨</p>
+                    <hr>
+                    <p><strong>상품 설명:</strong> 싱싱하고 맛있는 제철 농산물입니다. 지금 바로 만나보세요!</p>
+                    <div class="btn-wrapper" style="margin-top: 20px;">
+                        ${response.amount > 0
+                    ? `<form action="/*[[@{/user/pushCart}]]*/" method="post" class="cart-form-inline">
+                                    <input type="hidden" name="itemId" value="${response.itemId}">
+                                    <input type="number" name="amount" value="1" min="1" max="${response.amount}" style="width: 60px; margin-right: 5px;">
+                                    <button type="submit" class="btn cart">주문하기</button> </form>`
+                    : `<span class="btn" style="background-color: var(--muted); cursor: default; width: 100%;">품절</span>`}
+                    </div>
+                `;
+                detailContentContainer.innerHTML = content;
+            },
+            error: function(xhr, status, error) {
+                detailContentContainer.innerHTML = '<p style="text-align: center; color: red;">상품 정보를 불러오지 못했습니다. (' + xhr.status + ')</p>';
+            }
+        });
+    }
+
 </script>
 
 </body>

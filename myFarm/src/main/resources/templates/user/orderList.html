@@ -1,45 +1,101 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>주문 내역</title>
-    <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-<h1>주문 내역 전체 조회</h1>
+<h1>🛒 주문/결제</h1>
 
-<div th:if="${successMessage}" style="color: green; font-weight: bold; margin-bottom: 15px;" th:text="${successMessage}">성공 메시지</div>
+<form th:action="@{/user/placeOrder}" method="post" id="orderForm">
 
-<table>
-    <thead>
-    <tr>
-        <th>주문 번호</th>
-        <th>주문 일자</th>
-        <th>대표 상품</th>
-        <th>총 결제 금액</th>
-        <th>상태</th>
-        <th>상세 보기</th>
-        <th>주문 취소</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="order : ${orderList}">
-        <td th:text="${order.orderId}">1</td>
-        <td th:text="${#temporals.format(order.orderDate, 'yyyy-MM-dd')}">2025-11-05</td>
-        <td th:text="${order.representativeItemName}">유기농 감자</td>
-        <td th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')}">25,000원</td>
-        <td th:text="${order.status}">배송 중</td>
-        <td><a class="btn" th:href="@{/user/order/{id}(id=${order.orderId})}">상세</a></td>
-        <td>
-            <th:block th:if="${order.status == '주문 대기'}">
-                <form th:action="@{/user/order/cancel/{id}(id=${order.orderId})}" method="post">
-                    <button type="submit" class="cancelBtn">주문 취소</button>
-                </form>
-            </th:block>
-            <span th:unless="${order.status == '주문 대기'}">취소 불가</span>
-        </td>
-    </tr>
-    </tbody>
-</table>
+    <div th:if="${defaultAddress != null}">
+        <input type="hidden" name="addressId" th:value="${defaultAddress.addId}" id="defaultAddressId">
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <label>
+            <input type="radio" name="addressOption" value="default" checked> 기본 배송지 사용
+
+            <span th:if="${defaultAddress != null}"
+                  th:text="${defaultAddress.address + ' (' + defaultAddress.addName + ') / ' + defaultAddress.phone}">
+                서울시 강남구 (김철수) / 010-1234-5678
+            </span>
+            <span th:if="${defaultAddress == null}">기본 배송지 정보 없음</span>
+        </label><br>
+
+        <label>
+            <input type="radio" name="addressOption" value="new"> 새로운 배송지 입력
+            <a th:href="@{/user/orders?tab=address}" target="_blank" style="margin-left: 10px;">(주소 관리)</a>
+        </label>
+    </div>
+
+    <div id="newAddressFields" style="display: none;">
+        <p>
+            <label for="newAddressName">배송지명:</label>
+            <input type="text" id="newAddressName" name="newAddressName" placeholder="(예: 우리집, 회사)">
+        </p>
+        <p>
+            <label for="newAddress">주소:</label>
+            <input type="text" id="newAddress" name="newAddress" placeholder="상세 주소를 포함하여 입력">
+        </p>
+        <p>
+            <label for="newPhone">연락처:</label>
+            <input type="text" id="newPhone" name="newPhone" placeholder="010-XXXX-XXXX">
+        </p>
+    </div>
+
+    <hr>
+    <hr>
+
+    <h2>최종 결제 금액: <span id="finalTotal" th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT')} + '원'">20,000원</span></h2>
+
+    <button type="submit">결제하기 (주문 확정)</button>
+
+</form>
+
+<script>
+    $(document).ready(function() {
+        const $newFields = $('#newAddressFields');
+        const $newInputs = $newFields.find('input');
+        const $addressIdInput = $('#defaultAddressId');
+
+        function toggleAddressInputs(isNew) {
+            if (isNew) {
+                $newFields.show();
+                // 새 주소 입력 필드를 필수로 설정
+                $newInputs.prop('required', true);
+                // 기본 주소 ID를 전송하지 않도록 비활성화
+                $addressIdInput.prop('name', 'addressId_disabled').prop('disabled', true);
+
+            } else {
+                $newFields.hide();
+                // 새 주소 입력 필드의 필수 및 name을 해제
+                $newInputs.prop('required', false).prop('name', function() {
+                    return $(this).attr('id'); // name 속성을 id로 복구 (서버로 전송되지 않도록)
+                });
+
+                // 기본 주소 ID를 전송하도록 활성화 (Controller의 @RequestParam Long addressId 파라미터로 전송)
+                $addressIdInput.prop('name', 'addressId').prop('disabled', false);
+            }
+        }
+
+        // 라디오 버튼 변경 이벤트 처리
+        $('input[name="addressOption"]').on('change', function() {
+            toggleAddressInputs($(this).val() === 'new');
+        });
+
+        // 초기 로드 시 상태 설정
+        toggleAddressInputs($('input[name="addressOption"]:checked').val() === 'new');
+
+        // 폼 제출 시 유효성 검사 (새 주소 선택 시 addressId가 비활성화된 채 전송됨)
+        $('#orderForm').on('submit', function(e) {
+            if ($('input[name="addressOption"]:checked').val() === 'default' && !$addressIdInput.val()) {
+                e.preventDefault();
+                alert("기본 배송지 정보가 유효하지 않습니다. 배송지 관리를 확인해주세요.");
+                return;
+            }
+            // 새 주소 선택 시, required 속성이 true이므로 브라우저 자체 유효성 검사로 처리됨.
+        });
+    });
+</script>
 </body>
 </html>

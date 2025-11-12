@@ -41,4 +41,93 @@
         DELETE FROM CART WHERE USER_ID = #{userId}
     </delete>
 
+    <!-- purchase -->
+
+    <insert id="insertOrder" parameterType="OrderVO" useGeneratedKeys="true" keyProperty="orderId">
+        INSERT INTO ORDERS (STATUS, ADDRESS, PHONE, USER_ID)
+        VALUES (#{status}, #{address}, #{phone}, #{userId})
+    </insert>
+
+    <insert id="insertOrderAmount" parameterType="OrderVO">
+        INSERT INTO ORDER_AMOUNT (ORDER_ID, ITEM_ID, AMOUNT, UNIT_PRICE)
+        SELECT
+        #{orderId} AS ORDER_ID,  c.ITEM_ID,
+        c.AMOUNT,
+        s.PRICE AS UNIT_PRICE     FROM CART c
+        JOIN SHOP s ON c.ITEM_ID = s.ITEM_ID
+        WHERE c.USER_ID = #{userId}
+    </insert>
+
+    <update id="updateInventoryStock">
+        UPDATE INVENTORY i
+        JOIN SHOP s ON i.STOR_ID = s.STOR_ID
+        SET i.AMOUNT = i.AMOUNT - #{param2}
+        WHERE s.ITEM_ID = #{param1}
+    </update>
+
+    <select id="getItemsForOrder" parameterType="int" resultType="ItemVO">
+        SELECT
+        c.ITEM_ID AS itemId,
+        c.AMOUNT AS amount,
+        s.PRICE AS price,
+        i.AMOUNT AS stockAmount,
+        s.STOR_ID AS storId
+        FROM CART c
+        JOIN SHOP s ON c.ITEM_ID = s.ITEM_ID
+        JOIN INVENTORY i ON s.STOR_ID = i.STOR_ID
+        WHERE c.USER_ID = #{userId}
+    </select>
+
+
+
+
+
+    <!-- dummy -->
+
+    <select id="selectAddressDetail" resultType="AddressVO">
+        SELECT ADD_ID, ADDRESS, ADD_NAME, USER_ID
+        FROM ADDRESS
+        WHERE ADD_ID = #{addId} AND USER_ID = #{userId}
+    </select>
+
+    <insert id="insertAddress" parameterType="AddressVO" useGeneratedKeys="true" keyProperty="addId">
+        INSERT INTO ADDRESS (ADDRESS, ADD_NAME, USER_ID)
+        VALUES (#{address}, #{addName}, #{userId})
+    </insert>
+
+    <update id="updateAddress" parameterType="AddressVO">
+        UPDATE ADDRESS
+        SET ADDRESS = #{address}, ADD_NAME = #{addName}
+        WHERE ADD_ID = #{addId} AND USER_ID = #{userId}
+    </update>
+
+    <delete id="deleteAddress">
+        DELETE FROM ADDRESS
+        WHERE ADD_ID = #{addId} AND USER_ID = #{userId}
+    </delete>
+
+    <select id="selectAddressList" resultType="AddressVO">
+        SELECT ADD_ID, ADDRESS, ADD_NAME, USER_ID
+        FROM ADDRESS
+        WHERE USER_ID = #{userId}
+    </select>
+
+    <select id="selectDefaultAddress" parameterType="int" resultType="AddressVO">
+        SELECT
+        ADD_ID AS addId,
+        ADDRESS,
+        ADD_NAME AS addName,
+        USER_ID AS userId
+        /* 💡 최종 수정: IS_DEFAULT 컬럼 및 조건 완전 제거 */
+        /* 기본 주소 여부를 AddressVO에서 사용해야 한다면, 임시로 TRUE 값을 매핑합니다. */
+        , TRUE AS isDefault
+        FROM ADDRESS
+        WHERE USER_ID = #{userId}
+        /* DB에 IS_DEFAULT 컬럼이 없으므로, 가장 최근에 등록된 주소를 기본 주소로 간주하여 가져옵니다. */
+        ORDER BY ADD_ID DESC
+        LIMIT 1
+    </select>
+
+
+
 </mapper>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/schema/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.myFarm.user.DummyMapper">
+
+    <select id="selectUserByLoginId" resultType="DummyVO">
+        SELECT USER_ID, LOGIN_ID, USER_NAME, PHONE, EMAIL, AUTH
+        FROM USERS
+        WHERE LOGIN_ID = #{loginId}
+    </select>
+
+    <select id="selectAllUsers" resultType="DummyVO">
+        SELECT USER_ID, LOGIN_ID, USER_NAME, PHONE, EMAIL, AUTH
+        FROM USERS
+    </select>
+
+    <insert id="insertUser" parameterType="DummyVO" useGeneratedKeys="true" keyProperty="userId">
+        INSERT INTO USERS (LOGIN_ID, USER_PW, USER_NAME, PHONE, EMAIL, AUTH)
+        VALUES (#{loginId}, #{userPw}, #{userName}, #{userName}, #{email}, #{auth})
+    </insert>
+
+    <update id="updateUser" parameterType="DummyVO">
+        UPDATE USERS
+        SET USER_PW = #{userPw}, USER_NAME = #{userName}, PHONE = #{phone}, EMAIL = #{email}
+        WHERE USER_ID = #{userId}
+    </update>
+
+    <delete id="deleteUser">
+        DELETE FROM USERS
+        WHERE USER_ID = #{userId}
+    </delete>
+
+    <select id="selectAllCrops" resultType="DummyVO">
+        SELECT UUID, CROP_NAME, GROWTH_TIME, QUANTITY, UNIT_NAME, STATUS, ELAPSED_TICK
+        FROM CROP
+    </select>
+
+    <update id="updateCropStatus" parameterType="DummyVO">
+        UPDATE CROP
+        SET STATUS = #{status}, ELAPSED_TICK = #{elapsedTick}
+        WHERE UUID = #{uuid}
+    </update>
+
+    <select id="selectInventoryAmountByCropUuid" resultType="int">
+        SELECT AMOUNT
+        FROM INVENTORY
+        WHERE UUID = #{uuid}
+    </select>
+
+    <update id="updateInventoryAmount" parameterType="DummyVO">
+        UPDATE INVENTORY
+        SET AMOUNT = #{amount}
+        WHERE UUID = #{uuid}
+    </update>
+
+
+    <select id="selectAllShopItems" resultType="ItemVO">
+        SELECT
+        T1.ITEM_ID,
+        T1.ITEM_NAME,
+        T1.PRICE,
+        T2.AMOUNT
+        FROM SHOP T1
+        LEFT JOIN INVENTORY T2 ON T1.STOR_ID = T2.STOR_ID
+    </select>
+
+    <select id="searchShopItems" resultType="ItemVO">
+        SELECT
+        T1.ITEM_ID,
+        T1.ITEM_NAME,
+        T1.PRICE,
+        T2.AMOUNT
+        FROM SHOP T1
+        LEFT JOIN INVENTORY T2 ON T1.STOR_ID = T2.UUID
+        WHERE T1.ITEM_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+        ORDER BY
+        <if test="sortField == 'priceAsc'">PRICE ASC</if>
+        <if test="sortField == 'regDate' or sortField == null">T1.ITEM_ID ASC</if>
+    </select>
+
+    <select id="selectShopItemById" resultType="ItemVO">
+        SELECT
+        T1.ITEM_ID,
+        T1.ITEM_NAME,
+        T1.PRICE,
+        T2.AMOUNT
+        FROM SHOP T1
+        LEFT JOIN INVENTORY T2 ON T1.STOR_ID = T2.UUID
+        WHERE T1.ITEM_ID = #{itemId}
+    </select>
+
+
+    <select id="selectProductDetail" resultType="DummyVO">
+        SELECT
+        T1.PROD_ID, T1.PROD_ENDDATE, T1.PROD_CATEGORY, T1.PROD_WRITER, T1.PROD_NAME,
+        T1.PROD_PRICE, T1.PROD_COUNT, T1.PROD_DISCOUNT, T1.PROD_PURCHASE_YN, T1.PROD_CONTENT,
+        T1.PROD_COMMENT, T1.REG_DATE
+        FROM PRODUCT T1
+        WHERE T1.PROD_ID = #{prodId}
+    </select>
+
+    <insert id="insertProduct" parameterType="DummyVO" useGeneratedKeys="true" keyProperty="prodId">
+        INSERT INTO PRODUCT
+        (PROD_ENDDATE, PROD_CATEGORY, PROD_WRITER, PROD_NAME, PROD_PRICE, PROD_COUNT, PROD_DISCOUNT, PROD_PURCHASE_YN, PROD_CONTENT, PROD_COMMENT)
+        VALUES
+        (#{prodEnddate}, #{prodCategory}, #{prodWriter}, #{prodName}, #{prodPrice}, #{prodCount}, #{prodDiscount}, #{prodPurchaseYn}, #{prodContent}, #{prodComment})
+    </insert>
+
+</mapper>

@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <title>주문 상세</title>
     <link rel="stylesheet" href="../css/style.css">
+    <style>
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; text-align: center; }
+        th, td { border: 1px solid #ddd; padding: 10px; }
+        th { background-color: #f2f2f2; }
+        td:nth-child(2), td:nth-child(4) { text-align: right; }
+        .totalAmount { font-size: 1.2em; color: #dc3545; font-weight: bold; }
+    </style>
 </head>
 <body>
 <h1>주문 상세 정보</h1>
@@ -29,17 +36,16 @@
     <tbody>
     <tr th:each="item : ${orderItems}">
         <td th:text="${item.itemName}">친환경 당근</td>
-        <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')}">3,500원</td>
+        <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + '원'">3,500원</td>
         <td th:text="${item.amount}">3</td>
-        <td th:with="total=${item.amount * item.price}" th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT')}">10,500원</td>
+        <td th:with="total=${item.amount * item.price}" th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT')} + '원'">10,500원</td>
     </tr>
     </tbody>
 </table>
 
 <hr>
 
-<h3>총 결제 금액: <span class="totalAmount" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')}">14,500원</span></h3>
+<h3>총 결제 금액: <span class="totalAmount" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + '원'">14,500원</span></h3>
 
-<td><a class="btn" th:href="@{/order/{id}(id=${order.orderId})}">상세</a></td>
 </body>
 </html>

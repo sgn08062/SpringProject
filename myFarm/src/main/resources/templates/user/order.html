@@ -22,14 +22,20 @@
 
     <h2>배송 정보</h2>
 
-    <div style="margin-bottom: 15px;" th:with="addr=${defaultAddress}">
+    <div style="margin-bottom: 15px;">
         <label>
             <input type="radio" name="addressOption" value="default" checked> 기본 배송지 사용
-            (<span th:text="${addr.address}">서울시 강남구</span>, <span th:text="${addr.phone}">010-1234-5678</span>)
+
+            <span th:if="${defaultAddress != null}"
+                  th:text="${defaultAddress.address + ' (' + defaultAddress.addName + ')'}">
+                서울시 강남구 (김철수)
+            </span>
+            <span th:if="${defaultAddress == null}">기본 배송지 정보 없음</span>
         </label><br>
+
         <label>
             <input type="radio" name="addressOption" value="new"> 새로운 배송지 입력
-            <a th:href="@{/user/orders?tab=addressManageTab}" target="_blank" style="margin-left: 10px;">(주소 관리)</a>
+            <a th:href="@{/user/orders?tab=address}" target="_blank" style="margin-left: 10px;">(주소 관리)</a>
         </label>
     </div>
 
@@ -60,16 +66,16 @@
         <tbody>
         <tr th:each="item : ${checkoutItems}">
             <td th:text="${item.itemName}">유기농 감자</td>
-            <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')}">5,000원</td>
+            <td style="text-align: right;" th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + '원'">5,000원</td>
             <td th:text="${item.amount}">2</td>
-            <td th:with="total=${item.amount * item.price}" th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT')}">10,000원</td>
+            <td style="text-align: right;" th:with="total=${item.amount * item.price}" th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT')} + '원'">10,000원</td>
         </tr>
         </tbody>
     </table>
 
     <hr>
 
-    <h2>최종 결제 금액: <span id="finalTotal" th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT')}">20,000원</span></h2>
+    <h2>최종 결제 금액: <span id="finalTotal" th:text="${#numbers.formatDecimal(totalPrice, 0, 'COMMA', 0, 'POINT')} + '원'">20,000원</span></h2>
 
     <button type="submit">결제하기 (주문 확정)</button>
 
@@ -78,12 +84,22 @@
 <script>
     $(document).ready(function() {
         $('input[name="addressOption"]').on('change', function() {
-            if ($(this).val() === 'new') {
-                $('#newAddressFields').show();
+            const isNew = $(this).val() === 'new';
+            const $addressFields = $('#newAddressFields');
+
+            if (isNew) {
+                $addressFields.show();
+                $addressFields.find('input').prop('required', true);
             } else {
-                $('#newAddressFields').hide();
+                $addressFields.hide();
+                $addressFields.find('input').prop('required', false);
             }
         });
+
+        // 초기 로드 시 기본 주소 선택 상태에 따라 주소 필드 숨김/필수 여부 설정
+        if ($('input[name="addressOption"]:checked').val() === 'default') {
+            $('#newAddressFields').find('input').prop('required', false);
+        }
     });
 </script>
 </body>
