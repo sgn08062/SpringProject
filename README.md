@@ -5,7 +5,8 @@
 > (수정을 하게 된다면 "(갱신됨) 수정 날짜"를 표시하세요)
 
 2025년 11월 10일 - 주소 관리 메서드에 주소 삭제 메서드 추가 <br>
-2025년 11월 11일 - 어드민 관리 페이지 입장 url 및 controller 방식을 REST API 방식으로 수정한 api 추가
+2025년 11월 11일 - 어드민 관리 페이지 입장 url 및 controller 방식을 REST API 방식으로 수정한 api 추가 <br>
+2025년 11월 12일 - 소비자 주소 관리 메서드 Controller와 RestController 방식으로 분리
 
 ## COMMON API
 
