@@ -173,33 +173,63 @@ function renderCropListFromData(cropList) {
     const list = document.getElementById('crop-list');
     if (!list) return;
 
-    list.innerHTML = cropList.map(crop => `
-    <tr data-id="${crop.cropId}">
-      <td>${crop.cropName ?? '-'}</td>
-      <!-- ✅ 재배수량: quantity + unitName -->
-      <td>${
-        (crop.quantity ?? crop.quantity === 0 ? crop.quantity : '-') +
-        (crop.unitName ? ' ' + crop.unitName : '')
-    }</td>
-      <td>${crop.regDate ?? '-'}</td>
-      <td>${
-        (typeof crop.elapsedTick === 'number' && typeof crop.growthTime === 'number')
-            ? Math.min(100, Math.floor((crop.elapsedTick / Math.max(1, crop.growthTime)) * 100)) + '%'
-            : '-'
-    }</td>
-      <td>
-        <label class="switch">
-          <input type="checkbox" ${crop.status === 1 ? 'checked' : ''} disabled>
-          <span class="slider"></span>
-        </label>
-      </td>
-      <td>
-        <button class="btn-small btn-edit" onclick="openModal('edit-crop-modal', ${crop.cropId})">수정</button>
-        <button class="btn-small btn-delete" onclick="handleDelete('crop', ${crop.cropId})">삭제</button>
-      </td>
-    </tr>
-  `).join('');
+    list.innerHTML = cropList.map(crop => {
+        const isOn = Number(crop.status) === 1 || crop.status === true || crop.status === '1';
+        return `
+      <tr data-id="${crop.cropId}">
+        <td>${crop.cropName ?? '-'}</td>
+        <td>${
+            (crop.quantity ?? crop.quantity === 0 ? crop.quantity : '-') +
+            (crop.unitName ? ' ' + crop.unitName : '')
+        }</td>
+        <td>${crop.regDate ?? '-'}</td>
+        <td>${
+            (typeof crop.elapsedTick === 'number' && typeof crop.growthTime === 'number')
+                ? Math.min(100, Math.floor((crop.elapsedTick / Math.max(1, crop.growthTime)) * 100)) + '%'
+                : '-'
+        }</td>
+        <td>
+          <label class="switch">
+            <!-- ✅ 초기 상태 반영 -->
+            <input type="checkbox" class="crop-status" ${isOn ? 'checked' : ''}>
+            <span class="slider"></span>
+          </label>
+        </td>
+        <td>
+          <button class="btn-small btn-edit" onclick="openModal('edit-crop-modal', ${crop.cropId})">수정</button>
+          <button class="btn-small btn-delete" onclick="handleDelete('crop', ${crop.cropId})">삭제</button>
+        </td>
+      </tr>
+    `;
+    }).join('');
+
+    // ✅ 렌더 후 스위치 이벤트 바인딩
+    bindCropStatusToggles();
 }
+
+function bindCropStatusToggles() {
+    document.querySelectorAll('#crop-list input.crop-status').forEach(chk => {
+        chk.addEventListener('change', async (e) => {
+            const tr = e.target.closest('tr');
+            const cropId = tr?.dataset.id;
+            const checked = e.target.checked;
+            const url = checked
+                ? `/admin/api/crops/enable/${cropId}`
+                : `/admin/api/crops/disable/${cropId}`;
+
+            try {
+                const res = await fetch(url, { method: 'POST' });
+                if (!res.ok) throw new Error();
+                // (옵션) 성공 후 목록 새로고침
+                // const list = await fetchCrops(); renderCropListFromData(list);
+            } catch (err) {
+                e.target.checked = !checked; // 실패 시 되돌리기
+                alert('재배상태 변경에 실패했습니다.');
+            }
+        });
+    });
+}
+
 
 
 function renderProductList() {

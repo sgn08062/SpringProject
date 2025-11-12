@@ -3,9 +3,8 @@ package com.example.myFarm.controller;
 import com.example.myFarm.admin.AdminCropService;
 import com.example.myFarm.command.CropVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -20,5 +19,25 @@ public class AdminCropApiController {
     @GetMapping
     public List<CropVO> list(){
         return adminCropService.getCropList();
+    }
+
+    @PostMapping("/enable/{id}")
+    public ResponseEntity<?> enable(@PathVariable("id") long cropId){
+        int r = adminCropService.enableCrop(cropId);
+        if(r==1){
+            return ResponseEntity.ok().build();
+        }else{
+            return ResponseEntity.badRequest().body("enable failed");
+        }
+    }
+
+    @PostMapping("/disable/{id}")
+    public ResponseEntity<?> disable(@PathVariable("id") long cropId){
+        int r = adminCropService.disableCrop(cropId);
+        if(r==1){
+            return ResponseEntity.ok().build();
+        }else{
+            return ResponseEntity.badRequest().body("disable failed");
+        }
     }
 }
