@@ -31,7 +31,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ✅ 기존 더미 렌더링 대신 서버 데이터로 교체
     fetchCrops()
-        .then(cropList => renderCropListFromData(cropList))
+        .then(cropList => {
+            renderCropListFromData(cropList);
+            // ✅ 목록 렌더 후 자동 갱신 시작
+            startCropAutoRefresh(1000);   // 1초 간격 (원하면 2000/3000 조절)
+            refreshCropProgressCells();   // 첫 동기화
+        })
         .catch(() => {
             // 실패 시 기존 더미 데이터로 대체 렌더(선택)
             if (typeof renderCropList === 'function') renderCropList();
@@ -168,6 +173,14 @@ async function fetchCrops() {
     return await res.json();
 }
 
+// ✅ 퍼센트 계산
+function percentOf(crop) {
+    const et = Number(crop.elapsedTick);
+    const gt = Number(crop.growthTime);
+    if (!Number.isFinite(et) || !Number.isFinite(gt) || gt <= 0) return '-';
+    return Math.min(100, Math.floor((et / gt) * 100)) + '%';
+}
+
 // ✅ 받아온 목록으로 테이블 렌더
 function renderCropListFromData(cropList) {
     const list = document.getElementById('crop-list');
@@ -183,11 +196,8 @@ function renderCropListFromData(cropList) {
             (crop.unitName ? ' ' + crop.unitName : '')
         }</td>
         <td>${crop.regDate ?? '-'}</td>
-        <td>${
-            (typeof crop.elapsedTick === 'number' && typeof crop.growthTime === 'number')
-                ? Math.min(100, Math.floor((crop.elapsedTick / Math.max(1, crop.growthTime)) * 100)) + '%'
-                : '-'
-        }</td>
+        <!-- ✅ 퍼센트 변경 함수 -->
+        <td id="crop-progress-${crop.cropId}">${percentOf(crop)}</td>
         <td>
           <label class="switch">
             <!-- ✅ 초기 상태 반영 -->
@@ -207,6 +217,7 @@ function renderCropListFromData(cropList) {
     bindCropStatusToggles();
 }
 
+// ✅ 재배상태 토글 스위치
 function bindCropStatusToggles() {
     document.querySelectorAll('#crop-list input.crop-status').forEach(chk => {
         chk.addEventListener('change', async (e) => {
@@ -230,7 +241,36 @@ function bindCropStatusToggles() {
     });
 }
 
+// ✅ 상태(%)만 부분 갱신
+async function refreshCropProgressCells() {
+    try {
+        const cropList = await fetchCrops(); // GET /admin/api/crops
+        cropList.forEach(crop => {
+            const cell = document.getElementById(`crop-progress-${crop.cropId}`);
+            if (cell) cell.textContent = percentOf(crop);
+        });
+    } catch (e) {
+        // 네트워크 오류시 무시 (다음 틱에 복구)
+        // console.warn('progress refresh failed', e);
+    }
+}
 
+let cropProgressTimer = null;
+function startCropAutoRefresh(intervalMs = 1000) {
+    if (cropProgressTimer) clearInterval(cropProgressTimer);
+    cropProgressTimer = setInterval(refreshCropProgressCells, intervalMs);
+}
+
+// 탭이 백그라운드로 가면 멈추고, 다시 오면 재개 (리소스 절약)
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        if (cropProgressTimer) { clearInterval(cropProgressTimer); cropProgressTimer = null; }
+    } else {
+        startCropAutoRefresh();
+        // 복귀 시 한 번 즉시 동기화
+        refreshCropProgressCells();
+    }
+});
 
 function renderProductList() {
     const list = document.getElementById('product-list');
