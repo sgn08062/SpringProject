@@ -17,12 +17,19 @@ public class AccountRestController {
     @Autowired
     private AccountService accountService;
 
-    // 회원가입 기능 API -> 반환값 체크해서 FE단에서 페이지 이동 처리 필요
+    // 회원가입 기능 API
     @Transactional(rollbackFor = Exception.class)
-    @PostMapping(value = "/register", consumes = "application/x-www-form-urlencoded;charset=UTF-8", produces = "text/plain")
+    @PostMapping(
+            value = "/register",
+            consumes = "application/x-www-form-urlencoded;charset=UTF-8",
+            produces = "text/plain"
+    )
     public String register(UserVO uservo){
+
         System.out.println(uservo.toString());
+
         int result = accountService.userRegister((uservo));
+
         if (result == 1) {
             System.out.println("회원가입 성공");
             return "success";
@@ -33,11 +40,18 @@ public class AccountRestController {
         }
     }
 
-    // 로그인 기능  API -> 반환값 체크해서 FE단에서 페이지 이동 처리 완료
-    @PostMapping(value = "/login", consumes = "application/x-www-form-urlencoded;charset=UTF-8", produces = "text/plain")
+    // 로그인 기능  API
+    @PostMapping(
+            value = "/login",
+            consumes = "application/x-www-form-urlencoded;charset=UTF-8",
+            produces = "text/plain"
+    )
     public String login(UserVO uservo, HttpSession session){
+
         System.out.println(uservo.toString());
+
         int result = accountService.userLogin((uservo));
+
         if (result == 1) {
             int userId = accountService.findUserIdForSession(uservo.getLoginId());
             session.setAttribute("userId", userId); // 세션에 오직 USER_ID만 저장
@@ -49,7 +63,7 @@ public class AccountRestController {
         }
     }
 
-    // 로그아웃 기능 API -> 반환값 체크해서 FE단에서 페이지 이동처리필요 PRG패턴
+    // 로그아웃 기능 API
     @PostMapping("/logout")
     public String logout(HttpSession session) {
         String sid = session.getId();
@@ -60,9 +74,15 @@ public class AccountRestController {
     }
 
     // 아이디 중복 확인 기능 API
-    @PostMapping(value = "/idcheck", consumes = "application/x-www-form-urlencoded;charset=UTF-8", produces = "text/plain")
+    @PostMapping(
+            value = "/idcheck",
+            consumes = "application/x-www-form-urlencoded;charset=UTF-8",
+            produces = "text/plain"
+    )
     public String idcheck(@RequestParam("loginId") String loginId){
+
         int result = accountService.isLoginIdExist(loginId);
+
         if (result >= 1) {
             return "dup";
         }

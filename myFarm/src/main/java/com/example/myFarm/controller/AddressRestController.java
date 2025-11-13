@@ -21,7 +21,10 @@ public class AddressRestController {
     private AddressService addressService;
 
     // 주소  조회 API
-    @GetMapping(value = "/", produces = "application/json")
+    @GetMapping(
+            value = "/",
+            produces = "application/json"
+    )
     public ResponseEntity<List<AddressVO>> insertAddress(HttpSession session) {
         Object uid = session.getAttribute("userId");
 
@@ -30,12 +33,21 @@ public class AddressRestController {
         return ResponseEntity.ok(list);
     }
 
-    @PostMapping(value = "/insert", consumes = "application/json", produces = "text/plain")
-    public ResponseEntity<String> insertAddress(@RequestBody AddressVO addressVO,
-                                HttpSession session) {
-
+    // 주소 추가 API
+    @PostMapping(
+            value = "/insert",
+            consumes = "application/json",
+            produces = "text/plain"
+    )
+    public ResponseEntity<String> insertAddress(
+            @RequestBody AddressVO addressVO,
+            HttpSession session
+    )
+    {
         Object uid = session.getAttribute("userId");
+
         addressVO.setUserId((Integer) uid);
+
         int result = addressService.addressInsert(addressVO);
 
         if (result == 1) {
@@ -47,11 +59,19 @@ public class AddressRestController {
     }
 
     // 주소 수정 API
-    @PostMapping(value = "/update", consumes = "application/json", produces = "text/plain")
-    public ResponseEntity<String> updateAddress(@RequestBody AddressVO addressVO,
-                                                HttpSession session) {
+    @PostMapping(
+            value = "/update",
+            consumes = "application/json",
+            produces = "text/plain"
+    )
+    public ResponseEntity<String> updateAddress(
+            @RequestBody AddressVO addressVO,
+            HttpSession session
+    ) {
         Object uid = session.getAttribute("userId");
+
         addressVO.setUserId((Integer) uid);
+
         int result = addressService.addressUpdate(addressVO);
 
         if (result == 1) {
@@ -64,11 +84,15 @@ public class AddressRestController {
 
     // 주소 삭제 API
     @PostMapping("/delete")
-    public ResponseEntity<String> deleteAddress(@RequestBody AddressVO addressVO,
-                                                HttpSession session) {
+    public ResponseEntity<String> deleteAddress(
+            @RequestBody AddressVO addressVO,
+            HttpSession session
+    ) {
 
         int addressId = addressVO.getAddressId();
+
         Object uid = session.getAttribute("userId");
+
         int result = addressService.addressDelete(addressId,(Integer)uid);
 
         if (result == 1) {

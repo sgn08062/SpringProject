@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
  * <button id="logoutBtn"> 또는
  * <a href="#" data-action="logout">
  *************************/
-// ===== 로그아웃 ===== (확인 필요)
+// ===== 로그아웃 ===== (확인 완료)
 (() => {
     // 타겟 수집: #logoutBtn 1개 + data-action="logout" 여러 개
     const targets = [];
