@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.myFarm.inventory.InventoryMapper">
+    <insert id="initInventoryForCrop" parameterType="long">
+        INSERT INTO INVENTORY (AMOUNT, CROP_ID)
+        VALUES (0, #{cropId})
+    </insert>
+
+    <update id="increaseInventoryAmount">
+        UPDATE INVENTORY
+        SET AMOUNT = AMOUNT + #{amount}
+        WHERE CROP_ID = #{cropId}
+    </update>
+
+    <insert id="insertInventory">
+        INSERT INTO INVENTORY (AMOUNT, CROP_ID)
+        VALUES (#{amount}, #{cropId})
+    </insert>
+
+    <select id="selectByCropId" parameterType="long" resultType="InventoryVO">
+        SELECT STOR_ID, AMOUNT, CROP_ID
+        FROM INVENTORY
+        WHERE CROP_ID = #{cropId}
+    </select>
+
+    <select id="selectAll" resultType="InventoryVO">
+        SELECT STOR_ID, AMOUNT, CROP_ID
+        FROM INVENTORY
+        ORDER BY STOR_ID DESC
+    </select>
+</mapper>
