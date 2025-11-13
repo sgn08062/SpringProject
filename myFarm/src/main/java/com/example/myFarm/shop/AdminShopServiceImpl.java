@@ -8,43 +8,43 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ShopServiceImpl implements ShopService {
+public class AdminShopServiceImpl implements AdminShopService {
 
-    private final ShopMapper shopMapper;
+    private final AdminShopMapper AdminShopMapper;
 
     @Override
     public List<ShopVO> getAllItems() {
-        return shopMapper.findAllItems();
+        return AdminShopMapper.findAllItems();
     }
 
     @Override
     @Transactional
     public void addItem(ShopVO itemVO) {
-        shopMapper.insertItem(itemVO);
+        AdminShopMapper.insertItem(itemVO);
     }
 
     @Override
     @Transactional
     public void updateItem(Long itemId, ShopVO itemVO) {
         itemVO.setItemId(itemId);
-        shopMapper.updateItem(itemVO);
+        AdminShopMapper.updateItem(itemVO);
     }
 
     @Override
     @Transactional
     public void deleteItem(Long itemId) {
-        shopMapper.deleteItem(itemId);
+        AdminShopMapper.deleteItem(itemId);
     }
 
     @Override
     public ShopVO getItemDetail(Long itemId) {
-        return shopMapper.getItemDetail(itemId);
+        return AdminShopMapper.getItemDetail(itemId);
     }
 
     @Override
     @Transactional
     public void updateStatus(Long itemId, Integer status) {
-        shopMapper.updateItemStatus(itemId, status);
+        AdminShopMapper.updateItemStatus(itemId, status);
     }
 
 }

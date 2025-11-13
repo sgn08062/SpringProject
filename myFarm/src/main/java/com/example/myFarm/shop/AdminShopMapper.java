@@ -6,7 +6,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 @Mapper
-public interface ShopMapper {
+public interface AdminShopMapper {
     List<ShopVO> findAllItems();
     void insertItem(ShopVO itemVO);
     void updateItem(ShopVO itemVO);

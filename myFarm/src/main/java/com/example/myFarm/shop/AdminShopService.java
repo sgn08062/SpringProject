@@ -3,7 +3,7 @@ package com.example.myFarm.shop;
 import com.example.myFarm.command.ShopVO;
 import java.util.List;
 
-public interface ShopService {
+public interface AdminShopService {
     List<ShopVO> getAllItems();
 
     void addItem(ShopVO itemVO);

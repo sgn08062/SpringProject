@@ -1,7 +1,7 @@
 package com.example.myFarm.controller;
 
 import com.example.myFarm.command.ShopVO;
-import com.example.myFarm.shop.ShopService;
+import com.example.myFarm.shop.AdminShopService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,29 +9,24 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-@Controller
+@RestController
 @RequestMapping("/admin/shop")
 @RequiredArgsConstructor
-public class ShopController {
+public class AdminShopController {
 
-    private final ShopService shopService;
-
-    @GetMapping("/view")
-    public String mainView() {
-        return "main";
-    }
+    private final AdminShopService AdminshopService;
 
     // 1. 목록 조회 (API)
     @GetMapping
     public ResponseEntity<List<ShopVO>> getItemList() {
-        List<ShopVO> items = shopService.getAllItems();
+        List<ShopVO> items = AdminshopService.getAllItems();
         return ResponseEntity.ok(items);
     }
 
     // 2. 등록 (API)
     @PostMapping("/additem")
     public ResponseEntity<Void> addItem(@RequestBody ShopVO itemVO) {
-        shopService.addItem(itemVO);
+        AdminshopService.addItem(itemVO);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -39,21 +34,21 @@ public class ShopController {
     @PutMapping("/item/{itemId}")
     public ResponseEntity<Void> updateItem(@PathVariable Long itemId,
                                            @RequestBody ShopVO itemVO) {
-        shopService.updateItem(itemId, itemVO);
+        AdminshopService.updateItem(itemId, itemVO);
         return ResponseEntity.ok().build();
     }
 
     // 4. 삭제 (API)
     @DeleteMapping("/item/{itemId}")
     public ResponseEntity<Void> deleteItem(@PathVariable Long itemId) {
-        shopService.deleteItem(itemId);
+        AdminshopService.deleteItem(itemId);
         return ResponseEntity.noContent().build();
     }
 
     // 5. 상세 조회 (API)
     @GetMapping("/item/{itemId}")
     public ResponseEntity<ShopVO> getItemDetail(@PathVariable Long itemId) {
-        ShopVO item = shopService.getItemDetail(itemId);
+        ShopVO item = AdminshopService.getItemDetail(itemId);
         if (item != null) {
             return ResponseEntity.ok(item);
         } else {
@@ -65,7 +60,7 @@ public class ShopController {
     @PutMapping("/status/{itemId}")
     public ResponseEntity<Void> updateItemStatus(@PathVariable Long itemId,
                                                  @RequestBody ShopVO shopVO) {
-        shopService.updateStatus(itemId, shopVO.getStatus());
+        AdminshopService.updateStatus(itemId, shopVO.getStatus());
         return ResponseEntity.ok().build();
     }
 
