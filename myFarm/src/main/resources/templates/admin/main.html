@@ -178,25 +178,21 @@
             <span class="close-button" onclick="closeModal('edit-crop-modal')">&times;</span>
             <h3>농작물 수정 (ID: <span id="edit-crop-id-display"></span>)</h3>
             <form id="edit-crop-form">
-                <label for="edit-crop-name">농작물명</label>
+                <label for="crop-name">농작물명</label>
                 <input type="text" id="edit-crop-name" placeholder="예: 방울토마토">
-                
-                <label for="edit-area">재배면적</label>
-                <input type="text" id="edit-area" placeholder="예: 500㎡">
 
-                <label for="edit-sowing-date">파종일</label>
-                <input type="date" id="edit-sowing-date">
+                <label for="growth-time">생육 기간(일)</label>
+                <input type="number" id="edit-growth-time" placeholder="예: 60" min="1" step="1">
 
-                <label for="edit-expected-harvest">예상 수확일</label>
-                <input type="date" id="edit-expected-harvest">
+                <label for="quantity">수량</label>
+                <input type="text" id="edit-quantity" placeholder="예: 20">
 
-                <label for="edit-status">상태</label>
-                <select id="edit-status">
-                    <option value="재배중">재배중</option>
-                    <option value="수확가능">수확가능</option>
-                    <option value="재배종료">재배종료</option>
-                </select>
-                
+                <label for="unit-name">단위</label>
+                <input type="text" id="edit-unit-name" placeholder="예: kg">
+
+                <label for="reg-date">파종일</label>
+                <input type="date" id="edit-reg-date">
+
                 <button type="submit" class="btn-primary">수정 완료</button>
             </form>
         </div>

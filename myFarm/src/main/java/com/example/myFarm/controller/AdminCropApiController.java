@@ -56,4 +56,31 @@ public class AdminCropApiController {
             return ResponseEntity.badRequest().body("disable failed");
         }
     }
+
+    // 농작물 조회
+    @GetMapping("/{id}")
+    public ResponseEntity<CropVO> getCropById(@PathVariable("id") long cropId){
+        CropVO vo = adminCropService.getCropById(cropId);
+        if(vo == null){
+            return ResponseEntity.notFound().build();
+        }else{
+            return ResponseEntity.ok().body(vo);
+        }
+    }
+
+    // 농작물 수정
+    @PostMapping("/{id}")
+    public ResponseEntity<?> updateCrop(@PathVariable("id") long cropId, @RequestBody CropVO cropVO){
+        cropVO.setCropId(cropId);
+        if (cropVO.getGrowthTime() <= 0){
+            cropVO.setGrowthTime(60); // 성장 시간이 0이하로 입력될시 디폴트값
+        }
+        int result = adminCropService.updateCrop(cropVO);
+
+        if(result == 1){
+            return ResponseEntity.ok().body(cropVO);
+        }else{
+            return ResponseEntity.badRequest().body("update failed");
+        }
+    }
 }

@@ -16,24 +16,24 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class AdminCropController {
     @Autowired
     private AdminCropService adminCropService;
+//
+//    @GetMapping("/list")
+//    public String getList(Model model) {
+//
+//        return "/admin/crops/list";
+//    }
 
-    @GetMapping("/list")
-    public String getList(Model model) {
-
-        return "/admin/crops/list";
-    }
-
-    @GetMapping("/addCrop")
-    public String addCrop(){
-        return "/admin/crops/addCrop";
-    }
-
-    @PostMapping("/addCrop")
-    public String addCrop(CropVO cropVO, RedirectAttributes redirectAttributes){
-        int result = adminCropService.addCrop(cropVO);
-        redirectAttributes.addFlashAttribute("msg", result==1? "등록 성공" : "등록 실패");
-        return "redirect:/admin/crops/list";
-    }
+//    @GetMapping("/addCrop")
+//    public String addCrop(){
+//        return "/admin/crops/addCrop";
+//    }
+//
+//    @PostMapping("/addCrop")
+//    public String addCrop(CropVO cropVO, RedirectAttributes redirectAttributes){
+//        int result = adminCropService.addCrop(cropVO);
+//        redirectAttributes.addFlashAttribute("msg", result==1? "등록 성공" : "등록 실패");
+//        return "redirect:/admin/crops/list";
+//    }
 
 //    @PostMapping("/delete/{id}")
 //    public String delete(@PathVariable long id, RedirectAttributes redirectAttributes) {
@@ -47,9 +47,9 @@ public class AdminCropController {
 //        return "redirect:/admin/crops/list";
 //    }
 
-    @PostMapping("/disable/{id}")
-    public String disable(@PathVariable long id, RedirectAttributes redirectAttributes) {
-        redirectAttributes.addFlashAttribute("msg", adminCropService.disableCrop(id)==1? "비활성화" : "실패");
-        return "redirect:/admin/crops/list";
-    }
+//    @PostMapping("/disable/{id}")
+//    public String disable(@PathVariable long id, RedirectAttributes redirectAttributes) {
+//        redirectAttributes.addFlashAttribute("msg", adminCropService.disableCrop(id)==1? "비활성화" : "실패");
+//        return "redirect:/admin/crops/list";
+//    }
 }

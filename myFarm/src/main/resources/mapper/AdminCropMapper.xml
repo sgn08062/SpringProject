@@ -57,4 +57,20 @@
     <update id="resetCropAfterHarvest" parameterType="long">
         UPDATE CROP SET ELAPSED_TICK = 0 WHERE CROP_ID = #{cropId}
     </update>
+
+    <select id="getCropById" parameterType="long" resultType="CropVO">
+        SELECT * FROM CROP WHERE CROP_ID = #{cropId}
+    </select>
+
+    <update id="updateCrop" parameterType="CropVO">
+        UPDATE CROP
+        SET
+            CROP_NAME    = #{cropName},
+            REG_DATE     = COALESCE(#{regDate}, REG_DATE),
+            GROWTH_TIME  = #{growthTime},
+            QUANTITY     = #{quantity},
+            UNIT_NAME    = #{unitName},
+            ELAPSED_TICK = 0 <!-- 농작물 정보 변경시 성장률은 0으로 초기화 -->
+        WHERE CROP_ID  = #{cropId}
+    </update>
 </mapper>

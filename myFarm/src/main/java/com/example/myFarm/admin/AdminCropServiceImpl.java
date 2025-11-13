@@ -32,6 +32,10 @@ public class AdminCropServiceImpl implements AdminCropService {
         return adminCropMapper.deleteCrop(cropId);
     }
 
+    @Override
+    public int updateCrop(CropVO vo) {
+        return adminCropMapper.updateCrop(vo);
+    }
 
     @Override
     public int enableCrop(long cropId) {
@@ -47,5 +51,10 @@ public class AdminCropServiceImpl implements AdminCropService {
     @Override
     public List<CropVO> getCropList() {
         return adminCropMapper.getCropList();
+    }
+
+    @Override
+    public CropVO getCropById(long cropId) {
+        return adminCropMapper.getCropById(cropId);
     }
 }

@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 public class CropVO {
-    private int cropId;
+    private long cropId;
     private String cropName;
     private String regDate;
     private int status;

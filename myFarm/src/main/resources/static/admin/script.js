@@ -87,21 +87,23 @@ function initTabFunctionality() {
 function openModal(modalId, itemId = null) {
     document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
     const modal = document.getElementById(modalId);
-    if (modal) {
-        if (modalId === 'order-detail-modal' && itemId) {
-            populateOrderDetailModal(itemId);
-        }
-        
-        const idDisplay = document.getElementById(modalId.replace('modal', 'id-display'));
-        if(idDisplay) idDisplay.textContent = itemId;
+    if(!modal) return;
 
-        // ⭐ 수정 모달 열 때 데이터 채우기
-        if (modalId.startsWith('edit-')) {
-            populateEditForm(modalId, itemId);
-        }
-        
-        modal.style.display = 'block';
+    const idDisplay = document.getElementById(modalId.replace('modal', 'id-display'));
+    if(idDisplay) idDisplay.textContent = itemId ?? '';
+
+    // 수정 모달일 경우 서버에서 단건 조회로 채우기
+    if (modalId === 'edit-crop-modal' && itemId != null) {
+        loadCropIntoEditForm(itemId).catch(() => {
+            alert('농작물 정보를 불러오지 못했습니다.');
+        });
     }
+
+    if (modalId === 'order-detail-modal' && itemId) {
+        populateOrderDetailModal(itemId);
+    }
+
+    modal.style.display = 'block';
 }
 
 // 모달(팝업) 닫기
@@ -165,12 +167,15 @@ function renderCropList() {
 }
 
 // ✅ 서버에서 농작물 목록 요청
+// ✅ 목록 로딩 시 캐시
 async function fetchCrops() {
     const res = await fetch('/admin/api/crops', {
         headers: { 'Content-Type': 'application/json' }
     });
     if (!res.ok) throw new Error('Failed to load crops');
-    return await res.json();
+    const list = await res.json();
+
+    return list;
 }
 
 // ✅ 퍼센트 계산
@@ -253,6 +258,19 @@ async function refreshCropProgressCells() {
         // 네트워크 오류시 무시 (다음 틱에 복구)
         // console.warn('progress refresh failed', e);
     }
+}
+
+async function loadCropIntoEditForm(cropId){
+    const res = await fetch(`/admin/api/crops/${cropId}`);
+    if(!res.ok) throw new Error('crop not found');
+    crop = await res.json();
+
+    document.getElementById('edit-crop-id-display').textContent = crop.cropId ?? '';
+    document.getElementById('edit-crop-name').value   = crop.cropName ?? '';
+    document.getElementById('edit-growth-time').value = (crop.growthTime ?? 60);
+    document.getElementById('edit-quantity').value    = (crop.quantity ?? 0);
+    document.getElementById('edit-unit-name').value   = crop.unitName ?? '';
+    document.getElementById('edit-reg-date').value    = (crop.regDate ?? '').toString().slice(0,10); // yyyy-MM-dd
 }
 
 let cropProgressTimer = null;
@@ -389,42 +407,6 @@ function handleNewProduct(e) {
 // ⭐ 7. 수정 (Update) 로직 추가 (요청사항 반영)
 // ======================================
 
-// [수정됨] 수정 모달 데이터 채우기
-function populateEditForm(modalId, itemId) {
-    let item, dataList;
-    
-    if (modalId === 'edit-farm-modal') {
-        dataList = farms;
-        item = dataList.find(d => d.id === itemId);
-        if (item) {
-            // 모달 HTML 폼 기준
-            document.getElementById('edit-farm-name').value = item.name || '';
-            document.getElementById('edit-farm-owner').value = item.owner || '';
-            document.getElementById('edit-farm-account').value = item.account || ''; // 계좌 정보 채우기
-        }
-    } else if (modalId === 'edit-crop-modal') {
-        dataList = crops;
-        item = dataList.find(d => d.id === itemId);
-        if (item) {
-            // 모달 HTML 폼 기준
-            document.getElementById('edit-crop-name').value = item.name || '';
-            document.getElementById('edit-area').value = item.quantity || ''; // 'edit-area' input에 'quantity' 값을 채움
-            document.getElementById('edit-sowing-date').value = item.sowingDate || '';
-            // 'edit-expected-harvest'는 더 이상 사용하지 않음
-            document.getElementById('edit-status').value = item.status || '재배중';
-        }
-    } else if (modalId === 'edit-product-modal') {
-        dataList = products;
-        item = dataList.find(d => d.id === itemId);
-        if (item) {
-            document.getElementById('edit-item-name').value = item.name || '';
-            document.getElementById('edit-item-price').value = item.price ? item.price.replace(/[^0-9]/g, '') : '';
-            document.getElementById('edit-item-stock').value = item.stock || 0;
-            document.getElementById('edit-item-status').value = item.saleStatus || '판매중';
-        }
-    }
-}
-
 // [수정됨] 농가 수정 처리 (account 저장)
 function handleEditFarm(e) {
     e.preventDefault(); 
@@ -447,29 +429,45 @@ function handleEditFarm(e) {
     renderFarmList(); // 목록 새로고침
 }
 
-// [수정됨] 농작물 수정 처리 (quantity 저장, expectedHarvest 제거)
 function handleEditCrop(e) {
-    e.preventDefault(); 
-    const itemId = parseInt(document.getElementById('edit-crop-id-display').textContent);
-    
-    const newName = document.getElementById('edit-crop-name').value;
-    const newQuantity = document.getElementById('edit-area').value; // 'edit-area' input에서 'quantity' 값을 가져옴
-    const newStatus = document.getElementById('edit-status').value;
-    const newSowingDate = document.getElementById('edit-sowing-date').value;
-    // 'expected-harvest'는 더 이상 수정/저장하지 않음
+    e.preventDefault();
+    const cropId = document.getElementById('edit-crop-id-display').textContent;
 
-    const cropIndex = crops.findIndex(c => c.id === itemId);
-    if (cropIndex !== -1) {
-        crops[cropIndex].name = newName;
-        crops[cropIndex].quantity = newQuantity; // quantity로 업데이트
-        crops[cropIndex].status = newStatus;
-        crops[cropIndex].sowingDate = newSowingDate;
-        delete crops[cropIndex].expectedHarvest; // 기존 데이터에서 해당 속성 제거
-    }
+    const name     = document.getElementById('edit-crop-name')?.value?.trim();
+    const gtRaw    = document.getElementById('edit-growth-time')?.value;
+    const qtyRaw   = document.getElementById('edit-quantity')?.value;
+    const unitName = document.getElementById('edit-unit-name')?.value?.trim();
+    const regDate  = document.getElementById('edit-reg-date')?.value || null;
 
-    alert(`농작물 ID ${itemId} 정보 수정 완료: ${newName} (DB UPDATE 필요)`);
-    closeModal('edit-crop-modal');
-    renderCropList(); // 목록 새로고침
+    const growthTime = gtRaw === ''  ? null : Number(gtRaw);
+    const quantity   = qtyRaw === '' ? null : Number(qtyRaw);
+
+    const payload = {
+        cropId: Number(cropId),
+        cropName: (name && name.length > 0) ? name : null,
+        growthTime: Number.isFinite(growthTime) ? growthTime : null,
+        quantity: Number.isFinite(quantity) ? quantity : null,
+        unitName: (unitName && unitName.length > 0) ? unitName : null,
+        regDate: regDate || null
+    };
+
+    fetch(`/admin/api/crops/${cropId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+        .then(async res => {
+            if (!res.ok) throw new Error(await res.text().catch(() => '수정 실패'));
+            return fetchCrops();
+        })
+        .then(list => {
+            renderCropListFromData(list);
+            closeModal('edit-crop-modal');
+            alert('농작물 정보가 수정되었습니다.');
+        })
+        .catch(err => {
+            alert('수정 중 오류가 발생했습니다.\n' + (err?.message || ''));
+        });
 }
 
 // [핵심 함수 3] 상품 수정 처리

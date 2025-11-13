@@ -16,10 +16,10 @@ public interface AdminCropMapper {
     int disableCrop(@Param("cropId") long cropId);
 
     List<CropVO> getCropList();
+    CropVO getCropById(long cropId);
+    int updateCrop(CropVO vo);
 
     int tickActiveCrops();
     List<Map<String, Object>> selectMatureCrops();
     int resetCropAfterHarvest(@Param("cropId") long cropId);
-
-
 }
