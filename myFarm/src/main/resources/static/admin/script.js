@@ -493,28 +493,51 @@ function handleEditProduct(e) {
     renderProductList(); // 목록 새로고침
 }
 
-// ======================================
-// 🌟 6. 삭제 (Delete) 핸들러 및 기타 함수
-// ======================================
+// ✅ 공통 삭제 핸들러
+async function handleDelete(type, id) {
+    const label = (type === 'crop' ? '농작물' : (type === 'product' ? '상품' : '농가'));
+    if (!confirm(`${label} ID: ${id}을(를) 정말 삭제하시겠습니까?`)) return;
 
-function handleDelete(type, id) {
-    if (!confirm(`${type === 'crop' ? '농작물' : (type === 'product' ? '상품' : '농가')} ID: ${id}을(를) 정말 삭제하시겠습니까?`)) {
+    // 1) 농작물: 서버에 DELETE 요청
+    if (type === 'crop') {
+        try {
+            const res = await fetch(`/admin/api/crops/${id}`, { method: 'DELETE' });
+            if (!res.ok && res.status !== 204) {
+                const msg = await res.text().catch(()=>'');
+                throw new Error(msg || '삭제 실패');
+            }
+
+            // 즉시 DOM에서 한 줄 제거 (빠른 피드백)
+            const tr = document.querySelector(`#crop-list tr[data-id="${id}"]`);
+            if (tr) tr.remove();
+
+            // 안전하게 서버 상태와 동기화
+            const list = await fetchCrops();
+            renderCropListFromData(list);
+
+            alert('삭제되었습니다.');
+        } catch (err) {
+            alert('삭제 중 오류가 발생했습니다.\n' + (err?.message || ''));
+        }
         return;
     }
-    
-    if (type === 'crop') {
-        crops = crops.filter(c => c.id !== id);
-        renderCropList();
-    } else if (type === 'product') {
+
+    // 2) (기존) 더미 데이터 삭제 유지
+    if (type === 'product') {
         products = products.filter(p => p.id !== id);
         renderProductList();
-    } else if (type === 'farm') {
+        alert('상품이 삭제되었습니다. (DB DELETE 필요)');
+        return;
+    }
+
+    if (type === 'farm') {
         farms = farms.filter(f => f.id !== id);
         renderFarmList();
+        alert('농가가 삭제되었습니다. (DB DELETE 필요)');
+        return;
     }
-    
-    alert(`${type === 'crop' ? '농작물' : (type === 'product' ? '상품' : '농가')}이 삭제되었습니다. (DB DELETE 필요)`);
 }
+
 
 function populateOrderDetailModal(orderId) {
     const order = orders.find(o => o.id === orderId);

@@ -58,8 +58,8 @@ public class AdminCropApiController {
     }
 
     // 농작물 조회
-    @GetMapping("/{id}")
-    public ResponseEntity<CropVO> getCropById(@PathVariable("id") long cropId){
+    @GetMapping("/{cropId}")
+    public ResponseEntity<CropVO> getCropById(@PathVariable("cropId") long cropId){
         CropVO vo = adminCropService.getCropById(cropId);
         if(vo == null){
             return ResponseEntity.notFound().build();
@@ -69,8 +69,8 @@ public class AdminCropApiController {
     }
 
     // 농작물 수정
-    @PostMapping("/{id}")
-    public ResponseEntity<?> updateCrop(@PathVariable("id") long cropId, @RequestBody CropVO cropVO){
+    @PostMapping("/{cropId}")
+    public ResponseEntity<?> updateCrop(@PathVariable("cropId") long cropId, @RequestBody CropVO cropVO){
         cropVO.setCropId(cropId);
         if (cropVO.getGrowthTime() <= 0){
             cropVO.setGrowthTime(60); // 성장 시간이 0이하로 입력될시 디폴트값
@@ -81,6 +81,16 @@ public class AdminCropApiController {
             return ResponseEntity.ok().body(cropVO);
         }else{
             return ResponseEntity.badRequest().body("update failed");
+        }
+    }
+
+    @DeleteMapping("/{cropId}")
+    public ResponseEntity<?> deleteCrop(@PathVariable("cropId") long cropId){
+        int r = adminCropService.deleteCrop(cropId);
+        if (r == 1){
+            return ResponseEntity.ok().build();
+        }else{
+            return ResponseEntity.badRequest().body("delete failed");
         }
     }
 }
