@@ -1,77 +1,108 @@
 package com.example.myFarm.cart.controller;
 
-import com.example.myFarm.cart.dto.CartItemDTO;
-import com.example.myFarm.cart.service.CartService; // <-- [수정] 이 줄이 추가되었습니다.
-import lombok.Data;                                 // <-- [수정] 이 줄이 추가되었습니다.
+import com.example.myFarm.cart.dto.CartViewDTO;
+import com.example.myFarm.cart.service.CartService;
+import com.example.myFarm.user.dto.MemberDTO;
+import com.example.myFarm.user.mapper.MemberMapper;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-// import org.springframework.security.core.annotation.AuthenticationPrincipal;
-// import com.example.myFarm.user.UserDetails; // (로그인 기능 연동 시)
-
-@RestController // 이 클래스는 HTML 페이지가 아닌 JSON/XML 데이터를 반환합니다.
+@RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/cart") // 이 컨트롤러의 모든 메서드는 /api/cart 로 시작합니다.
+@RequestMapping("/api/cart")
 public class CartController {
 
     private final CartService cartService;
+    private final MemberMapper memberMapper; // (사용자 ID를 조회하기 위해)
+
+    /**
+     * [내부 공용 메서드]
+     * Spring Security의 UserDetails에서 USERS.USER_ID (Long)를 조회
+     */
+    private Long getMemberIdFromUserDetails(UserDetails userDetails) {
+        if (userDetails == null) {
+            throw new SecurityException("인증 정보가 없습니다.");
+        }
+        String loginId = userDetails.getUsername();
+        MemberDTO member = memberMapper.findByLoginId(loginId)
+                .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+        return member.getUserId();
+    }
 
     /**
      * [GET /api/cart]
-     * 현재 로그인한 사용자의 장바구니 목록을 조회합니다.
+     * [v12] 현재 로그인한 사용자의 장바구니 목록 조회 (JOIN된 결과)
      */
     @GetMapping
-    public ResponseEntity<List<CartItemDTO>> getCartItems() {
-        // 🚨 중요:
-        // 실제로는 Spring Security의 @AuthenticationPrincipal 어노테이션 등으로
-        // 로그인한 사용자의 ID (memberId)를 가져와야 합니다.
-        // 지금은 테스트를 위해 임시로 '1L' (1번 회원)을 사용합니다.
-        Long currentMemberId = 1L; // <<-- (임시)
-
-        List<CartItemDTO> cartItems = cartService.getCartItems(currentMemberId);
-        return ResponseEntity.ok(cartItems);
+    public ResponseEntity<List<CartViewDTO>> getCartItems(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        try {
+            Long currentUserId = getMemberIdFromUserDetails(userDetails);
+            List<CartViewDTO> cartItems = cartService.getCartItems(currentUserId);
+            return ResponseEntity.ok(cartItems);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
     }
 
     /**
      * [POST /api/cart]
-     * 장바구니에 아이템을 추가합니다.
+     * [v12] 장바구니에 아이템 추가 (또는 수량 변경)
      */
-    // JavaScript가 보낼 JSON 요청의 형식을 담을 DTO (이너 클래스로 간단히 만듦)
-    @Data // Lombok
+    @Data
     static class AddItemRequest {
+        // script.js가 'productId'로 보내는 것이 DB의 'itemId'임
         private Long productId;
         private int quantity;
     }
 
     @PostMapping
-    public ResponseEntity<String> addItemToCart(@RequestBody AddItemRequest request) {
-        // 🚨 위와 동일하게, 1L은 임시 ID입니다.
-        Long currentMemberId = 1L; // <<-- (임시)
+    public ResponseEntity<String> addItemToCart(
+            @RequestBody AddItemRequest request,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        try {
+            Long currentUserId = getMemberIdFromUserDetails(userDetails);
 
-        cartService.addItemToCart(
-                currentMemberId,
-                request.getProductId(),
-                request.getQuantity()
-        );
-
-        return ResponseEntity.ok("상품이 장바구니에 추가되었습니다.");
+            // Service가 수량(양수/음수)에 따라 추가/수정/삭제를 알아서 처리
+            cartService.addItemToCart(
+                    currentUserId,
+                    request.getProductId(), // -> itemId
+                    request.getQuantity()
+            );
+            return ResponseEntity.ok("장바구니가 업데이트되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
     }
 
     /**
      * [DELETE /api/cart/{itemId}]
-     * 장바구니에서 특정 아이템을 삭제합니다.
-     * {itemId} 부분은 URL을 통해 동적으로 변합니다.
+     * [v12] 장바구니에서 아이템 '완전 삭제'
+     * (script.js의 '-' 버튼이 아니라, 'X' 버튼용)
      */
     @DeleteMapping("/{itemId}")
-    public ResponseEntity<String> deleteCartItem(@PathVariable("itemId") Long cartItemId) {
+    public ResponseEntity<String> deleteCartItem(
+            @PathVariable("itemId") Long itemId, // (상품 ID)
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        try {
+            Long currentUserId = getMemberIdFromUserDetails(userDetails);
 
-        // (보안) 실제로는 이 cartItemId가 현재 로그인한 사용자의 장바구니에
-        // 속한 것이 맞는지 확인하는 로직이 필요합니다.
+            // Service의 완전 삭제 메서드 호출
+            cartService.deleteCartItem(currentUserId, itemId);
+            return ResponseEntity.ok("상품이 장바구니에서 삭제되었습니다.");
 
-        cartService.deleteCartItem(cartItemId);
-        return ResponseEntity.ok("상품이 장바구니에서 삭제되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
     }
 }

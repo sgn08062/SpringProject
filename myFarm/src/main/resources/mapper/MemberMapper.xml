@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.example.myFarm.user.mapper.MemberMapper">
+
+
+
+    <select id="findByLoginId" resultType="com.example.myFarm.user.dto.MemberDTO">
+        SELECT
+            USER_ID AS userId,
+            LOGIN_ID AS loginId,
+            USER_PW AS userPw,
+            USER_NAME AS userName,
+            PHONE, EMAIL, AUTH
+        FROM USERS
+        WHERE LOGIN_ID = #{loginId}
+    </select>
+
+    <insert id="insertUser" useGeneratedKeys="true" keyProperty="userId">
+        INSERT INTO USERS (LOGIN_ID, USER_PW, USER_NAME, PHONE)
+        VALUES (#{loginId}, #{userPw}, #{userName}, #{phone, jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="insertAddress" useGeneratedKeys="true" keyProperty="addId">
+        INSERT INTO ADDRESS (ADDRESS, ADD_NAME, USER_ID)
+        VALUES (#{address}, '기본 배송지', #{userId})
+    </insert>
+
+</mapper>
