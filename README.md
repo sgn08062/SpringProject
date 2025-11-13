@@ -7,6 +7,7 @@
 2025년 11월 10일 - 주소 관리 메서드에 주소 삭제 메서드 추가 <br>
 2025년 11월 11일 - 어드민 관리 페이지 입장 url 및 controller 방식을 REST API 방식으로 수정한 api 추가 <br>
 2025년 11월 12일 - 소비자 주소 관리 메서드 Controller와 RestController 방식으로 분리
+2025년 11월 13일 - 어드민 농작물 관리 페이지 및 controller 방식을 REST API 방식으로 수정
 
 ## COMMON API
 
@@ -48,12 +49,12 @@
 
 | 행동 | API | method |
 | :--- | :--- | :--- |
-| 농작물 조회 | /api/crops | GET |
-| 농작물 추가 html | /crops/addCrop | GET |
-| 농작물 추가 | /crops/addCrop | POST |
-| 농작물 삭제 | /crops/deleteCrop/{id} | DELETE |
-| 농작물 활성화 | /crops/enable/{id} | POST |
-| 농작물 비활성화 | /crops/disable/{id} | POST |
+| 농작물 조회 | /api/{cropId} | GET |
+| 농작물 추가 | /api/crops | POST |
+| 농작물 삭제 | /api/{cropId} | DELETE |
+| 농작물 수정 | /api/{cropId} | POST |
+| 농작물 활성화 | /api/enable/{cropId} | POST |
+| 농작물 비활성화 | /api/disable/{cropId} | POST |
 
 ### 🛒 판매 사이트 상품 관리 메서드 (/shop)
 
