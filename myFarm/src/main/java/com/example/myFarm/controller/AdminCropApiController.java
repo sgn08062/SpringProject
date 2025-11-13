@@ -78,6 +78,7 @@ public class AdminCropApiController {
         int result = adminCropService.updateCrop(cropVO);
 
         if(result == 1){
+
             return ResponseEntity.ok().body(cropVO);
         }else{
             return ResponseEntity.badRequest().body("update failed");
