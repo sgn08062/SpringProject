@@ -1,0 +1,148 @@
+/* ===== 팔레트(초록 톤): auth.css와 동일 키 ===== */
+:root{
+    --bg:#F6FBF7;
+    --surface:#FFFFFF;
+    --border:#E4EFE6;
+    --primary:#2E7D32;
+    --primary-dark:#1B5E20;
+    --text:#1B1D19;
+    --muted:#6A756A;
+    --error:#D32F2F;
+    --shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+/* ===== 베이스 ===== */
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Pretendard,Apple SD Gothic Neo,Noto Sans KR,sans-serif;
+}
+
+/* ===== 공통 컨테이너 ===== */
+.shell{
+    width:min(1080px,92%);
+    margin:0 auto;
+}
+
+/* ===== 헤더 ===== */
+.header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 18px;margin-top:18px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;box-shadow:var(--shadow);
+}
+.title{margin:0;font-size:22px;font-weight:800;color:var(--primary-dark)}
+
+/* ===== 툴바 ===== */
+.toolbar{
+    margin-top:14px;padding:12px 16px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;box-shadow:var(--shadow);
+    display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+}
+.inline{display:flex;gap:10px;align-items:center}
+.label{color:var(--muted);font-weight:700}
+
+/* ===== 입력/선택 ===== */
+.input,.select{
+    height:42px; padding:0 12px; border-radius:10px; outline:none;
+    border:1px solid var(--border); background:#F8FCF9; color:var(--text);
+    transition:border-color .18s, box-shadow .18s, background .18s;
+}
+.input:focus,.select:focus{
+    border-color:var(--primary);
+    background:#F9FFFA;
+    box-shadow:0 0 0 3px rgba(46,125,50,.18);
+}
+
+/* ===== 버튼 ===== */
+.btn{
+    height:44px; border:0; border-radius:12px; font-weight:800; cursor:pointer;
+    transition:transform .03s ease, opacity .18s ease, box-shadow .18s ease;
+}
+.btn:active{transform:translateY(1px)}
+.btn-primary{
+    padding:0 16px; background:var(--primary); color:#fff;
+    box-shadow:0 4px 16px rgba(46,125,50,.22);
+}
+.btn-primary:hover{opacity:.95}
+.btn-secondary{
+    padding:0 14px; background:#E7F4EA; color:var(--primary); border:1px solid #D2E8D6;
+}
+.btn-danger{
+    padding:0 14px; background:#FCE7E7; color:var(--error); border:1px solid #F6CACA;
+}
+
+/* ===== 그리드(주소 카드) ===== */
+.grid{
+    margin-top:14px; padding-bottom:28px;
+    display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px;
+}
+@media (max-width:840px){ .grid{grid-template-columns:1fr} }
+
+.card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px; box-shadow:var(--shadow);
+    padding:16px; display:flex; gap:12px; align-items:flex-start;
+}
+.dot{width:8px;height:8px;border-radius:50%;margin-top:6px;background:var(--primary)}
+.body{flex:1;min-width:0}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.name{font-weight:800}
+.badge{
+    padding:4px 8px;border-radius:999px;font-size:12px;letter-spacing:.2px;
+    background:#E7F4EA;border:1px solid #D2E8D6;color:var(--primary)
+}
+.addr{margin-top:4px;color:var(--muted)}
+.meta{margin-top:6px;font-size:12px;color:var(--muted)}
+.actions{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+
+/* ===== 페이지네이션 ===== */
+.pagination{
+    margin-top:6px; padding:12px 0 30px;
+    display:flex;gap:8px;align-items:center;justify-content:flex-end;color:var(--muted)
+}
+
+/* ===== 모달 ===== */
+.modal{border:0;border-radius:16px;padding:0;max-width:560px;width:calc(100% - 32px);background:var(--surface);color:var(--text)}
+.modal::backdrop{background:rgba(0,0,0,.45)}
+.modal-body{padding:20px}
+.modal-title{margin:0 0 12px 0;font-size:20px;color:var(--primary-dark)}
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.form-item{display:flex;flex-direction:column;gap:6px}
+.form-item.full{grid-column:1/-1}
+.switch{flex-direction:row;align-items:center;gap:10px}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+
+/* ===== 반응형 ===== */
+@media (max-width:560px){
+    .header,.toolbar{padding:14px}
+    .form-grid{grid-template-columns:1fr}
+}
+@keyframes s{0%{opacity:.6}50%{opacity:.35}100%{opacity:.6}}
+.skeleton{border-radius:8px;background:#EAF3ED;animation:s 1.2s infinite}
+
+/* 배지와 비슷한 크기의 버튼 */
+.badge-btn{
+    appearance:none; -webkit-appearance:none;
+    background:#E7F4EA;
+    border:1px solid #D2E8D6;
+    color:var(--primary);
+    padding:4px 8px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.2px;
+    line-height:1;
+    cursor:pointer;
+    margin-left:6px;
+}
+.badge-btn:hover{ filter:brightness(.98) }
+.badge-btn:active{ transform:translateY(1px) }
+.badge-btn:focus{ outline:none; box-shadow:0 0 0 3px rgba(46,125,50,.18) }

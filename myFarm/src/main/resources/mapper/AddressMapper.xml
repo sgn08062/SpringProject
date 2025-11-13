@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.myFarm.address.AddressMapper">
+
+<!--주소 추가 DB-->
+    <insert id="addressInsertDB" parameterType="AddressVO">
+        INSERT INTO
+        ADDRESS(
+                USER_ID,
+                ADDRESS,
+                ADDRESS_NAME,
+                RECIPIENT_NAME,
+                RECIPIENT_PHONE
+        )
+        VALUES (
+                #{userId},
+                #{address},
+                #{addressName},
+                #{recipientName},
+                #{recipientPhone}
+               )
+    </insert>
+
+<!--주소 수정 DB-->
+    <update id="addressUpdateDB" parameterType="AddressVO">
+        UPDATE ADDRESS
+        SET
+            ADDRESS = #{address},
+            ADDRESS_NAME = #{addressName},
+            RECIPIENT_NAME = #{recipientName},
+            RECIPIENT_PHONE = #{recipientPhone}
+        WHERE USER_ID = #{userId} AND ADDRESS_ID = #{addressId}
+    </update>
+
+<!--주소 삭제 DB-->
+    <delete id="addressDeleteDB">
+        DELETE FROM ADDRESS
+        WHERE ADDRESS_ID = #{addressId}
+        AND USER_ID = #{userId}
+    </delete>
+
+<!--주소 목록 조회 DB-->
+    <select id="getAddressListDB" resultType="AddressVO">
+        SELECT
+            ADDRESS_ID,
+            ADDRESS,
+            ADDRESS_NAME,
+            RECIPIENT_NAME,
+            RECIPIENT_PHONE
+        FROM ADDRESS
+        WHERE USER_ID = #{userId};
+    </select>
+</mapper>
