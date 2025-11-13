@@ -1,7 +1,6 @@
 package com.example.myFarm.shop;
 
 import com.example.myFarm.command.ShopVO;
-import com.example.myFarm.command.StatVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,7 +10,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ShopServiceImpl implements ShopService {
 
-    // 매퍼 이름이 ShopMapper로 변경됨
     private final ShopMapper shopMapper;
 
     @Override
@@ -44,7 +42,9 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
-    public StatVO getShopStatistics() {
-        return shopMapper.getShopStatistics();
+    @Transactional
+    public void updateStatus(Long itemId, Integer status) {
+        shopMapper.updateItemStatus(itemId, status);
     }
+
 }

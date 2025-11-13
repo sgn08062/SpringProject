@@ -1,23 +1,27 @@
 package com.example.myFarm.controller;
 
 import com.example.myFarm.command.ShopVO;
-import com.example.myFarm.command.StatVO;
 import com.example.myFarm.shop.ShopService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
-@RestController
+@Controller
 @RequestMapping("/admin/shop")
 @RequiredArgsConstructor
 public class ShopController {
 
     private final ShopService shopService;
 
-    // 1. 목록 조회 (API) - http://localhost:8080/admin/shop
+    @GetMapping("/view")
+    public String mainView() {
+        return "main";
+    }
+
+    // 1. 목록 조회 (API)
     @GetMapping
     public ResponseEntity<List<ShopVO>> getItemList() {
         List<ShopVO> items = shopService.getAllItems();
@@ -46,10 +50,10 @@ public class ShopController {
         return ResponseEntity.noContent().build();
     }
 
-    // 5. 상세 조회 (API) - http://localhost:8080/admin/shop/{itemId}
+    // 5. 상세 조회 (API)
     @GetMapping("/item/{itemId}")
     public ResponseEntity<ShopVO> getItemDetail(@PathVariable Long itemId) {
-        ShopVO item = shopService.getItemDetail(itemId); // 새로운 서비스 호출
+        ShopVO item = shopService.getItemDetail(itemId);
         if (item != null) {
             return ResponseEntity.ok(item);
         } else {
@@ -57,10 +61,12 @@ public class ShopController {
         }
     }
 
-    // 6. 통계 조회 (API) - http://localhost:8080/admin/shop/stats
-    @GetMapping("/stats")
-    public ResponseEntity<StatVO> getShopStats() {
-        StatVO stats = shopService.getShopStatistics();
-        return ResponseEntity.ok(stats);
+    // 6. 판매 상태 토글 (STATUS UPDATE) API 추가
+    @PutMapping("/status/{itemId}")
+    public ResponseEntity<Void> updateItemStatus(@PathVariable Long itemId,
+                                                 @RequestBody ShopVO shopVO) {
+        shopService.updateStatus(itemId, shopVO.getStatus());
+        return ResponseEntity.ok().build();
     }
+
 }

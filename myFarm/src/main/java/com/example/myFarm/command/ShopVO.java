@@ -10,5 +10,6 @@ public class ShopVO {
     private Long itemId;
     private String itemName;
     private Integer price;
+    private Integer status;
     private Long storId;
 }
