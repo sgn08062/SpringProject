@@ -2,8 +2,7 @@ package com.example.myFarm.cart.controller;
 
 import com.example.myFarm.cart.dto.CartViewDTO;
 import com.example.myFarm.cart.service.CartService;
-import com.example.myFarm.user.dto.MemberDTO;
-import com.example.myFarm.user.mapper.MemberMapper;
+
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,21 +19,9 @@ import java.util.List;
 public class CartController {
 
     private final CartService cartService;
-    private final MemberMapper memberMapper; // (사용자 ID를 조회하기 위해)
 
-    /**
-     * [내부 공용 메서드]
-     * Spring Security의 UserDetails에서 USERS.USER_ID (Long)를 조회
-     */
-    private Long getMemberIdFromUserDetails(UserDetails userDetails) {
-        if (userDetails == null) {
-            throw new SecurityException("인증 정보가 없습니다.");
-        }
-        String loginId = userDetails.getUsername();
-        MemberDTO member = memberMapper.findByLoginId(loginId)
-                .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
-        return member.getUserId();
-    }
+    // [삭제] getMemberIdFromUserDetails 헬퍼 메서드 제거
+    // (이 책임은 CartService로 이동합니다)
 
     /**
      * [GET /api/cart]
@@ -44,13 +31,14 @@ public class CartController {
     public ResponseEntity<List<CartViewDTO>> getCartItems(
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        try {
-            Long currentUserId = getMemberIdFromUserDetails(userDetails);
-            List<CartViewDTO> cartItems = cartService.getCartItems(currentUserId);
-            return ResponseEntity.ok(cartItems);
-        } catch (Exception e) {
+        if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
+        // [수정] Service에 userId 대신 loginId(String)를 전달
+        String loginId = userDetails.getUsername();
+        List<CartViewDTO> cartItems = cartService.getCartItems(loginId);
+        return ResponseEntity.ok(cartItems);
     }
 
     /**
@@ -69,40 +57,48 @@ public class CartController {
             @RequestBody AddItemRequest request,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        try {
-            Long currentUserId = getMemberIdFromUserDetails(userDetails);
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
 
+        // [수정] Service에 userId 대신 loginId(String)를 전달
+        String loginId = userDetails.getUsername();
+
+        try {
             // Service가 수량(양수/음수)에 따라 추가/수정/삭제를 알아서 처리
             cartService.addItemToCart(
-                    currentUserId,
+                    loginId,
                     request.getProductId(), // -> itemId
                     request.getQuantity()
             );
             return ResponseEntity.ok("장바구니가 업데이트되었습니다.");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+            // (예: loginId에 해당하는 유저가 없는 경우 등)
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 
     /**
      * [DELETE /api/cart/{itemId}]
      * [v12] 장바구니에서 아이템 '완전 삭제'
-     * (script.js의 '-' 버튼이 아니라, 'X' 버튼용)
      */
     @DeleteMapping("/{itemId}")
     public ResponseEntity<String> deleteCartItem(
             @PathVariable("itemId") Long itemId, // (상품 ID)
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-        try {
-            Long currentUserId = getMemberIdFromUserDetails(userDetails);
-
-            // Service의 완전 삭제 메서드 호출
-            cartService.deleteCartItem(currentUserId, itemId);
-            return ResponseEntity.ok("상품이 장바구니에서 삭제되었습니다.");
-
-        } catch (Exception e) {
+        if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+        }
+
+        // [수정] Service에 userId 대신 loginId(String)를 전달
+        String loginId = userDetails.getUsername();
+
+        try {
+            cartService.deleteCartItem(loginId, itemId);
+            return ResponseEntity.ok("상품이 장바구니에서 삭제되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 }

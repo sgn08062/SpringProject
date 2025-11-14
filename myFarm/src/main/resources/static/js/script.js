@@ -45,7 +45,8 @@ const userGreetingSpan = document.getElementById('user-greeting');
 
 // 모달
 const loginModal = document.getElementById('login-modal-overlay');
-const signupModal = document.getElementById('signup-modal-overlay');
+// [삭제] 회원가입 모달 변수 제거
+// const signupModal = document.getElementById('signup-modal-overlay');
 
 // [v10] 전역 변수: 현재 장바구니 상태 저장 (주문하기 페이지 이동 시 사용)
 let currentCartItems = [];
@@ -147,8 +148,6 @@ async function addToCart(itemId, quantity) {
     }
 }
 
-// [v12 삭제] deleteFromCart 함수는 더 이상 사용하지 않습니다.
-
 // (상품 목록의 '장바구니 담기' 버튼)
 document.querySelectorAll('.add-btn').forEach(button => {
     button.addEventListener('click', e => {
@@ -195,7 +194,7 @@ document.getElementById('start-order-btn').addEventListener('click', () => {
 cartToggleBtn.addEventListener('click', (e) => {
     e.preventDefault();
     document.body.classList.toggle('cart-hidden');
-    handleCartFooterCollision();
+    // handleCartFooterCollision(); // (v3~v7) 관련 함수가 없으므로 주석 처리
 });
 
 
@@ -243,25 +242,38 @@ async function checkLoginStatus() {
     }
 }
 
-// (모달 열기/닫기 - v3와 동일)
+// (모달 열기/닫기)
 const authLink = document.getElementById('auth-link');
 const switchToSignupBtn = document.getElementById('modal-switch-to-signup');
-const switchToLoginBtn = document.getElementById('modal-switch-to-login');
+// [삭제] 회원가입 -> 로그인 전환 버튼 제거
+// const switchToLoginBtn = document.getElementById('modal-switch-to-login');
 const closeButtons = document.querySelectorAll('.modal-close-btn');
+
 function openModal(modal) { if(modal) modal.classList.add('visible'); }
 function closeModal(modal) { if(modal) modal.classList.remove('visible'); }
+
 authLink.addEventListener('click', (e) => { e.preventDefault(); openModal(loginModal); });
-switchToSignupBtn.addEventListener('click', () => { closeModal(loginModal); openModal(signupModal); });
-switchToLoginBtn.addEventListener('click', () => { closeModal(signupModal); openModal(loginModal); });
+
+// [수정] 회원가입 버튼 클릭 시, 다른 분들이 만든 회원가입 페이지로 이동하도록 처리
+// (예: /signup 페이지로 이동)
+if (switchToSignupBtn) {
+    switchToSignupBtn.addEventListener('click', () => {
+        // closeModal(loginModal);
+        // openModal(signupModal); // [삭제] 모달 여는 대신 페이지 이동
+        window.location.href = '/signup'; // 실제 회원가입 페이지 경로로 수정 필요
+    });
+}
+
+// [삭제] 로그인 -> 회원가입 전환 버튼 이벤트 제거
+// switchToLoginBtn.addEventListener('click', () => { closeModal(signupModal); openModal(loginModal); });
+
 closeButtons.forEach(btn => {
     btn.addEventListener('click', () => {
         const targetModal = document.getElementById(btn.dataset.closeTarget);
         closeModal(targetModal);
     });
 });
-[loginModal, signupModal].forEach(modal => {
-    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(modal); });
-});
+
 
 
 // --- [v11] 로그인/회원가입 '버튼' 이벤트 (API 연동) ---
@@ -310,137 +322,16 @@ document.getElementById('logout-btn').addEventListener('click', async (e) => {
 
 
 // (회원가입 버튼 클릭)
-const signupSubmitBtn = document.getElementById('signup-submit-btn');
-const signupIdInput = document.getElementById('signup-id');
-const signupPasswordInput = document.getElementById('signup-password');
-const signupPasswordConfirmInput = document.getElementById('signup-password-confirm');
-const signupNameInput = document.getElementById('signup-name');
-const signupEmailIdInput = document.getElementById('signup-email-id');
-const signupEmailDomainInput = document.getElementById('signup-email-domain');
-const signupPhoneInput = document.getElementById('signup-phone');
-const signupAddressInput = document.getElementById('signup-address');
-const signupAddressDetailInput = document.getElementById('signup-address-detail');
+// [삭제] 회원가입 관련 로직 (변수 선언, 이벤트 리스너, API 호출) 모두 제거
 
-signupSubmitBtn.addEventListener('click', async () => {
-    const password = signupPasswordInput.value;
-    const confirmPass = signupPasswordConfirmInput.value;
-
-    if (!idCheckStatus) {
-        showCustomAlert('아이디 중복확인을 해주세요.', 'error'); return;
-    }
-    if (password !== confirmPass) {
-        showCustomAlert('비밀번호가 일치하지 않습니다.', 'error'); return;
-    }
-
-    const signupData = {
-        username: signupIdInput.value,
-        password: password,
-        name: signupNameInput.value,
-        phone: signupPhoneInput.value,
-        // [v12 수정] address는 Address 테이블에 저장되지만, 요청은 script.js에서 보낸 그대로 전송
-        address: `${signupAddressInput.value} ${signupAddressDetailInput.value}`,
-    };
-
-    try {
-        const response = await fetch('/api/member/signup', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(signupData)
-        });
-
-        if (response.ok) {
-            showCustomAlert('회원가입 성공! 로그인 해주세요.', 'success');
-            // (폼 비우기)
-            signupIdInput.value = ''; signupPasswordInput.value = '';
-            signupPasswordConfirmInput.value = ''; signupNameInput.value = '';
-            signupEmailIdInput.value = ''; signupEmailDomainInput.value = '';
-            signupPhoneInput.value = ''; signupAddressInput.value = '';
-            signupAddressDetailInput.value = '';
-            idCheckStatus = false;
-
-            closeModal(signupModal);
-            openModal(loginModal);
-        } else {
-            const errorText = await response.text();
-            showCustomAlert(errorText, 'error');
-        }
-    } catch (error) {
-        console.error(error);
-        showCustomAlert('회원가입 중 오류가 발생했습니다.', 'error');
-    }
-});
-
-// (아이디 중복확인 - v11과 동일)
-let idCheckStatus = false;
-const idCheckBtn = document.getElementById('id-check-btn');
-const idMsg = document.getElementById('id-msg');
-
-idCheckBtn.addEventListener('click', async () => {
-    const id = signupIdInput.value;
-    if (id.length < 4 || id.length > 20) {
-        idMsg.textContent = '아이디는 4~20자 사이로 입력해주세요.';
-        idMsg.style.color = 'var(--text-error)';
-        idMsg.style.display = 'block';
-        idCheckStatus = false;
-        return;
-    }
-
-    try {
-        const response = await fetch(`/api/member/check-id?username=${encodeURIComponent(id)}`);
-        const message = await response.text();
-
-        if (response.ok) {
-            idMsg.textContent = message;
-            idMsg.style.color = 'var(--brand-primary)';
-            idCheckStatus = true;
-        } else {
-            idMsg.textContent = message;
-            idMsg.style.color = 'var(--text-error)';
-            idCheckStatus = false;
-        }
-        idMsg.style.display = 'block';
-
-    } catch (error) {
-        console.error(error);
-        idMsg.textContent = '중복 확인 중 오류가 발생했습니다.';
-        idMsg.style.color = 'var(--text-error)';
-        idMsg.style.display = 'block';
-        idCheckStatus = false;
-    }
-});
-signupIdInput.addEventListener('input', () => {
-    idCheckStatus = false;
-    idMsg.style.display = 'none';
-});
+// (아이디 중복확인)
+// [삭제] 아이디 중복확인 관련 로직 모두 제거
 
 // (기타 유효성 검사 UI 생략)
-const passMsg = document.getElementById('pass-msg');
-const passConfirmMsg = document.getElementById('pass-confirm-msg');
-signupPasswordInput.addEventListener('input', () => {
-    const pass = signupPasswordInput.value;
-    const passRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
-    if (!passRegex.test(pass)) {
-        passMsg.textContent = '문자, 숫자, 특수문자를 포함해 8~20자로 입력해주세요.';
-        passMsg.style.display = 'block';
-    } else {
-        passMsg.style.display = 'none';
-    }
-});
-signupPasswordConfirmInput.addEventListener('input', () => {
-    const pass = signupPasswordInput.value;
-    const confirmPass = signupPasswordConfirmInput.value;
-    if (pass !== confirmPass) {
-        passConfirmMsg.style.display = 'block';
-    } else {
-        passConfirmMsg.style.display = 'none';
-    }
-});
+// [삭제] 회원가입 유효성 검사 로직 모두 제거
 
 // (주소 검색 시뮬레이션)
-document.getElementById('address-search-btn').addEventListener('click', () => {
-    signupAddressInput.value = '서울시 강남구 테헤란로 (시뮬레이션)';
-    showCustomAlert('주소 검색이 완료되었습니다 (테스트)', 'info');
-});
+// [삭제] 회원가입 주소 검색 로직 모두 제거
 
 
 // --- [v3~v7] 기타 로직 (검색, 상세, 푸터 충돌) ---
@@ -451,4 +342,104 @@ document.getElementById('address-search-btn').addEventListener('click', () => {
 // --- [v10] 페이지 최초 로드 ---
 document.addEventListener('DOMContentLoaded', () => {
     checkLoginStatus();
+});
+
+// --- [v13 신규] 카테고리 필터링 로직 ---
+
+// 상품 카드 전체를 가져옵니다.
+const productCards = document.querySelectorAll('.product-card');
+
+// --- [v13 신규] 검색 필터링 로직 ---
+
+const searchInput = document.querySelector('.search-bar input[type="text"]');
+const searchResultsMsg = document.getElementById('search-results-msg');
+const searchMsgSpan = searchResultsMsg.querySelector('span');
+
+/**
+ * 검색어에 따라 상품 목록을 필터링합니다.
+ * @param {string} searchTerm - 검색어
+ */
+function filterProductsBySearch(searchTerm) {
+    const term = searchTerm.toLowerCase().trim();
+    let resultsFound = 0;
+
+    // 상품 카드는 이미 전역 변수 productCards로 선언되어 있다고 가정합니다.
+    // const productCards = document.querySelectorAll('.product-card');
+
+    productCards.forEach(card => {
+        // 상품 제목(h3)을 기준으로 검색합니다.
+        const productName = card.querySelector('h3').textContent.toLowerCase();
+
+        if (productName.includes(term)) {
+            card.style.display = 'block';
+            resultsFound++;
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    // 검색 결과 메시지 업데이트
+    if (term.length > 0 && resultsFound === 0) {
+        searchMsgSpan.textContent = term;
+        searchResultsMsg.style.display = 'block';
+    } else {
+        searchResultsMsg.style.display = 'none';
+    }
+}
+
+// 1. 검색창에 'input' 이벤트 리스너 추가 (글자가 입력될 때마다 필터링)
+searchInput.addEventListener('input', (e) => {
+    // 검색창에 입력이 시작되면, 현재 활성화된 카테고리 표시를 '전체보기'로 재설정합니다.
+    categoryLinks.forEach(item => item.classList.remove('active'));
+    document.querySelector('.category-sidebar ul li a[data-category="all"]').classList.add('active');
+
+    // 검색 실행
+    filterProductsBySearch(e.target.value);
+});
+
+
+/**
+ * 선택된 카테고리에 따라 상품 목록을 필터링하고 UI를 업데이트합니다.
+ * @param {string} categoryKey - 'all', 'fruit', 'veg', 'etc' 중 하나
+ */
+function filterProducts(categoryKey) {
+    // 1. 상품 카드 필터링
+    productCards.forEach(card => {
+        const productCategory = card.getAttribute('data-category');
+
+        // 'all'이거나, 상품의 카테고리가 선택된 카테고리와 일치하면 보이게 합니다.
+        if (categoryKey === 'all' || productCategory === categoryKey) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+// 카테고리 링크 전체를 가져옵니다.
+const categoryLinks = document.querySelectorAll('.category-sidebar ul li a');
+
+// 2. 카테고리 링크에 클릭 이벤트 리스너 추가
+categoryLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+        e.preventDefault(); // 링크의 기본 동작 (페이지 이동) 방지
+
+        // 2-1. UI 활성화/비활성화
+        categoryLinks.forEach(item => item.classList.remove('active')); // 모든 링크의 active 클래스 제거
+        e.target.classList.add('active'); // 클릭된 링크에 active 클래스 추가
+
+        // 2-2. 카테고리 필터링 실행
+        const selectedCategory = e.target.getAttribute('data-category');
+        if (selectedCategory) {
+            filterProducts(selectedCategory);
+        }
+    });
+});
+
+// 페이지 로드 시 'all' 카테고리로 초기 필터링 (선택 사항)
+document.addEventListener('DOMContentLoaded', () => {
+    // ... 기존 checkLoginStatus() 호출 등 ...
+
+    // 카테고리 초기 설정
+    filterProducts('all');
 });
