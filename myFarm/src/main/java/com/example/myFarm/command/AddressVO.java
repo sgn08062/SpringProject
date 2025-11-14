@@ -14,6 +14,6 @@ public class AddressVO {
     private Long addId;
     private String addName;
     private String address;
-    private String phone;
+    //private String phone;
     private int userId;
 }

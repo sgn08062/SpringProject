@@ -25,8 +25,9 @@
         <p style="text-align: center; margin-top: 50px; font-size: 1.1em;">장바구니가 비어있습니다. 상품 목록에서 원하는 상품을 담아보세요!</p>
     </div>
 
-    <form th:action="@{/user/checkout}" method="get" id="checkoutForm">
+    <form th:action="@{/user/order}" method="get" id="checkoutForm">
         <div th:each="item : ${cartList}" class="cart-item" th:id="|cart-item-${item.itemId}|">
+
             <input type="checkbox" name="selectedItems" th:value="${item.itemId}" checked>
 
             <div class="item-details">
@@ -37,7 +38,6 @@
 
             <div class="item-quantity">
                 <input type="number"
-                       name="itemAmount_"
                        th:name="|itemAmount_${item.itemId}|"
                        th:id="|amount-${item.itemId}|"
                        th:value="${item.amount}"
@@ -74,6 +74,7 @@
     const deleteUrl = [[@{/user/cart/delete}]];
 
     function updateItemAmount(amountInputId, newAmount) {
+        // amountInputId는 "amount-101" 형태
         const itemId = amountInputId.split('-')[1];
         const item = cartItems.find(i => i.itemId == itemId);
 
@@ -127,6 +128,7 @@
 
                 calculateGrandTotal();
                 if (cartItems.length === 0) {
+                    // 장바구니가 완전히 비었을 때 화면을 업데이트
                     $('.cart-container').html('<h2>🛒 장바구니</h2><p style="text-align: center; margin-top: 50px; font-size: 1.1em;">장바구니가 비어있습니다. 상품 목록에서 원하는 상품을 담아보세요!</p>');
                 }
             },
@@ -143,6 +145,7 @@
             const checkbox = $(this).find('input[name="selectedItems"]');
             if (checkbox.is(':checked')) {
                 const itemId = checkbox.val();
+                // amount 필드의 ID를 사용
                 const amount = parseInt($(`#amount-${itemId}`).val());
                 const item = cartItems.find(i => i.itemId == itemId);
 
@@ -158,6 +161,7 @@
     $(document).ready(function() {
         calculateGrandTotal();
 
+        // 선택 상품 변경 시 총액 재계산
         $('input[name="selectedItems"]').on('change', calculateGrandTotal);
     });
 
@@ -168,6 +172,25 @@
             alert("주문할 상품을 1개 이상 선택해 주세요.");
             return;
         }
+
+        // 💡 수정된 핵심 로직:
+        // 1. 모든 수량 입력 필드를 활성화 상태로 복구 (이전 제출 시 disabled된 경우를 대비)
+        $('input[name^="itemAmount_"]').prop('disabled', false);
+
+        // 2. 선택되지 않은 상품의 수량 필드는 비활성화하여 전송하지 않음
+        $('input[name^="itemAmount_"]').each(function() {
+            // 수량 필드의 ID에서 itemId 추출
+            const itemId = $(this).attr('id').split('-')[1];
+            const checkbox = $(`#cart-item-${itemId}`).find('input[name="selectedItems"]');
+
+            if (!checkbox.is(':checked')) {
+                // 체크되지 않았다면 해당 수량 필드를 비활성화하여 폼 전송 시 제외
+                $(this).prop('disabled', true);
+            }
+        });
+
+        // 폼이 제출됩니다. (selectedItems=1&selectedItems=3&itemAmount_1=5&itemAmount_3=2 와 같은 형태로 전송)
+        return true;
     });
 </script>
 </body>

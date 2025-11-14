@@ -5,67 +5,135 @@
 
 <mapper namespace="com.example.myFarm.user.OrderMapper">
 
+    <resultMap id="OrderWithItems" type="OrderVO">
+        <id property="orderId" column="ORDER_ID" />
+        <result property="status" column="STATUS" />
+        <result property="address" column="ADDRESS" />
+        <result property="userId" column="USER_ID" />
+        <result property="orderDate" column="ORDER_DATE" />
+        <result property="totalAmount" column="TOTAL_AMOUNT" />
+        <result property="representativeItemName" column="REP_ITEM_NAME" />
+
+        <collection property="orderItems" ofType="ItemVO">
+            <id property="itemId" column="OA_ITEM_ID" />
+            <result property="orderAmount" column="OA_AMOUNT" />
+            <result property="price" column="OA_UNIT_PRICE" />
+            <result property="itemName" column="S_ITEM_NAME" />
+        </collection>
+    </resultMap>
+
     <insert id="insertOrder" parameterType="OrderVO" useGeneratedKeys="true" keyProperty="orderId">
-        INSERT INTO ORDERS ( STATUS, ADDRESS, PHONE, USER_ID, ORDER_DATE )
-        VALUES ( #{status}, #{address}, #{phone}, #{userId}, NOW() )
+        INSERT INTO ORDERS ( STATUS, ADDRESS, USER_ID )
+        VALUES ( #{status}, #{address}, #{userId} )
     </insert>
 
-    <insert id="insertOrderAmount" parameterType="OrderVO">
-        INSERT INTO ORDER_AMOUNT (ORDER_ID, ITEM_ID, AMOUNT, UNIT_PRICE, TOTAL_PRICE )
-        SELECT
-        #{orderId},
-        C.ITEM_ID,
-        C.AMOUNT,
-        S.PRICE AS UNIT_PRICE,
-        C.AMOUNT * S.PRICE AS TOTAL_PRICE
-        FROM CART C
-        JOIN SHOP S ON C.ITEM_ID = S.ITEM_ID
-        WHERE C.USER_ID = #{userId}
+    <insert id="insertOrderAmount">
+        INSERT INTO ORDER_AMOUNT (ORDER_ID, ITEM_ID, AMOUNT, UNIT_PRICE)
+        VALUES (#{param1}, #{param2}, #{param3}, #{param4})
     </insert>
 
-    <select id="selectOrderList" parameterType="int" resultType="OrderVO">
+    <update id="updateInventoryStock">
+        UPDATE INVENTORY i
+        JOIN SHOP s ON i.STOR_ID = s.STOR_ID
+        SET i.AMOUNT = i.AMOUNT - #{param2}
+        WHERE s.ITEM_ID = #{param1}
+    </update>
+
+    <update id="updateItemStatusToSoldOut">
+        UPDATE SHOP
+        SET STATUS = 0
+        WHERE ITEM_ID = #{param1}
+    </update>
+
+    <select id="getItemForOrder" resultType="ItemVO">
         SELECT
-        o.ORDER_ID AS orderId,
-        o.STATUS AS status,
+        s.ITEM_ID AS itemId,
+        s.ITEM_NAME AS itemName,
+        s.PRICE AS price,
+        s.STATUS AS itemStatus,
+        i.AMOUNT AS stockAmount
+        FROM SHOP s
+        JOIN INVENTORY i ON s.STOR_ID = i.STOR_ID
+        WHERE s.ITEM_ID = #{itemId}
+    </select>
 
-        /* 💡 최종 수정: 날짜 컬럼이 없으므로, ORDER_ID를 문자열로 캐스팅하여 임시로 사용 */
-        CAST(o.ORDER_ID AS CHAR) AS orderDate,
+    <select id="selectOrderList" parameterType="int" resultMap="OrderWithItems">
+        SELECT
+        DISTINCT
+        o.ORDER_ID,
+        o.STATUS,
+        o.ADDRESS,
+        o.USER_ID,
+        o.ORDER_DATE,
+        o.TOTAL_AMOUNT,
+        o.REP_ITEM_NAME,
 
-        SUM(oa.AMOUNT * oa.UNIT_PRICE) AS totalAmount,
-
-        /* 대표 상품명 서브쿼리 */
-        (
-        SELECT s.ITEM_NAME
-        FROM ORDER_AMOUNT sub_oa
-        JOIN SHOP s ON sub_oa.ITEM_ID = s.ITEM_ID
-        WHERE sub_oa.ORDER_ID = o.ORDER_ID
-        ORDER BY sub_oa.ITEM_ID ASC
-        LIMIT 1
-        ) AS representativeItemName
-
+        -- ORDER_AMOUNT 테이블의 상품 상세 정보
+        oa.ITEM_ID AS OA_ITEM_ID,
+        oa.AMOUNT AS OA_AMOUNT,
+        oa.UNIT_PRICE AS OA_UNIT_PRICE,
+        s.ITEM_NAME AS S_ITEM_NAME
         FROM ORDERS o
-        JOIN ORDER_AMOUNT oa ON o.ORDER_ID = oa.ORDER_ID
+        INNER JOIN ORDER_AMOUNT oa ON o.ORDER_ID = oa.ORDER_ID
+        INNER JOIN SHOP s ON oa.ITEM_ID = s.ITEM_ID
         WHERE o.USER_ID = #{userId}
-        /* ORDER_ID를 GROUP BY 기준으로 사용 */
-        GROUP BY o.ORDER_ID, o.STATUS, o.ORDER_ID
-        ORDER BY o.ORDER_ID DESC
+        ORDER BY o.ORDER_ID DESC, oa.ITEM_ID ASC
     </select>
 
-    <select id="selectOrderDetail" parameterType="long" resultType="OrderVO">
+    <select id="selectOrderDetail" resultMap="OrderWithItems">
         SELECT
-        ORDER_ID,
-        STATUS,
-        ORDER_DATE,
-        ADDRESS,
-        PHONE,
-        USER_ID
-        FROM ORDERS
-        WHERE ORDER_ID = #{orderId}
+        o.ORDER_ID,
+        o.STATUS,
+        o.ORDER_DATE,
+        o.ADDRESS,
+        o.USER_ID,
+        o.TOTAL_AMOUNT,
+        o.REP_ITEM_NAME,
+
+        -- ORDER_AMOUNT 테이블의 상품 상세 정보
+        oa.ITEM_ID AS OA_ITEM_ID,
+        oa.AMOUNT AS OA_AMOUNT,
+        oa.UNIT_PRICE AS OA_UNIT_PRICE,
+        s.ITEM_NAME AS S_ITEM_NAME
+        FROM ORDERS o
+        INNER JOIN ORDER_AMOUNT oa ON o.ORDER_ID = oa.ORDER_ID
+        INNER JOIN SHOP s ON oa.ITEM_ID = s.ITEM_ID
+        WHERE o.ORDER_ID = #{param1} AND o.USER_ID = #{param2}
+        ORDER BY oa.ITEM_ID ASC
     </select>
 
-    <update id="updateOrderStatus" parameterType="map">
+    <select id="selectOrderItems" resultType="ItemVO">
+        SELECT
+        OA.ITEM_ID AS itemId,
+        OA.AMOUNT AS orderAmount,
+        OA.UNIT_PRICE AS price,
+        S.ITEM_NAME AS itemName
+        FROM ORDER_AMOUNT OA
+        JOIN SHOP S ON OA.ITEM_ID = S.ITEM_ID
+        WHERE OA.ORDER_ID = #{orderId}
+    </select>
+
+    <update id="cancelOrder">
         UPDATE ORDERS
-        SET STATUS = #{status} WHERE ORDER_ID = #{orderId}
-        AND USER_ID = #{userId} </update>
+        SET STATUS = '주문 취소'
+        WHERE ORDER_ID = #{param1} AND USER_ID = #{param2}
+        AND STATUS != '주문 취소'
+    </update>
+
+    <update id="updateOrderSummary" parameterType="OrderVO">
+        UPDATE ORDERS
+        SET TOTAL_AMOUNT = #{totalAmount},
+        REP_ITEM_NAME = #{representativeItemName},
+        STATUS = '결제 완료'
+        WHERE ORDER_ID = #{orderId}
+    </update>
+
+    <update id="returnInventoryStock">
+        UPDATE INVENTORY i
+        JOIN SHOP s ON i.STOR_ID = s.STOR_ID
+        JOIN ORDER_AMOUNT oa ON s.ITEM_ID = oa.ITEM_ID
+        SET i.AMOUNT = i.AMOUNT + oa.AMOUNT
+        WHERE oa.ORDER_ID = #{orderId}
+    </update>
 
 </mapper>

@@ -2,50 +2,62 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>주문 상세</title>
+    <title th:text="|주문 상세 - ${order.orderId}번|">주문 상세</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
+        .order-summary {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin-bottom: 30px;
+            background-color: #f9f9f9;
+        }
+        .order-summary p {
+            margin: 5px 0;
+        }
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; text-align: center; }
         th, td { border: 1px solid #ddd; padding: 10px; }
         th { background-color: #f2f2f2; }
-        td:nth-child(2), td:nth-child(4) { text-align: right; }
-        .totalAmount { font-size: 1.2em; color: #dc3545; font-weight: bold; }
     </style>
 </head>
 <body>
-<h1>주문 상세 정보</h1>
+<h1 th:text="|주문 상세 정보 (ID: ${order.orderId})|">주문 상세 정보</h1>
 
-<h2 th:text="|주문 번호: ${order.orderId}|">주문 번호: 2002</h2>
-<p>주문 상태: <strong th:text="${order.status}">주문 대기</strong></p>
-<p>배송 주소: <span th:text="${order.address}">서울시 강남구</span></p>
-<p>연락처: <span th:text="${order.phone}">010-1234-5678</span></p>
+<div class="order-summary">
+    <h2>주문 요약</h2>
+    <p><strong>주문 번호:</strong> <span th:text="${order.orderId}">1001</span></p>
+    <p><strong>주문 일자:</strong> <span th:text="${order.orderDate != null ? #temporals.format(order.orderDate, 'yyyy-MM-dd HH:mm:ss') : '날짜 없음'}">2023-10-27 10:00:00</span></p>
+    <p><strong>주문 상태:</strong> <span th:text="${order.status}">결제 완료</span></p>
+    <p><strong>총 결제 금액:</strong> <span th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + '원'">15,000원</span></p>
+    <p><strong>배송지:</strong> <span th:text="${order.address}">서울시 강남구</span></p>
+</div>
 
-<hr>
+<h2>주문 상품 목록</h2>
+<div th:if="${orderItems != null and not #lists.isEmpty(orderItems)}">
+    <table>
+        <thead>
+        <tr>
+            <th>상품 ID</th>
+            <th>상품명</th>
+            <th>단가</th>
+            <th>수량</th>
+            <th>총액</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${orderItems}">
+            <td th:text="${item.itemId}">1</td>
+            <td th:text="${item.itemName}">상품 A</td>
+            <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + '원'">10,000원</td>
+            <td th:text="${item.orderAmount}">1</td>
+            <td th:text="${#numbers.formatDecimal(item.price * item.orderAmount, 0, 'COMMA', 0, 'POINT')} + '원'">10,000원</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div th:if="${orderItems == null or #lists.isEmpty(orderItems)}">
+    <p>주문된 상품 내역이 없습니다.</p>
+</div>
 
-<h3>주문 상품</h3>
-
-<table>
-    <thead>
-    <tr>
-        <th>상품명</th>
-        <th>단가</th>
-        <th>수량</th>
-        <th>금액</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="item : ${orderItems}">
-        <td th:text="${item.itemName}">친환경 당근</td>
-        <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + '원'">3,500원</td>
-        <td th:text="${item.amount}">3</td>
-        <td th:with="total=${item.amount * item.price}" th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT')} + '원'">10,500원</td>
-    </tr>
-    </tbody>
-</table>
-
-<hr>
-
-<h3>총 결제 금액: <span class="totalAmount" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + '원'">14,500원</span></h3>
-
+<a th:href="@{/user/orderList}">← 주문 목록으로 돌아가기</a>
 </body>
 </html>

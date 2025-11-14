@@ -8,21 +8,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
-
-// **가정:** OrderMapper가 별도로 존재하며 OrderVO, OrderItem 관련 매핑을 처리함.
-// import com.example.myFarm.mapper.OrderMapper;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
-    // OrderMapper는 OrderVO 관련 로직 처리를 위해 필요
     private final OrderMapper orderMapper;
-
-    // ********************** Cart **********************
 
     @Override
     public List<CartVO> getCartList(int userId) {
@@ -53,8 +48,6 @@ public class UserServiceImpl implements UserService {
         userMapper.clearCart(userId);
     }
 
-    // ********************** Address (구현 추가) **********************
-
     @Override
     public List<AddressVO> getAddressList(int userId) {
         return userMapper.selectAddressList(userId);
@@ -73,7 +66,6 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void saveAddress(AddressVO addressForm) {
-        // ID가 없거나 0이면 INSERT, 있으면 UPDATE 처리 (컨트롤러 로직 반영)
         if (addressForm.getAddId() == null || addressForm.getAddId() == 0) {
             userMapper.insertAddress(addressForm);
         } else {
@@ -87,78 +79,121 @@ public class UserServiceImpl implements UserService {
         userMapper.deleteAddress(addressId, userId);
     }
 
-    // ********************** Order (구현 추가/유지) **********************
-
-
-    /**
-     * 주문 목록 조회 - null 반환 대신 빈 리스트 반환으로 수정 (500 에러 방지)
-     */
     @Override
     public List<OrderVO> getOrderList(int userId) {
-        // 실제 구현: orderMapper의 selectOrderList 호출
         return orderMapper.selectOrderList(userId);
     }
 
-    /**
-     * 주문 상세 조회 - 컨트롤러에서 null 체크를 하므로 유지
-     */
     @Override
-    public OrderVO getOrderDetail(Long orderId) {
-        // 실제 구현: return orderMapper.selectOrderDetail(orderId);
-        return null; // DB 연결 없으므로 임시 반환 유지 (컨트롤러에서 처리 가능)
+    public OrderVO getOrderDetail(Long orderId, int userId) {
+        return orderMapper.selectOrderDetail(orderId, userId);
     }
 
-    /**
-     * 주문 취소 (상태 업데이트)
-     */
     @Override
-    @Transactional
+    public List<ItemVO> getOrderItems(Long orderId) {
+        return orderMapper.selectOrderItems(orderId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class) // 롤백 설정
     public void cancelOrder(Long orderId, int userId) {
-        // 실제 구현: orderMapper.updateOrderStatus(orderId, "CANCELED");
+        OrderVO order = getOrderDetail(orderId, userId);
+
+        if (order == null) {
+            throw new IllegalStateException("유효하지 않은 주문 ID입니다.");
+        }
+
+        // **[체크] 취소 불가능 상태 확인**
+        if ("배송중".equals(order.getStatus()) || "배송완료".equals(order.getStatus())) {
+            throw new IllegalStateException("이미 배송이 시작되었거나 완료된 주문은 취소할 수 없습니다.");
+        }
+        if ("주문 취소".equals(order.getStatus())) {
+            throw new IllegalStateException("이미 취소된 주문입니다.");
+        }
+
+        // 1. 주문 상태 변경
+        orderMapper.cancelOrder(orderId, userId);
+
+        // 2. 재고 반환 (OrderMapper에 추가된 쿼리 사용)
+        orderMapper.returnInventoryStock(orderId);
     }
 
 
     @Override
-    @Transactional(rollbackFor = Exception.class) // 예외 발생 시 롤백 보장
-    public Long placeOrder(OrderVO order) {
+    @Transactional(rollbackFor = Exception.class)
+    public Long placeOrder(OrderVO order, Map<String,String> itemAmounts) {
         int userId = order.getUserId();
 
-        // 1. 재고 확인을 위한 장바구니 품목 조회
-        List<ItemVO> itemsToOrder = orderMapper.getItemsForOrder(userId);
+        List<ItemVO> finalItemsToOrder = new ArrayList<>();
 
-        if (itemsToOrder.isEmpty()) {
-            throw new RuntimeException("장바구니가 비어있어 주문할 수 없습니다.");
-        }
+        for (Map.Entry<String, String> entry : itemAmounts.entrySet()) {
+            if (entry.getKey().startsWith("itemAmount_")) {
+                try {
+                    int itemId = Integer.parseInt(entry.getKey().replace("itemAmount_", ""));
+                    int amount = Integer.parseInt(entry.getValue());
 
-        // 2. 재고 수량 확인 및 검증
-        for (ItemVO item : itemsToOrder) {
-            if (item.getAmount() > item.getStockAmount()) {
-                throw new RuntimeException(item.getItemName() + "의 재고가 부족합니다. (재고: " + item.getStockAmount() + "개)");
+                    if (amount <= 0) continue;
+
+                    ItemVO itemDetail = orderMapper.getItemForOrder(itemId);
+
+                    if (itemDetail == null) {
+                        throw new IllegalStateException(itemId + "번 상품을 찾을 수 없습니다.");
+                    }
+                    if (itemDetail.getStockAmount() < amount) {
+                        throw new IllegalStateException(itemDetail.getItemName() + "의 재고가 부족합니다. (요청: " + amount + ", 재고: " + itemDetail.getStockAmount() + "개)");
+                    }
+
+                    itemDetail.setOrderAmount(amount);
+                    finalItemsToOrder.add(itemDetail);
+
+                } catch (NumberFormatException e) {
+                    throw new IllegalStateException("유효하지 않은 주문 수량 정보가 포함되어 있습니다.");
+                }
             }
         }
 
-        // 3. ORDERS 테이블에 주문 정보 삽입 (orderId 획득)
+        if (finalItemsToOrder.isEmpty()) {
+            throw new IllegalStateException("주문할 상품이 선택되지 않았습니다.");
+        }
+
+        /*if (order.getPhone() == null || order.getPhone().isEmpty()) {
+            throw new IllegalStateException("주문 처리를 위해 배송지 또는 회원 정보에 전화번호가 필요합니다.");
+        }*/
+
         orderMapper.insertOrder(order);
-        Long orderId = order.getOrderId(); // MyBatis가 채워준 orderId 사용
+        Long orderId = order.getOrderId();
 
-        // 4. ORDER_AMOUNT 테이블에 장바구니 품목을 주문 품목으로 삽입
-        orderMapper.insertOrderAmount(order);
+        int totalAmount = 0;
+        String representativeItemName = "";
 
-        // 5. INVENTORY 테이블 재고 감소
-        for (ItemVO item : itemsToOrder) {
-            // 재고 감소 로직 실행
-            int updatedRows = orderMapper.updateInventoryStock(item.getItemId(), item.getAmount());
+        for (ItemVO item : finalItemsToOrder) {
+            int unitPrice = item.getPrice();
+
+            orderMapper.insertOrderAmount(orderId, item.getItemId(), item.getOrderAmount(), unitPrice);
+
+            int updatedRows = orderMapper.updateInventoryStock(item.getItemId(), item.getOrderAmount());
+
             if (updatedRows == 0) {
-                // 업데이트 실패 시 강제 롤백 (데이터 정합성 보장)
                 throw new RuntimeException("재고 업데이트에 실패했습니다. (itemId: " + item.getItemId() + ")");
             }
+
+            if (item.getStockAmount() - item.getOrderAmount() == 0) {
+                orderMapper.updateItemStatusToSoldOut(item.getItemId());
+            }
+
+            userMapper.deleteCart(userId, item.getItemId());
+
+            totalAmount += item.getPrice() * item.getOrderAmount();
+
+            if (representativeItemName.isEmpty()) {
+                representativeItemName = item.getItemName();
+            }
         }
 
-        // 6. 장바구니 비우기
-        userMapper.clearCart(userId);
+        order.setTotalAmount(totalAmount);
+        order.setRepresentativeItemName(representativeItemName + (finalItemsToOrder.size() > 1 ? " 외 " + (finalItemsToOrder.size() - 1) + "건" : ""));
+        orderMapper.updateOrderSummary(order);
 
-        // 주문 ID 반환
-        return orderId;
+        return order.getOrderId();
     }
-
 }

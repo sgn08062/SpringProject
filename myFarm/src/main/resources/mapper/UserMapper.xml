@@ -3,7 +3,6 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/schema/mybatis-3-mapper.dtd">
 
-
 <mapper namespace="com.example.myFarm.user.UserMapper">
 
     <select id="getCartList" parameterType="int" resultType="CartVO">
@@ -12,12 +11,14 @@
         c.AMOUNT AS amount,
         s.ITEM_NAME AS itemName,
         s.PRICE AS price,
+        s.STATUS AS itemStatus,
         i.AMOUNT AS stockAmount,
         i.UUID AS uuid
         FROM CART c
         JOIN SHOP s ON c.ITEM_ID = s.ITEM_ID
         JOIN INVENTORY i ON s.STOR_ID = i.STOR_ID
         WHERE c.USER_ID = #{userId}
+        AND s.STATUS = 1
     </select>
 
     <insert id="insertCart" parameterType="CartVO">
@@ -34,60 +35,17 @@
 
     <delete id="deleteCart">
         DELETE FROM CART
-        WHERE USER_ID = #{param1} AND ITEM_ID = #{param2}
+        WHERE USER_ID = #{userId} AND ITEM_ID = #{itemId}
     </delete>
 
     <delete id="clearCart" parameterType="int">
         DELETE FROM CART WHERE USER_ID = #{userId}
     </delete>
 
-    <!-- purchase -->
-
-    <insert id="insertOrder" parameterType="OrderVO" useGeneratedKeys="true" keyProperty="orderId">
-        INSERT INTO ORDERS (STATUS, ADDRESS, PHONE, USER_ID)
-        VALUES (#{status}, #{address}, #{phone}, #{userId})
-    </insert>
-
-    <insert id="insertOrderAmount" parameterType="OrderVO">
-        INSERT INTO ORDER_AMOUNT (ORDER_ID, ITEM_ID, AMOUNT, UNIT_PRICE)
-        SELECT
-        #{orderId} AS ORDER_ID,  c.ITEM_ID,
-        c.AMOUNT,
-        s.PRICE AS UNIT_PRICE     FROM CART c
-        JOIN SHOP s ON c.ITEM_ID = s.ITEM_ID
-        WHERE c.USER_ID = #{userId}
-    </insert>
-
-    <update id="updateInventoryStock">
-        UPDATE INVENTORY i
-        JOIN SHOP s ON i.STOR_ID = s.STOR_ID
-        SET i.AMOUNT = i.AMOUNT - #{param2}
-        WHERE s.ITEM_ID = #{param1}
-    </update>
-
-    <select id="getItemsForOrder" parameterType="int" resultType="ItemVO">
-        SELECT
-        c.ITEM_ID AS itemId,
-        c.AMOUNT AS amount,
-        s.PRICE AS price,
-        i.AMOUNT AS stockAmount,
-        s.STOR_ID AS storId
-        FROM CART c
-        JOIN SHOP s ON c.ITEM_ID = s.ITEM_ID
-        JOIN INVENTORY i ON s.STOR_ID = i.STOR_ID
-        WHERE c.USER_ID = #{userId}
-    </select>
-
-
-
-
-
-    <!-- dummy -->
-
     <select id="selectAddressDetail" resultType="AddressVO">
         SELECT ADD_ID, ADDRESS, ADD_NAME, USER_ID
         FROM ADDRESS
-        WHERE ADD_ID = #{addId} AND USER_ID = #{userId}
+        WHERE ADD_ID = #{addressId} AND USER_ID = #{userId}
     </select>
 
     <insert id="insertAddress" parameterType="AddressVO" useGeneratedKeys="true" keyProperty="addId">
@@ -103,7 +61,7 @@
 
     <delete id="deleteAddress">
         DELETE FROM ADDRESS
-        WHERE ADD_ID = #{addId} AND USER_ID = #{userId}
+        WHERE ADD_ID = #{addressId} AND USER_ID = #{userId}
     </delete>
 
     <select id="selectAddressList" resultType="AddressVO">
@@ -118,16 +76,10 @@
         ADDRESS,
         ADD_NAME AS addName,
         USER_ID AS userId
-        /* 💡 최종 수정: IS_DEFAULT 컬럼 및 조건 완전 제거 */
-        /* 기본 주소 여부를 AddressVO에서 사용해야 한다면, 임시로 TRUE 값을 매핑합니다. */
-        , TRUE AS isDefault
         FROM ADDRESS
         WHERE USER_ID = #{userId}
-        /* DB에 IS_DEFAULT 컬럼이 없으므로, 가장 최근에 등록된 주소를 기본 주소로 간주하여 가져옵니다. */
         ORDER BY ADD_ID DESC
         LIMIT 1
     </select>
-
-
 
 </mapper>
