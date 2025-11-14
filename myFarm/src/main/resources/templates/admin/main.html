@@ -44,7 +44,7 @@
                         <th>관리</th>
                     </tr>
                 </thead>
-                <tbody id="farm-list"></tbody>
+                <tbody id="farm-info"></tbody>
             </table>
             <br>
             <hr>
@@ -110,19 +110,6 @@
         </div>
         
     </div> 
-
-    <div id="new-farm-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-button" onclick="closeModal('new-farm-modal')">&times;</span>
-            <h3>농가 정보 등록</h3>
-            <form id="new-farm-form">
-                <label>농가명</label><input type="text" id="farm-name" placeholder="예: 행복농장" required>
-                <label>대표자명</label><input type="text" id="farm-owner" placeholder="예: 홍길동">
-                <label>정산 계좌 정보</label><input type="text" id="farm-account" placeholder="은행명/계좌번호">
-                <button type="submit" class="btn-primary">농가 계정 등록</button>
-            </form>
-        </div>
-    </div>
 
     <div id="new-crop-modal" class="modal">
         <div class="modal-content">
@@ -223,8 +210,9 @@
             <h3>농가 정보 수정 (ID: <span id="edit-farm-id-display"></span>)</h3>
             <form id="edit-farm-form">
                 <label>농가명</label><input type="text" id="edit-farm-name" placeholder="예: 행복농장">
+                <label>주소</label><input type="text" id="edit-farm-address" placeholder="예: 대지도 결실군 풍년면 만물로 77">
                 <label>대표자명</label><input type="text" id="edit-farm-owner" placeholder="예: 홍길동">
-                <label>정산 계좌 정보</label><input type="text" id="edit-farm-account" placeholder="은행명/계좌번호">
+                <label>연락처</label><input type="text" id="edit-farm-contact" placeholder="예: 전화번호">
                 
                 <button type="submit" class="btn-primary">수정 완료</button>
             </form>

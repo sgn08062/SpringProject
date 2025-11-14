@@ -29,6 +29,19 @@ document.addEventListener('DOMContentLoaded', () => {
     initTabFunctionality();
     renderAllLists();
 
+    // ✅ 등록된 농가 정보(주소) 서버에서 불러오기
+    fetchAddress()
+        .then(renderFarmAddressFromData)
+        .catch(() => {
+            const tbody = document.getElementById('farm-info');
+            if (tbody) {
+                tbody.innerHTML = `
+          <tr><td colspan="5" style="text-align:center;color:#c00;">
+            농가 정보를 불러오지 못했습니다.
+          </td></tr>`;
+            }
+        });
+
     // ✅ 기존 더미 렌더링 대신 서버 데이터로 교체
     fetchCrops()
         .then(cropList => {
@@ -41,7 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // 실패 시 기존 더미 데이터로 대체 렌더(선택)
             if (typeof renderCropList === 'function') renderCropList();
         });
-    
+
+
     // 등록 폼 핸들러
     document.getElementById('new-farm-form')?.addEventListener('submit', handleNewFarm);
     document.getElementById('new-crop-form')?.addEventListener('submit', handleNewCrop);
@@ -49,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('shipping-form')?.addEventListener('submit', handleShippingSubmit);
     
     // ⭐ 수정 폼 핸들러 연결
-    document.getElementById('edit-farm-form')?.addEventListener('submit', handleEditFarm);
+    document.getElementById('edit-farm-form')?.addEventListener('submit', handleEditFarmAddress);
     document.getElementById('edit-crop-form')?.addEventListener('submit', handleEditCrop);
     document.getElementById('edit-product-form')?.addEventListener('submit', handleEditProduct);
 });
@@ -127,47 +141,111 @@ window.onclick = function(event) {
 // ======================================
 
 function renderAllLists() {
-    renderFarmList();
+    //renderFarmList();
     //renderCropList();
     renderProductList();
     renderOrderList();
 }
-
-// [수정됨] 농가 목록 렌더링 (주소, 연락처 추가)
-function renderFarmList() {
-    const list = document.getElementById('farm-list');
-    if (!list) return;
-    // HTML 헤더 순서: 농가명, 주소, 관리자, 연락처, 관리
-    list.innerHTML = farms.map(farm => `
-        <tr data-id="${farm.id}">
-            <td>${farm.name}</td>
-            <td>${farm.address}</td>
-            <td>${farm.owner}</td>
-            <td>${farm.phone}</td>
-            <td><button class="btn-small btn-edit" onclick="openModal('edit-farm-modal', ${farm.id})">수정</button></td>
-        </tr>
-    `).join('');
+// ✅ 서버에서 농장 정보 요청
+async function fetchAddress(){
+    const res = await fetch('/admin/api/address/', {
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+    });
+    if(!res.ok) throw new Error("주소 목록 로딩 실패");
+    const list = await res.json();
+    return await list;
 }
 
-// [수정됨] 농작물 목록 렌더링 (재배수량 변경, 예상 수확일 삭제)
-function renderCropList() {
-    const list = document.getElementById('crop-list');
-    if (!list) return;
-    // HTML 헤더 순서: 농작물명, 재배수량, 파종일, 상태, 재배상태, 관리
-    list.innerHTML = crops.map(crop => `
-        <tr data-id="${crop.id}">
-            <td>${crop.name}</td>
-            <td>${crop.quantity}</td>
-            <td>${crop.sowingDate}</td>
-            <td>${crop.status}</td>
-            <td><label class="switch"><input type="checkbox" ${crop.isActive ? 'checked' : ''}><span class="slider"></span></label></td>
-            <td><button class="btn-small btn-edit" onclick="openModal('edit-crop-modal', ${crop.id})">수정</button> <button class="btn-small btn-delete" onclick="handleDelete('crop', ${crop.id})">삭제</button></td>
-        </tr>
-    `).join('');
+// 테이블 렌더
+function renderFarmAddressFromData(addr){
+    const tbody = document.getElementById("farm-info");
+    if(!tbody) return;
+
+    if(!Array.isArray(addr) || addr.length === 0){
+        tbody.innerHTML = `
+            <tr><td colspan="5" style="text-align:center;color:#888;">등록된 농가 정보가 없습니다.</td></tr>
+            `;
+        return;
+    }
+
+    tbody.innerHTML = addr.map(a => `
+            <tr data-address-id="${a.addressId}">
+                 <td class="col-name">${a.addressName ?? "-"}</td>
+                 <td class="col-address">${a.address ?? "-"}</td>
+                 <td class="col-owner">${a.recipientName ?? "-"}</td>
+                 <td class="col-phone">${a.recipientPhone ?? "-"}</td>
+              <td>
+                <button class="btn-small btn-edit" onclick="openFarmEdit(this, ${a.addressId})">수정</button>
+              </td>
+            </tr>
+        `).join("");
 }
+
+function openFarmEdit(buttonEl, addressId) {
+    const tr = buttonEl.closest('tr');
+    if (!tr) return;
+
+
+    // 셀에서 그대로 값 읽어오기
+    const name    = tr.querySelector('.col-name')?.textContent?.trim()    || '';
+    const address = tr.querySelector('.col-address')?.textContent?.trim() || '';
+    const owner   = tr.querySelector('.col-owner')?.textContent?.trim()   || '';
+    const phone   = tr.querySelector('.col-phone')?.textContent?.trim()   || '';
+
+    // 모달에 세팅
+    document.getElementById('edit-farm-id-display').textContent = String(addressId);
+    document.getElementById('edit-farm-name').value     = name;
+    document.getElementById('edit-farm-address').value  = address;
+    document.getElementById('edit-farm-owner').value    = owner;
+    document.getElementById('edit-farm-contact').value  = phone;
+
+    openModal('edit-farm-modal', addressId);
+}
+
+
+async function handleEditFarmAddress(e) {
+    e.preventDefault();
+
+    const addressId = Number(document.getElementById('edit-farm-id-display').textContent || '0');
+
+    const payload = {
+        addressId: addressId,
+        addressName: document.getElementById('edit-farm-name').value.trim(),
+        address: document.getElementById('edit-farm-address').value.trim(),
+        recipientName: document.getElementById('edit-farm-owner').value.trim(),
+        recipientPhone: document.getElementById('edit-farm-contact').value.trim()
+    };
+
+    if (!payload.addressName || !payload.address) {
+        alert('농가명과 주소는 필수입니다.');
+        return;
+    }
+
+    try {
+        const res = await fetch('/admin/api/address/update', {
+            method: 'POST',
+            credentials: 'include',                // 세션 쿠키 포함(중요)
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const text = await res.text().catch(()=>'');
+        if (!res.ok || text !== 'success') throw new Error(text || '업데이트 실패');
+
+        // 최신 목록 재조회 → 테이블 갱신
+        const list = await fetchAddress();
+        renderFarmAddressFromData(list);
+
+        closeModal('edit-farm-modal');
+        alert('주소 정보가 수정되었습니다.');
+    } catch (err) {
+        alert('수정 중 오류가 발생했습니다.\n' + (err?.message || ''));
+    }
+}
+
 
 // ✅ 서버에서 농작물 목록 요청
-// ✅ 목록 로딩 시 캐시
 async function fetchCrops() {
     const res = await fetch('/admin/api/crops', {
         headers: { 'Content-Type': 'application/json' }

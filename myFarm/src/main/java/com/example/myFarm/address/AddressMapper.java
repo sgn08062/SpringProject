@@ -20,6 +20,4 @@ public interface AddressMapper {
 
     // 사용자 주소 목록 조회
     List<AddressVO> getAddressListDB(int userId);
-
-
 }

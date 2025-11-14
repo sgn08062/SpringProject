@@ -36,5 +36,4 @@ public class AddressServiceImpl implements AddressService {
     public List<AddressVO> getAddressList(int userId) {
         return addressMapper.getAddressListDB(userId);
     }
-    
 }
