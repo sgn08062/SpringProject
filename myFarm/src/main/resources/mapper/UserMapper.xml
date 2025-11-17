@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/schema/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.example.myFarm.user.UserMapper">
+
+    <select id="getCartList" parameterType="int" resultType="CartVO">
+        SELECT c.USER_ID AS userId,
+        c.ITEM_ID AS itemId,
+        c.AMOUNT AS amount,
+        s.ITEM_NAME AS itemName,
+        s.PRICE AS price,
+        i.AMOUNT AS stockAmount,
+        i.UUID AS uuid
+        FROM CART c
+        JOIN SHOP s ON c.ITEM_ID = s.ITEM_ID
+        JOIN INVENTORY i ON s.STOR_ID = i.STOR_ID
+        WHERE c.USER_ID = #{userId}
+    </select>
+
+    <insert id="insertCart" parameterType="CartVO">
+        INSERT INTO CART (USER_ID, ITEM_ID, AMOUNT)
+        VALUES (#{userId}, #{itemId}, #{amount})
+        ON DUPLICATE KEY UPDATE AMOUNT = AMOUNT + #{amount}
+    </insert>
+
+    <update id="updateCart" parameterType="CartVO">
+        UPDATE CART
+        SET AMOUNT = #{amount}
+        WHERE USER_ID = #{userId} AND ITEM_ID = #{itemId}
+    </update>
+
+    <delete id="deleteCart">
+        DELETE FROM CART
+        WHERE USER_ID = #{param1} AND ITEM_ID = #{param2}
+    </delete>
+
+    <delete id="clearCart" parameterType="int">
+        DELETE FROM CART WHERE USER_ID = #{userId}
+    </delete>
+
+</mapper>

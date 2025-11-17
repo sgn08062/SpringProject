@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>마이페이지 관리</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* 탭 메뉴 스타일 */
+        .tab-menu {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+        .tab-menu button {
+            background-color: transparent;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            color: #555;
+            transition: all 0.3s;
+        }
+        .tab-menu button.active {
+            color: #28a745;
+            border-bottom: 3px solid #28a745;
+            font-weight: 700;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px 0;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        /* 모달 스타일 (기존 address.html 스타일 유지) */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); padding-top: 60px; }
+        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 500px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
+        .close:hover, .close:focus { color: #000; text-decoration: none; cursor: pointer; }
+        /* 테이블 스타일 */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        /* 버튼 스타일 */
+        .btn { padding: 5px 10px; cursor: pointer; border: none; border-radius: 4px; }
+        .btn-primary { background-color: #007bff; color: white; }
+        .cancelBtn { background-color: #dc3545; color: white; }
+    </style>
+</head>
+<body class="light">
+
+<div class="container" style="padding: 20px;">
+    <h1>마이페이지</h1>
+
+    <div class="tab-menu">
+        <button class="tab-button active" data-tab="orderListTab">📦 주문 내역 조회</button>
+        <button class="tab-button" data-tab="addressManageTab">📍 배송지 관리</button>
+    </div>
+
+    <div id="orderListTab" class="tab-content active">
+        <h2>📦 주문 내역 목록</h2>
+
+        <table>
+            <thead>
+            <tr>
+                <th>주문일자</th>
+                <th>주문번호</th>
+                <th>상품 정보</th>
+                <th>결제 금액</th>
+                <th>주문 상태</th>
+                <th>관리</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="order : ${orderList}">
+                <td th:text="${#temporals.format(order.orderDate, 'yyyy-MM-dd')}">2024-10-25</td>
+                <td th:text="${order.orderId}">ORD123456</td>
+                <td><a th:href="@{/product/order/{id}(id=${order.orderId})}" th:text="${order.representativeItemName}">3개 상품</a></td>
+                <td th:text="|${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')}원|">35,000원</td>
+                <td th:text="${order.status}">배송 완료</td>
+                <td>
+                    <button class="btn-primary" th:if="${order.status == '입금 대기'}">결제하기</button>
+                    <form th:action="@{/product/order/cancel/{id}(id=${order.orderId})}" method="post" style="display:inline;">
+                        <button type="submit" class="cancelBtn" th:if="${order.status == '배송 준비중'}">주문 취소</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div th:unless="${orderList != null and !orderList.isEmpty()}" style="text-align: center; padding: 30px; color: #888;">
+            <p>아직 주문 내역이 없습니다.</p>
+        </div>
+    </div>
+
+    <div id="addressManageTab" class="tab-content">
+        <h2>📍 배송지 관리</h2>
+
+        <div th:if="${successMessage}" style="color: green; font-weight: bold; margin-bottom: 15px;" th:text="${successMessage}">성공 메시지</div>
+
+        <button id="openModalBtn" class="btn btn-primary">➕ 새 배송지 추가</button>
+
+        <hr>
+
+        <h3>등록된 배송지 목록</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>별칭</th>
+                <th>주소</th>
+                <th>관리</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="addr : ${addressList}">
+                <td th:text="${addr.addName}">집</td>
+                <td th:text="${addr.address}">서울시 강남구</td>
+                <td>
+                    <button type="button" class="editBtn btn-primary"
+                            th:data-add-id="${addr.addId}"
+                            th:data-add-name="${addr.addName}"
+                            th:data-address="${addr.address}">수정</button>
+
+                    <form th:action="@{/product/address/delete/{id}(id=${addr.addId})}" method="post" style="display:inline;">
+                        <button type="submit" class="deleteBtn cancelBtn">삭제</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="addressModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="modalTitle">배송지 추가</h2>
+
+        <form id="addressForm" th:action="@{/product/address}" method="post">
+            <input type="hidden" id="addId" name="addId" value="">
+
+            <p>
+                <label for="addNameInput">배송지 별칭:</label>
+                <input type="text" id="addNameInput" name="addName" required>
+            </p>
+            <p>
+                <label for="addressFormInput">주소:</label>
+                <input type="text" id="addressFormInput" name="address" required>
+            </p>
+
+            <button type="submit" id="submitBtn" class="btn btn-primary">저장</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // 탭 기능 JavaScript
+    function openTab(tabName) {
+        // 모든 탭 콘텐츠 숨기기
+        $('.tab-content').removeClass('active');
+        // 모든 탭 버튼 비활성화
+        $('.tab-button').removeClass('active');
+
+        // 선택된 탭 콘텐츠 표시
+        $('#' + tabName).addClass('active');
+        // 선택된 탭 버튼 활성화
+        $(`[data-tab="${tabName}"]`).addClass('active');
+    }
+
+    // 탭 버튼 클릭 이벤트
+    $('.tab-button').on('click', function() {
+        const tabName = $(this).data('tab');
+        openTab(tabName);
+    });
+
+    // 페이지 로드 시 URL 파라미터를 확인하여 기본 탭 설정
+    // URL 파라미터(tab=orderListTab 또는 tab=addressManageTab)를 읽어와 탭을 활성화합니다.
+    $(document).ready(function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeTab = urlParams.get('tab') || 'orderListTab'; // 'tab' 파라미터가 없으면 orderListTab이 기본값
+        openTab(activeTab);
+    });
+
+
+    // 📍 배송지 모달 기능 JavaScript (address.html에서 가져옴)
+    const modal = document.getElementById('addressModal');
+    const openBtn = document.getElementById('openModalBtn');
+    const closeBtn = document.getElementsByClassName('close')[0];
+    const form = $('#addressForm');
+
+    // 모달 열기 (추가 모드)
+    openBtn.onclick = function() {
+        $('#modalTitle').text('새 배송지 추가');
+        $('#addId').val('');
+        form[0].reset();
+        modal.style.display = 'block';
+    }
+
+    // 모달 열기 (수정 모드)
+    $('.editBtn').on('click', function() {
+        const data = $(this).data();
+
+        $('#modalTitle').text('배송지 수정 (ID: ' + data.addId + ')');
+        $('#addId').val(data.addId);
+        $('#addNameInput').val(data.addName);
+        $('#addressFormInput').val(data.address);
+
+        modal.style.display = 'block';
+    });
+
+    // 모달 닫기
+    closeBtn.onclick = function() { modal.style.display = 'none'; }
+    window.onclick = function(event) {
+        if (event.target == modal) { modal.style.display = 'none'; }
+    }
+</script>
+</body>
+</html>

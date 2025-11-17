@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>주문 내역</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<h1>주문 내역 전체 조회</h1>
+
+<div th:if="${successMessage}" style="color: green; font-weight: bold; margin-bottom: 15px;" th:text="${successMessage}">성공 메시지</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>주문 번호</th>
+        <th>주문 일자</th>
+        <th>대표 상품</th>
+        <th>총 결제 금액</th>
+        <th>상태</th>
+        <th>상세 보기</th>
+        <th>주문 취소</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="order : ${orderList}">
+        <td th:text="${order.orderId}">1</td>
+        <td th:text="${#temporals.format(order.orderDate, 'yyyy-MM-dd')}">2025-11-05</td>
+        <td th:text="${order.representativeItemName}">유기농 감자</td>
+        <td th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')}">25,000원</td>
+        <td th:text="${order.status}">배송 중</td>
+        <td><a class="btn" th:href="@{/user/order/{id}(id=${order.orderId})}">상세</a></td>
+        <td>
+            <th:block th:if="${order.status == '주문 대기'}">
+                <form th:action="@{/user/order/cancel/{id}(id=${order.orderId})}" method="post">
+                    <button type="submit" class="cancelBtn">주문 취소</button>
+                </form>
+            </th:block>
+            <span th:unless="${order.status == '주문 대기'}">취소 불가</span>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

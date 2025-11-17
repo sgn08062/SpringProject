@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>장바구니</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/cart.css}">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+<body class="light">
+
+<header>
+    <div class="header-container">
+    </div>
+</header>
+
+<div class="cart-container">
+    <h2>🛒 장바구니</h2>
+
+    <div th:if="${successMessage}" class="message success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="message error" th:text="${errorMessage}"></div>
+
+    <div th:if="${cartList == null or cartList.empty}">
+        <p style="text-align: center; margin-top: 50px; font-size: 1.1em;">장바구니가 비어있습니다. 상품 목록에서 원하는 상품을 담아보세요!</p>
+    </div>
+
+    <form th:action="@{/user/checkout}" method="get" id="checkoutForm">
+        <div th:each="item : ${cartList}" class="cart-item" th:id="|cart-item-${item.itemId}|">
+            <input type="checkbox" name="selectedItems" th:value="${item.itemId}" checked>
+
+            <div class="item-details">
+                <div class="item-name" th:text="${item.itemName}">유기농 감자</div>
+                <div class="item-price" th:text="|단가: ${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')}원|">단가: 5,000원</div>
+                <div class="item-stock" th:text="|재고: ${item.stockAmount} 개|">재고: 50 개</div>
+            </div>
+
+            <div class="item-quantity">
+                <input type="number"
+                       name="itemAmount_"
+                       th:name="|itemAmount_${item.itemId}|"
+                       th:id="|amount-${item.itemId}|"
+                       th:value="${item.amount}"
+                       min="1"
+                       th:max="${item.stockAmount}"
+                       onchange="updateItemAmount(this.id, this.value)"
+                       style="width: 60px;">
+                <span>개</span>
+            </div>
+
+            <div class="item-total" th:id="|total-${item.itemId}|">
+                <span th:text="${#numbers.formatDecimal(item.price * item.amount, 0, 'COMMA', 0, 'POINT') + '원'}">10,000원</span>
+            </div>
+
+            <div class="item-actions">
+                <button type="button" th:onclick="|deleteCartItem(${item.itemId})|">삭제</button>
+            </div>
+        </div>
+
+        <div th:if="${not (cartList == null or cartList.empty)}" class="total-summary">
+            <span id="grandTotalText">총 결제 금액: </span>
+            <span id="grandTotal">0원</span>
+        </div>
+
+        <div th:if="${not (cartList == null or cartList.empty)}" class="checkout-button">
+            <button type="submit">선택 상품 주문하기</button>
+        </div>
+    </form>
+</div>
+
+<script th:inline="javascript">
+    const cartItems = [[${cartList}]];
+    const updateUrl = [[@{/user/cart/update}]];
+    const deleteUrl = [[@{/user/cart/delete}]];
+
+    function updateItemAmount(amountInputId, newAmount) {
+        const itemId = amountInputId.split('-')[1];
+        const item = cartItems.find(i => i.itemId == itemId);
+
+        if (!item || newAmount < 1) return;
+
+        if (newAmount > item.stockAmount) {
+            alert("재고 수량(" + item.stockAmount + "개)을 초과할 수 없습니다.");
+            $('#' + amountInputId).val(item.stockAmount);
+            newAmount = item.stockAmount;
+        }
+
+        $.ajax({
+            url: updateUrl,
+            type: 'POST',
+            data: { itemId: itemId, amount: newAmount },
+            success: function(response) {
+                if (response.success) {
+                    item.amount = parseInt(newAmount);
+
+                    const newTotal = item.price * item.amount;
+                    $(`#total-${itemId}`).text(newTotal.toLocaleString('ko-KR') + '원');
+
+                    calculateGrandTotal();
+                } else {
+                    alert("수량 변경 실패: " + response.message);
+                }
+            },
+            error: function() {
+                alert("수량 변경 중 오류가 발생했습니다.");
+                $('#' + amountInputId).val(item.amount);
+            }
+        });
+    }
+
+    function deleteCartItem(itemId) {
+        if (!confirm("해당 상품을 장바구니에서 삭제하시겠습니까?")) {
+            return;
+        }
+
+        // Controller의 POST /user/cart/delete/{itemId} 경로에 맞춤
+        $.ajax({
+            url: `${deleteUrl}/${itemId}`,
+            type: 'POST',
+            success: function() {
+                $(`#cart-item-${itemId}`).remove();
+
+                const index = cartItems.findIndex(i => i.itemId == itemId);
+                if (index > -1) {
+                    cartItems.splice(index, 1);
+                }
+
+                calculateGrandTotal();
+                if (cartItems.length === 0) {
+                    $('.cart-container').html('<h2>🛒 장바구니</h2><p style="text-align: center; margin-top: 50px; font-size: 1.1em;">장바구니가 비어있습니다. 상품 목록에서 원하는 상품을 담아보세요!</p>');
+                }
+            },
+            error: function() {
+                alert("장바구니 항목 삭제 중 오류가 발생했습니다.");
+            }
+        });
+    }
+
+    function calculateGrandTotal() {
+        let total = 0;
+
+        $('.cart-item').each(function() {
+            const checkbox = $(this).find('input[name="selectedItems"]');
+            if (checkbox.is(':checked')) {
+                const itemId = checkbox.val();
+                const amount = parseInt($(`#amount-${itemId}`).val());
+                const item = cartItems.find(i => i.itemId == itemId);
+
+                if (item) {
+                    total += item.price * amount;
+                }
+            }
+        });
+
+        $('#grandTotal').text(total.toLocaleString('ko-KR') + '원');
+    }
+
+    $(document).ready(function() {
+        calculateGrandTotal();
+
+        $('input[name="selectedItems"]').on('change', calculateGrandTotal);
+    });
+
+    $('#checkoutForm').on('submit', function(e) {
+        const checkedItems = $('input[name="selectedItems"]:checked');
+        if (checkedItems.length === 0) {
+            e.preventDefault();
+            alert("주문할 상품을 1개 이상 선택해 주세요.");
+            return;
+        }
+    });
+</script>
+</body>
+</html>

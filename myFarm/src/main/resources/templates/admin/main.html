@@ -7,14 +7,14 @@
     <link rel="stylesheet" href="/admin/style.css">
 </head>
 <body>
-<div class="dashboard-container">
-    <header class="header">
-        <h1 class="logo">🌿 FARM 관리자 대시보드</h1>
-        <div class="header-links">
-            <span id="admin-greeting">관리자님</span>
-            <a href="#" id="logout-btn" class="shop-link">로그아웃</a>
-        </div>
-    </header>
+    <div class="dashboard-container">
+        <header class="header">
+            <h1 class="logo">🌿 FARM 관리자 대시보드</h1>
+            <div class="header-links">
+                <span id="admin-greeting">관리자님</span>
+                <a href="#" id="logout-btn" class="shop-link">로그아웃</a>
+            </div>
+        </header>
 
     <section class="summary-cards">
         <div class="card sale-card"><span class="label">총 매출</span><span class="value" id="summary-total-sales">0원</span><i class="icon">💰</i></div>
@@ -23,32 +23,49 @@
         <div class="card avg-order-card"><span class="label">평균 주문액</span><span class="value" id="summary-avg-order">0원</span><i class="icon">📊</i></div>
     </section>
 
-    <nav class="tab-menu">
-        <button class="tab-button active" data-target="farm-manage">농작물 관리</button>
-        <button class="tab-button" data-target="product-manage">상품 관리</button>
-        <button class="tab-button" data-target="order-manage">주문 관리</button>
-        <button class="tab-button" data-target="stats-settlement">통계/정산</button>
-    </nav>
+        <nav class="tab-menu">
+            <button class="tab-button active" data-target="farm-manage">농작물 관리</button>
+            <button class="tab-button" data-target="product-manage">상품 관리</button>
+            <button class="tab-button" data-target="order-manage">주문 관리</button>
+            <button class="tab-button" data-target="stats-settlement">통계/정산</button>
+        </nav>
 
-    <div class="tab-content active" id="farm-manage">
-        <h2>🌱 농작물 관리</h2>
-        <button class="btn-primary" onclick="openModal('new-crop-modal')">+ 새 농작물 등록</button>
-        <button class="btn-secondary" onclick="openModal('new-farm-modal')">+ 농가 등록</button>
+        <div class="tab-content active" id="farm-manage">
+            <h2>🌱 농작물 관리</h2>
 
-        <h3>등록된 농가 목록</h3>
-        <table class="data-table farm-table">
-            <thead><tr><th>농가명</th><th>관리자</th><th>관리</th></tr></thead>
-            <tbody id="farm-list"></tbody>
-        </table>
+            <h3>등록된 농가 정보</h3>
+            <table class="data-table farm-table">
+                <thead>
+                    <tr>
+                        <th>농가명</th>
+                        <th>주소</th>
+                        <th>관리자</th>
+                        <th>연락처(전화번호)</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody id="farm-info"></tbody>
+            </table>
+            <br>
+            <hr>
+            <br>
 
-        <h3>재배 농작물 목록</h3>
-        <table class="data-table">
-            <thead>
-            <tr><th>농작물명</th><th>재배면적</th><th>파종일</th><th>예상 수확일</th><th>상태</th><th>재배상태</th><th>관리</th></tr>
-            </thead>
-            <tbody id="crop-list"></tbody>
-        </table>
-    </div>
+            <h3>재배 농작물 목록</h3>
+            <button class="btn-primary" onclick="openModal('new-crop-modal')">+ 새 농작물 등록</button>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>농작물명</th>
+                        <th>재배수량</th>
+                        <th>파종일</th>
+                        <th>상태(%)</th>
+                        <th>재배상태</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody id="crop-list"></tbody>
+            </table>
+        </div>
 
     <div class="tab-content" id="product-manage">
         <h2>🛒 상품 목록 및 수정</h2>
@@ -71,66 +88,171 @@
         </table>
     </div>
 
-    <div class="tab-content" id="order-manage">
-        <h2>📦 전체 주문 목록</h2>
-        <div class="filter-area">
-            <input type="text" placeholder="주문번호, 고객명 검색">
-            <select><option>전체 상태</option><option>입금 전</option></select>
-            <button class="btn-secondary">검색</button>
+        <div class="tab-content" id="order-manage">
+            <h2>📦 전체 주문 목록</h2>
+            <div class="filter-area">
+                <input type="text" placeholder="주문번호, 고객명 검색">
+                <select><option>전체 상태</option><option>입금 전</option></select>
+                <button class="btn-secondary">검색</button>
+            </div>
+            <table class="data-table order-table">
+                <thead><tr><th>주문번호</th><th>고객명</th><th>주문일</th><th>금액</th><th>상태</th><th>관리</th></tr></thead>
+                <tbody id="order-list"></tbody>
+            </table>
         </div>
-        <table class="data-table order-table">
-            <thead><tr><th>주문번호</th><th>고객명</th><th>주문일</th><th>금액</th><th>상태</th><th>관리</th></tr></thead>
-            <tbody id="order-list"></tbody>
-        </table>
-    </div>
 
     <div class="tab-content" id="stats-settlement">
         <h2>📊 통계 / 정산 내역</h2>
-        <p>날짜별/품목별 매출 통계 및 정산 내역을 조회하는 영역입니다. (현재 데이터 없음)</p>
         <div style="height: 300px; background-color: #f5f5f5; border: 1px solid #ddd; margin-bottom: 20px; line-height: 300px; text-align: center;">**[농작물 주문 통계 그래프 영역]**</div>
         <table class="data-table">
             <thead><tr><th>날짜</th><th>총 매출액</th><th>수수료</th><th>정산 예정액</th></tr></thead>
-            <tbody>
-            <tr><td colspan="4">통계 데이터는 현재 구현되지 않았습니다.</td></tr>
-            </tbody>
         </table>
     </div>
 
 </div>
 
-<div id="new-product-modal" class="modal">
-    <div class="modal-content">
-        <span class="close-button" onclick="closeModal('new-product-modal')">&times;</span>
-        <h3>새 상품 등록</h3>
-        <form id="new-product-form">
+    <div id="new-crop-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('new-crop-modal')">&times;</span>
+            <h3>새 농작물 등록</h3>
+            <form id="new-crop-form">
+                <label for="crop-name">농작물명</label>
+                <input type="text" id="crop-name" placeholder="예: 방울토마토">
 
-            <label for="new-stor-select">농작물 선택</label>
-            <div class="filter-area">
-                <select id="new-stor-select" required>
-                    <option value="" disabled selected>창고 품목을 선택하세요</option>
+                <label for="growth-time">생육 기간(일)</label>
+                <input type="number" id="growth-time" placeholder="예: 60" min="1" step="1">
+
+                <label for="quantity">수량</label>
+                <input type="text" id="quantity" placeholder="예: 20">
+
+                <label for="unit-name">단위</label>
+                <input type="text" id="unit-name" placeholder="예: kg">
+
+                <label for="reg-date">파종일</label>
+                <input type="date" id="reg-date">
+
+                <label for="status">상태</label>
+                <select id="status">
+                    <option value="enable">재배중</option>
+                    <option value="disable">재배중단</option>
                 </select>
+
+                <button type="submit" class="btn-primary">등록하기</button>
+            </form>
+        </div>
+    </div>
+
+
+    <div id="new-product-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('new-product-modal')">&times;</span>
+            <h3>새 상품 등록</h3>
+            <form id="new-product-form">
+
+                <label for="new-stor-select">농작물 선택</label>
+                <div class="filter-area">
+                    <select id="new-stor-select" required>
+                        <option value="" disabled selected>창고 품목을 선택하세요</option>
+                    </select>
+                </div>
+                <label>상품명</label><input type="text" id="new-item-name" required>
+                <label>가격</label><input type="number" id="new-item-price" required>
+
+                <button type="submit" class="btn-primary">등록하기</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="edit-product-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('edit-product-modal')">&times;</span>
+            <h3>상품 수정 (ID: <span id="edit-product-id-display"></span>)</h3>
+            <form id="edit-product-form">
+                <input type="hidden" id="edit-item-id">
+                <label>상품명</label><input type="text" id="edit-item-name" placeholder="예: 유기농 토마토">
+                <label>가격</label><input type="number" id="edit-item-price" placeholder="예: 12000">
+                <label>저장품목ID</label><input type="text" id="edit-stor-id" placeholder="예: 101">
+                <button type="submit" class="btn-primary">수정 완료</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="edit-crop-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('edit-crop-modal')">&times;</span>
+            <h3>농작물 수정 (ID: <span id="edit-crop-id-display"></span>)</h3>
+            <form id="edit-crop-form">
+                <label for="crop-name">농작물명</label>
+                <input type="text" id="edit-crop-name" placeholder="예: 방울토마토">
+
+                <label for="growth-time">생육 기간(일)</label>
+                <input type="number" id="edit-growth-time" placeholder="예: 60" min="1" step="1">
+
+                <label for="quantity">수량</label>
+                <input type="text" id="edit-quantity" placeholder="예: 20">
+
+                <label for="unit-name">단위</label>
+                <input type="text" id="edit-unit-name" placeholder="예: kg">
+
+                <label for="reg-date">파종일</label>
+                <input type="date" id="edit-reg-date">
+
+                <button type="submit" class="btn-primary">수정 완료</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="edit-farm-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('edit-farm-modal')">&times;</span>
+            <h3>농가 정보 수정 (ID: <span id="edit-farm-id-display"></span>)</h3>
+            <form id="edit-farm-form">
+                <label>농가명</label><input type="text" id="edit-farm-name" placeholder="예: 행복농장">
+                <label>주소</label><input type="text" id="edit-farm-address" placeholder="예: 대지도 결실군 풍년면 만물로 77">
+                <label>대표자명</label><input type="text" id="edit-farm-owner" placeholder="예: 홍길동">
+                <label>연락처</label><input type="text" id="edit-farm-contact" placeholder="예: 전화번호">
+
+                <button type="submit" class="btn-primary">수정 완료</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="order-detail-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('order-detail-modal')">&times;</span>
+            <h3 id="order-detail-title">주문 상세 정보</h3>
+
+            <div id="order-info-display">
+                <p><strong>고객명:</strong> <span id="detail-customer-name">김고객</span></p>
+                <p><strong>주문일:</strong> <span id="detail-order-date">2025-11-05</span></p>
+                <p><strong>총 결제 금액:</strong> <span id="detail-total-amount">24,000원</span></p>
+                <p><strong>주문 상태:</strong> <span class="status-badge" id="detail-order-status-badge">배송준비</span></p>
             </div>
-            <label>상품명</label><input type="text" id="new-item-name" required>
-            <label>가격</label><input type="number" id="new-item-price" required>
 
-            <button type="submit" class="btn-primary">등록하기</button>
-        </form>
-    </div>
-</div>
+            <h4>주문 상품 목록 (ORDER_AMOUNT)</h4>
+            <ul id="detail-product-list">
+                <li>유기농 방울토마토 (2개) - 24,000원</li>
+            </ul>
 
-<div id="edit-product-modal" class="modal">
-    <div class="modal-content">
-        <span class="close-button" onclick="closeModal('edit-product-modal')">&times;</span>
-        <h3>상품 수정 (ID: <span id="edit-product-id-display"></span>)</h3>
-        <form id="edit-product-form">
-            <input type="hidden" id="edit-item-id">
-            <label>상품명</label><input type="text" id="edit-item-name" placeholder="예: 유기농 토마토">
-            <label>가격</label><input type="number" id="edit-item-price" placeholder="예: 12000">
-            <label>저장품목ID</label><input type="text" id="edit-stor-id" placeholder="예: 101">
-            <button type="submit" class="btn-primary">수정 완료</button>
-        </form>
+            <h4>배송 처리 (송장 번호 입력 및 상태 변경)</h4>
+            <form id="shipping-form">
+                <label for="new-status">주문 상태 변경</label>
+                <select id="new-status">
+                    <option value="paid">결제 완료</option>
+                    <option value="ready">배송 준비 중</option>
+                    <option value="shipping">배송 중</option>
+                    <option value="delivered">배송 완료</option>
+                </select>
+                <button type="button" class="btn-secondary" onclick="updateOrderStatus(document.getElementById('new-status').value)">상태 변경</button>
+
+                <hr>
+
+                <label for="tracking-number">송장 번호</label>
+                <input type="text" id="tracking-number" placeholder="예: 1234-5678-9012">
+                <button type="submit" class="btn-primary">배송 정보 입력/수정</button>
+            </form>
+        </div>
     </div>
-</div>
 
 <script src="/admin/script.js"></script>
 </body>

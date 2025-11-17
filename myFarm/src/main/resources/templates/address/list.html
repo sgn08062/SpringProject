@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>주소 관리</title>
+    <link rel="stylesheet" href="/css/address.css" />
+</head>
+<body>
+<header class="shell header">
+    <h1 class="title">주소 관리</h1>
+    <button id="btnAdd" class="btn btn-primary">+ 새 주소 추가</button>
+</header>
+
+<!--<section class="shell toolbar">-->
+<!--    <div class="inline">-->
+<!--        <label for="sort" class="label">정렬</label>-->
+<!--        <select id="sort" class="select">-->
+<!--            <option value="recent">최근 추가순</option>-->
+<!--            <option value="name">이름순</option>-->
+<!--            <option value="default">기본 주소 우선</option>-->
+<!--        </select>-->
+<!--    </div>-->
+<!--    <div class="inline">-->
+<!--    </div>-->
+<!--</section>-->
+
+<main id="list" class="shell grid">
+    <!-- JS가 카드 렌더링 -->
+</main>
+
+<nav class="shell pagination" id="pagination" hidden>
+<!--    <button class="btn btn-secondary" data-page="prev">이전</button>-->
+<!--    <span id="pageInfo"></span>-->
+<!--    <button class="btn btn-secondary" data-page="next">다음</button>-->
+</nav>
+
+<!-- 추가/수정 모달 -->
+<dialog id="addrModal" class="modal">
+    <form id="addrForm" method="post" class="modal-body">
+        <h2 id="modalTitle" class="modal-title">새 주소 추가</h2>
+        <div class="form-grid">
+            <label class="form-item">
+                받는 사람
+                <input name="recipientName" id="recipientName" type="text" class="input" required maxlength="30" />
+            </label>
+            <label class="form-item">
+                주소 이름
+                <input name="addressName" id="addressName" type="text" class="input" required maxlength="15" />
+            </label>
+            <label class="form-item full">
+                연락처
+                <input name="recipientPhone" id="recipientPhone" type="tel" class="input" placeholder="010-1234-5678" required />
+            </label>
+            <label class="form-item full">
+                주소
+                <input name="address1" id="address1" type="text" class="input" required placeholder="도로명/지번" />
+            </label>
+            <label class="form-item full">
+                상세 주소
+                <input name="address2" id="address2" type="text" class="input" placeholder="동/호/층 등" />
+            </label>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" id="btnCancel">취소</button>
+            <button type="submit" class="btn btn-primary" id="btnSave">저장</button>
+        </div>
+        <input type="hidden" name="addressId" />
+    </form>
+</dialog>
+
+<script src="/js/address.js" defer></script>
+<script src="/js/address-list.js" defer></script>
+</body>
+</html>
