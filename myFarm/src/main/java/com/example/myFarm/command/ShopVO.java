@@ -12,4 +12,5 @@ public class ShopVO {
     private Integer price;
     private Integer status;
     private Long storId;
+    private Integer inventoryAmount;
 }

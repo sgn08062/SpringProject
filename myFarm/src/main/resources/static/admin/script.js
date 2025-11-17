@@ -26,25 +26,48 @@ let orders = [
 ];
 
 // ======================================
-// 2. 창고(Inventory) 더미 데이터 및 Select Box 옵션
+// 2. 창고(Inventory) API 연동 및 Select Box 옵션
 // ======================================
-const DUMMY_INVENTORY_ITEMS = [
-    // storId는 SHOP 테이블의 FOREIGN KEY인 STOR_ID와 연결됩니다.
-    { storId: 101, storName: "창고 - 유기농 토마토", stock: 150 },
-    { storId: 102, storName: "창고 - 신선한 상추", stock: 300 },
-    { storId: 103, storName: "창고 - 달콤한 딸기", stock: 50 }
-];
 
-function loadInventoryOptions() {
+// 인벤토리 목록을 API에서 가져오는 함수
+async function fetchInventoryItems() {
+    try {
+        // 백엔드에서 새로 추가한 API 호출
+        const response = await fetch('/admin/api/inventory');
+        if (!response.ok) {
+            throw new Error(`인벤토리 API 호출 실패: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error("인벤토리 항목 로딩 오류:", error);
+        alert('창고 품목을 불러오는 중 오류가 발생했습니다.');
+        return [];
+    }
+}
+
+async function loadInventoryOptions() {
     const selectElement = document.getElementById('new-stor-select');
     if (!selectElement) return;
 
+    // API 호출
+    const inventoryItems = await fetchInventoryItems();
+
+    // Select Box 초기화
     selectElement.innerHTML = '<option value="" disabled selected>창고 품목을 선택하세요</option>';
 
-    DUMMY_INVENTORY_ITEMS.forEach(item => {
+    if (inventoryItems.length === 0) {
+        const option = document.createElement('option');
+        option.disabled = true;
+        option.textContent = "등록된 인벤토리 품목이 없습니다.";
+        selectElement.appendChild(option);
+        return;
+    }
+
+    // 데이터를 기반으로 옵션 생성
+    inventoryItems.forEach(item => {
         const option = document.createElement('option');
         option.value = item.storId;
-        option.textContent = `${item.storName} (ID: ${item.storId}, 재고: ${item.stock}개)`;
+        option.textContent = `${item.storName} (ID: ${item.storId}, 재고: ${item.amount || 0}개)`;
         selectElement.appendChild(option);
     });
 }
@@ -329,6 +352,13 @@ async function loadCropIntoEditForm(cropId) {
     if (!res.ok) throw new Error('crop not found');
     const crop = await res.json();
 
+    const editCropNameEl = document.getElementById('edit-crop-name'); // 요소를 변수로 저장
+
+    document.getElementById('edit-crop-id-display').textContent = crop.cropId ?? '';
+    editCropNameEl.value = crop.cropName ?? '';
+
+    editCropNameEl.readOnly = true;
+
     document.getElementById('edit-crop-id-display').textContent = crop.cropId ?? '';
     document.getElementById('edit-crop-name').value = crop.cropName ?? '';
     document.getElementById('edit-growth-time').value = (crop.growthTime ?? 60);
@@ -398,6 +428,7 @@ async function renderProductList() {
       <td>${product.itemId}</td>
       <td>${product.itemName}</td>
       <td>${product.price ? product.price.toLocaleString() + '원' : 'N/A'}</td>
+      <td>${product.inventoryAmount !== undefined ? product.inventoryAmount.toLocaleString() + '개' : '연동 오류'}</td>
       <td>${product.storId || 'N/A'}</td>
       <td>
         <label class="switch">
@@ -581,7 +612,11 @@ async function populateEditForm(modalId, itemId) {
 
             document.getElementById('edit-item-name').value = item.itemName || '';
             document.getElementById('edit-item-price').value = item.price || 0;
-            document.getElementById('edit-stor-id').value = item.storId || '';
+
+            const storIdEl = document.getElementById('edit-stor-id');
+            storIdEl.value = item.storId || '';
+            storIdEl.disabled = true; // 사용자가 수정할 수 없도록 비활성화
+
         } catch (error) {
             console.error('데이터 로드 오류:', error);
             alert('수정할 상품 데이터를 불러오는 데 실패했습니다.');

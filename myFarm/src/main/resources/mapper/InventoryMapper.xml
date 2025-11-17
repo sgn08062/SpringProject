@@ -34,6 +34,7 @@
     <select id="selectAll" resultType="InventoryVO">
         SELECT STOR_ID, STOR_NAME, AMOUNT, CROP_ID
         FROM INVENTORY
+        WHERE AMOUNT > 0
         ORDER BY STOR_ID DESC
     </select>
 </mapper>

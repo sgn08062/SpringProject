@@ -18,9 +18,10 @@ public class InventoryRestController {
     private InventoryService inventoryService;
 
     // 인벤토리 리스트 조회
-    @GetMapping("/list")
-    public List<InventoryVO> list(Model model) {
-        return inventoryService.getAll();
+    @GetMapping
+    public ResponseEntity<List<InventoryVO>> getInventoryItems() {
+        List<InventoryVO> items = inventoryService.getAll();
+        return ResponseEntity.ok(items);
     }
 
     // 특정 아이템 조회
