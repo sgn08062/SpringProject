@@ -30,9 +30,9 @@ let orders = [
 // ======================================
 const DUMMY_INVENTORY_ITEMS = [
     // storId는 SHOP 테이블의 FOREIGN KEY인 STOR_ID와 연결됩니다.
-    { storId: 101, storName: "창고 - 유기농 토마토", stock: 150 },
-    { storId: 102, storName: "창고 - 신선한 상추", stock: 300 },
-    { storId: 103, storName: "창고 - 달콤한 딸기", stock: 50 }
+    { storId: 1, storName: "창고 - 유기농 토마토", stock: 150 },
+    { storId: 2, storName: "창고 - 신선한 상추", stock: 300 },
+    { storId: 3, storName: "창고 - 달콤한 딸기", stock: 50 }
 ];
 
 function loadInventoryOptions() {
