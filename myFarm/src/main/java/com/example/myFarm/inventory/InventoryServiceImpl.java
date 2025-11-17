@@ -14,8 +14,8 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     @Transactional
-    public int initForCrop(long cropId) {
-        return inventoryMapper.initInventoryForCrop(cropId);
+    public int initForCrop(long cropId, String cropName) {
+        return inventoryMapper.initInventoryForCrop(cropId, cropName);
     }
 
     @Override
@@ -23,10 +23,7 @@ public class InventoryServiceImpl implements InventoryService {
     public void addAmount(long cropId, int amount) {
         if (amount <= 0) throw new IllegalArgumentException("amount must be > 0");
         int updated = inventoryMapper.increaseInventoryAmount(cropId, amount);
-        if (updated == 0) {
-            inventoryMapper.insertInventory(cropId, 0);
-            inventoryMapper.increaseInventoryAmount(cropId, amount);
-        }
+
     }
 
     @Override

@@ -32,14 +32,13 @@ public class InventoryRestController {
         }else{
             return ResponseEntity.ok().body(vo);
         }
-
     }
 
     // 농작물 생성과 동시에 인벤토리에 자리 생성
-    @PostMapping("/init/{cropId}")
-    public String init(@PathVariable long cropId, RedirectAttributes ra) {
-        inventoryService.initForCrop(cropId);
-        ra.addFlashAttribute("msg", "재고가 초기화되었습니다.");
-        return "redirect:/admin/inventory/" + cropId;
-    }
+//    @PostMapping("/init/{cropId}")
+//    public String init(@PathVariable long cropId, RedirectAttributes ra) {
+//        inventoryService.initForCrop(cropId);
+//        ra.addFlashAttribute("msg", "재고가 초기화되었습니다.");
+//        return "redirect:/admin/inventory/" + cropId;
+//    }
 }

@@ -3,9 +3,9 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.myFarm.inventory.InventoryMapper">
-    <insert id="initInventoryForCrop" parameterType="long">
-        INSERT INTO INVENTORY (AMOUNT, CROP_ID)
-        VALUES (0, #{cropId})
+    <insert id="initInventoryForCrop">
+        INSERT INTO INVENTORY (STOR_NAME, AMOUNT, CROP_ID)
+        VALUES (#{cropName}, 0, #{cropId})
     </insert>
 
     <update id="increaseInventoryAmount">
@@ -15,8 +15,8 @@
     </update>
 
     <insert id="insertInventory">
-        INSERT INTO INVENTORY (AMOUNT, CROP_ID)
-        VALUES (#{amount}, #{cropId})
+        INSERT INTO INVENTORY (STOR_NAME, AMOUNT, CROP_ID)
+        VALUES (#{cropName}, #{amount}, #{cropId})
     </insert>
 
     <!--
@@ -26,13 +26,13 @@
         삭제되었다는 의미
     -->
     <select id="getByStorId" parameterType="long" resultType="InventoryVO">
-        SELECT STOR_ID, AMOUNT, CROP_ID
+        SELECT STOR_ID, STOR_NAME, AMOUNT, CROP_ID
         FROM INVENTORY
         WHERE STOR_ID = #{storId}
     </select>
 
     <select id="selectAll" resultType="InventoryVO">
-        SELECT STOR_ID, AMOUNT, CROP_ID
+        SELECT STOR_ID, STOR_NAME, AMOUNT, CROP_ID
         FROM INVENTORY
         ORDER BY STOR_ID DESC
     </select>

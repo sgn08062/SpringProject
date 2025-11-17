@@ -5,7 +5,7 @@ import com.example.myFarm.command.InventoryVO;
 import java.util.List;
 
 public interface InventoryService {
-    int initForCrop(long cropId);
+    int initForCrop(long cropId, String cropName);
     void addAmount(long cropId, int amount);
 
 

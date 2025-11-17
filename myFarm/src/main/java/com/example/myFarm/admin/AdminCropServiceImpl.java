@@ -22,7 +22,7 @@ public class AdminCropServiceImpl implements AdminCropService {
     public int addCrop(CropVO vo) {
         int r = adminCropMapper.addCrop(vo); // useGeneratedKeys로 cropId 채워짐
         if (r == 1) {
-            r = inventoryService.initForCrop(vo.getCropId());
+            r = inventoryService.initForCrop(vo.getCropId(), vo.getCropName());
         }
         return r;
     }

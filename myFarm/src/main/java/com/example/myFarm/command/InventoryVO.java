@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class InventoryVO {
     private long storId;
+    private String storName;
     private int amount;
     private long cropId;
 }
