@@ -63,6 +63,7 @@
         </div>
 
         <div th:if="${not (cartList == null or cartList.empty)}" class="checkout-button">
+            <a href="/user/list" class="main-return-button">메인으로 돌아가기</a>
             <button type="submit">선택 상품 주문하기</button>
         </div>
     </form>

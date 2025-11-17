@@ -18,7 +18,7 @@
 
     <insert id="insertUser" parameterType="DummyVO" useGeneratedKeys="true" keyProperty="userId">
         INSERT INTO USERS (LOGIN_ID, USER_PW, USER_NAME, PHONE, EMAIL, AUTH)
-        VALUES (#{loginId}, #{userPw}, #{userName}, #{userName}, #{email}, #{auth})
+        VALUES (#{loginId}, #{userPw}, #{userName}, #{phone}, #{email}, #{auth})
     </insert>
 
     <update id="updateUser" parameterType="DummyVO">
@@ -73,7 +73,7 @@
         T1.PRICE,
         T2.AMOUNT
         FROM SHOP T1
-        LEFT JOIN INVENTORY T2 ON T1.STOR_ID = T2.UUID
+        LEFT JOIN INVENTORY T2 ON T1.STOR_ID = T2.STOR_ID
         WHERE T1.ITEM_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
         ORDER BY
         <if test="sortField == 'priceAsc'">PRICE ASC</if>
@@ -87,7 +87,7 @@
         T1.PRICE,
         T2.AMOUNT
         FROM SHOP T1
-        LEFT JOIN INVENTORY T2 ON T1.STOR_ID = T2.UUID
+        LEFT JOIN INVENTORY T2 ON T1.STOR_ID = T2.STOR_ID
         WHERE T1.ITEM_ID = #{itemId}
     </select>
 

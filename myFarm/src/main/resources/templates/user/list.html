@@ -8,132 +8,14 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-    <style>
-        /* ... (기존 스타일 유지) ... */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: 8% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 600px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
-        }
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .close:hover,
-        .close:focus {
-            color: #000;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .modal-content input {
-            width: 100%;
-            padding: 10px;
-            margin: 8px 0;
-            display: inline-block;
-            border: 1px solid #ccc;
-            box-sizing: border-box;
-            border-radius: 4px;
-        }
-        .btn-wrapper {
-            display: flex;
-            gap: 5px;
-        }
-        .btn-wrapper .btn {
-            flex-grow: 1;
-            text-align: center;
-        }
-        .btn.buy {
-            background-color: #ffc107;
-        }
-        .btn.cart {
-            background-color: #28a745;
-        }
-        .cart-form-inline {
-            /* flex-grow: 1; 제거 */
-            display: flex;
-            width: 100%; /* 수정: 너비 꽉 차게 */
-        }
-        .cart-form-inline .btn.cart {
-            width: 100%; /* 수정: 너비 꽉 차게 */
-            padding: 10px 15px;
-            border: none;
-            cursor: pointer;
-            border-radius: 4px;
-            font-weight: bold;
-            color: white;
-        }
-        #loginModal .modal-content button {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 15px;
-            margin: 8px 0;
-            border: none;
-            cursor: pointer;
-            width: 100%;
-            border-radius: 4px;
-        }
-        #detailModal .modal-content button {
-            background-color: #28a745;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            cursor: pointer;
-            border-radius: 4px;
-            width: auto;
-            margin-top: 10px;
-        }
-
-        /* 상세 모달 콘텐츠 스타일 */
-        #detailContentContainer h2 {
-            margin-top: 0;
-            border-bottom: 2px solid #ccc;
-            padding-bottom: 10px;
-        }
-        #detailContentContainer p {
-            margin-bottom: 5px;
-        }
-        #detailContentContainer .detail-price {
-            font-size: 1.5em;
-            color: #d9534f;
-            font-weight: bold;
-            margin: 15px 0;
-        }
-        .detail-item-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 4px;
-            margin-bottom: 15px;
-        }
-    </style>
-
 </head>
 <body class="light">
 
 <header>
     <div class="header-container">
-        <div class="logo">
-            <img src="#" alt="농장직송 로고">
-            <span>농장직송</span>
-        </div>
+        <a th:href="@{/user/list}" class="logo-link">
+            <div class="logo"> <img th:src="@{/images/farm-logo.png}" alt="농장직송 로고"> <span>농장직송</span> </div>
+        </a>
         <div class="header-top">
             <a th:href="@{/user/list}">상품</a>
             <a th:href="@{/user/order}">마이페이지</a>
@@ -142,7 +24,7 @@
 
             <th:block th:if="${!isLoggedIn}">
                 <a href="#" id="loginModalBtn">로그인</a>
-                <a href="#">회원가입</a>
+                <a th:href="@{/register}">회원가입</a>
             </th:block>
 
             <a th:href="@{/logout}" th:if="${isLoggedIn}">로그아웃</a>
@@ -156,10 +38,10 @@
 </div>
 
 <div class="search-container">
-    <form th:action="@{/user/list}" method="get" class="search-form">
+    <form id="searchForm" th:action="@{/user/list}" method="get" class="search-form">
         <input type="text" name="searchKeyword" placeholder="🔍 상품 검색..." th:value="${searchKeyword}">
-        <select name="sortField">
-            <option value="regDate" th:selected="${sortField == 'regDate'}">전체</option>
+        <select name="sortField" onchange="document.getElementById('searchForm').submit();">
+            <option value="regDate" th:selected="${sortField == 'regDate' or sortField == null}">전체</option>
             <option value="priceAsc" th:selected="${sortField == 'priceAsc'}">가격 낮은순</option>
         </select>
     </form>
@@ -234,19 +116,16 @@
     <div class="modal-content">
         <span class="close login-close">&times;</span>
         <h2>로그인</h2>
-        <form action="/login" method="post">
-            <label for="username">아이디</label>
-            <input type="text" id="username" name="username" required>
+        <form th:action="@{/login}" method="post">
+            <label for="loginId">아이디</label>
+            <input type="text" id="loginId" name="loginId" required>
 
             <label for="password">비밀번호</label>
-            <input type="password" id="password" name="password" required>
-
-            <button type="submit">로그인</button>
+            <input type="password" id="password" name="userPw" required> <button type="submit">로그인</button>
         </form>
         <p style="text-align: center; margin-top: 15px;">
-            <a href="#" style="color: #007bff;">비밀번호 찾기</a> |
-            <a href="#" style="color: #007bff;">회원가입</a>
-        </p>
+            <a th:href="@{/find-password}" style="color: #007bff;">비밀번호 찾기</a> |
+            <a th:href="@{/register}" style="color: #007bff;">회원가입</a> </p>
     </div>
 </div>
 

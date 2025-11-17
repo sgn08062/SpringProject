@@ -9,10 +9,12 @@
         <id property="orderId" column="ORDER_ID" />
         <result property="status" column="STATUS" />
         <result property="address" column="ADDRESS" />
+        <result property="phone" column="PHONE" />
         <result property="userId" column="USER_ID" />
         <result property="orderDate" column="ORDER_DATE" />
         <result property="totalAmount" column="TOTAL_AMOUNT" />
         <result property="representativeItemName" column="REP_ITEM_NAME" />
+        <result property="ordRecipientName" column="ORD_RECIPIENT_NAME" />
 
         <collection property="orderItems" ofType="ItemVO">
             <id property="itemId" column="OA_ITEM_ID" />
@@ -23,8 +25,8 @@
     </resultMap>
 
     <insert id="insertOrder" parameterType="OrderVO" useGeneratedKeys="true" keyProperty="orderId">
-        INSERT INTO ORDERS ( STATUS, ADDRESS, USER_ID )
-        VALUES ( #{status}, #{address}, #{userId} )
+        INSERT INTO ORDERS ( STATUS, ADDRESS, PHONE, USER_ID, ORD_RECIPIENT_NAME )
+        VALUES ( #{status}, #{address}, #{phone}, #{userId}, #{ordRecipientName} )
     </insert>
 
     <insert id="insertOrderAmount">
@@ -63,12 +65,12 @@
         o.ORDER_ID,
         o.STATUS,
         o.ADDRESS,
+        o.PHONE,
         o.USER_ID,
         o.ORDER_DATE,
         o.TOTAL_AMOUNT,
         o.REP_ITEM_NAME,
-
-        -- ORDER_AMOUNT 테이블의 상품 상세 정보
+        o.ORD_RECIPIENT_NAME,
         oa.ITEM_ID AS OA_ITEM_ID,
         oa.AMOUNT AS OA_AMOUNT,
         oa.UNIT_PRICE AS OA_UNIT_PRICE,
@@ -86,11 +88,11 @@
         o.STATUS,
         o.ORDER_DATE,
         o.ADDRESS,
+        o.PHONE,
         o.USER_ID,
         o.TOTAL_AMOUNT,
         o.REP_ITEM_NAME,
-
-        -- ORDER_AMOUNT 테이블의 상품 상세 정보
+        o.ORD_RECIPIENT_NAME,
         oa.ITEM_ID AS OA_ITEM_ID,
         oa.AMOUNT AS OA_AMOUNT,
         oa.UNIT_PRICE AS OA_UNIT_PRICE,

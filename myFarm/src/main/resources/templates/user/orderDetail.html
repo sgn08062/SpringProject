@@ -3,20 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <title th:text="|주문 상세 - ${order.orderId}번|">주문 상세</title>
-    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <style>
         .order-summary {
             border: 1px solid #ccc;
             padding: 20px;
             margin-bottom: 30px;
             background-color: #f9f9f9;
+            border-radius: 6px;
         }
         .order-summary p {
-            margin: 5px 0;
+            margin: 8px 0;
+            font-size: 1.1em;
+        }
+        .order-summary strong {
+            display: inline-block;
+            width: 120px;
+            color: #555;
         }
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; text-align: center; }
-        th, td { border: 1px solid #ddd; padding: 10px; }
-        th { background-color: #f2f2f2; }
+        th, td { border: 1px solid #ddd; padding: 12px; }
+        th { background-color: #e9e9e9; }
+
+        .btn-cancel {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+        .btn-cancel:hover {
+            background-color: #c82333;
+        }
     </style>
 </head>
 <body>
@@ -25,10 +46,15 @@
 <div class="order-summary">
     <h2>주문 요약</h2>
     <p><strong>주문 번호:</strong> <span th:text="${order.orderId}">1001</span></p>
+    <p><strong>대표 상품:</strong> <span th:text="${order.representativeItemName}">사과 외 2건</span></p>
     <p><strong>주문 일자:</strong> <span th:text="${order.orderDate != null ? #temporals.format(order.orderDate, 'yyyy-MM-dd HH:mm:ss') : '날짜 없음'}">2023-10-27 10:00:00</span></p>
     <p><strong>주문 상태:</strong> <span th:text="${order.status}">결제 완료</span></p>
-    <p><strong>총 결제 금액:</strong> <span th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + '원'">15,000원</span></p>
+    <hr style="border-top: 1px solid #ddd;">
+    <p><strong>수령인:</strong> <span th:text="${order.ordRecipientName}">홍길동</span></p>
+    <p><strong>연락처:</strong> <span th:text="${order.phone}">010-1234-5678</span></p>
     <p><strong>배송지:</strong> <span th:text="${order.address}">서울시 강남구</span></p>
+    <hr style="border-top: 1px solid #ddd;">
+    <p><strong>총 결제 금액:</strong> <span style="font-size: 1.2em; color: #dc3545;" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + '원'">15,000원</span></p>
 </div>
 
 <h2>주문 상품 목록</h2>
@@ -38,7 +64,7 @@
         <tr>
             <th>상품 ID</th>
             <th>상품명</th>
-            <th>단가</th>
+            <th>주문 당시 단가</th>
             <th>수량</th>
             <th>총액</th>
         </tr>
@@ -58,6 +84,51 @@
     <p>주문된 상품 내역이 없습니다.</p>
 </div>
 
-<a th:href="@{/user/orderList}">← 주문 목록으로 돌아가기</a>
+<th:block th:if="${order.status == '결제 완료' or order.status == '상품 준비중'}">
+    <button type="button" class="btn-cancel" th:onclick="|cancelOrder(${order.orderId})|">
+        주문 취소하기
+    </button>
+</th:block>
+
+<p style="margin-top: 30px;">
+    <a th:href="@{/user/order}">← 주문 목록으로 돌아가기</a>
+</p>
+
+<script th:inline="javascript">
+    const cancelUrl = /*[[@{/user/order/cancel}]]*/ '/user/order/cancel';
+
+    /**
+     * 주문 취소 처리 함수
+     * @param {number} orderId
+     */
+    function cancelOrder(orderId) {
+        if (!confirm(`${orderId}번 주문을 정말로 취소하시겠습니까?`)) {
+            return;
+        }
+
+        $.ajax({
+            url: `${cancelUrl}/${orderId}`, // Controller의 POST /user/order/cancel/{orderId} 경로 사용
+            type: 'POST',
+            success: function(response) {
+                alert(response.message || "주문이 성공적으로 취소되었습니다.");
+                // 취소 후 페이지 새로고침
+                location.reload();
+            },
+            error: function(xhr) {
+                let errorMessage = "주문 취소 중 오류가 발생했습니다.";
+                try {
+                    // 서버에서 JSON 응답으로 에러 메시지를 보낼 경우
+                    errorMessage = JSON.parse(xhr.responseText).message;
+                } catch (e) {
+                    // 일반적인 에러 메시지
+                    if (xhr.status === 400 || xhr.status === 409) {
+                        errorMessage = xhr.responseText;
+                    }
+                }
+                alert(errorMessage);
+            }
+        });
+    }
+</script>
 </body>
 </html>

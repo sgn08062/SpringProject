@@ -12,8 +12,7 @@
         s.ITEM_NAME AS itemName,
         s.PRICE AS price,
         s.STATUS AS itemStatus,
-        i.AMOUNT AS stockAmount,
-        i.UUID AS uuid
+        i.AMOUNT AS stockAmount
         FROM CART c
         JOIN SHOP s ON c.ITEM_ID = s.ITEM_ID
         JOIN INVENTORY i ON s.STOR_ID = i.STOR_ID
@@ -43,43 +42,79 @@
     </delete>
 
     <select id="selectAddressDetail" resultType="AddressVO">
-        SELECT ADD_ID, ADDRESS, ADD_NAME, USER_ID
+        SELECT
+        ADDRESS_ID AS addressId,
+        ADDRESS,
+        ADDRESS_NAME AS addressName,
+        RECIPIENT_NAME AS recipientName,
+        RECIPIENT_PHONE AS recipientPhone,
+        USER_ID AS userId
         FROM ADDRESS
-        WHERE ADD_ID = #{addressId} AND USER_ID = #{userId}
+        WHERE ADDRESS_ID = #{addressId} AND USER_ID = #{userId}
     </select>
 
-    <insert id="insertAddress" parameterType="AddressVO" useGeneratedKeys="true" keyProperty="addId">
-        INSERT INTO ADDRESS (ADDRESS, ADD_NAME, USER_ID)
-        VALUES (#{address}, #{addName}, #{userId})
+    <insert id="insertAddress" parameterType="AddressVO" useGeneratedKeys="true" keyProperty="addressId">
+        INSERT INTO ADDRESS (ADDRESS, ADDRESS_NAME, RECIPIENT_NAME, RECIPIENT_PHONE, USER_ID)
+        VALUES (#{address}, #{addressName}, #{recipientName}, #{recipientPhone}, #{userId})
     </insert>
 
     <update id="updateAddress" parameterType="AddressVO">
         UPDATE ADDRESS
-        SET ADDRESS = #{address}, ADD_NAME = #{addName}
-        WHERE ADD_ID = #{addId} AND USER_ID = #{userId}
+        SET ADDRESS = #{address},
+        ADDRESS_NAME = #{addressName},
+        RECIPIENT_NAME = #{recipientName},
+        RECIPIENT_PHONE = #{recipientPhone}
+        WHERE ADDRESS_ID = #{addressId} AND USER_ID = #{userId}
     </update>
 
     <delete id="deleteAddress">
         DELETE FROM ADDRESS
-        WHERE ADD_ID = #{addressId} AND USER_ID = #{userId}
+        WHERE ADDRESS_ID = #{addressId} AND USER_ID = #{userId}
     </delete>
 
     <select id="selectAddressList" resultType="AddressVO">
-        SELECT ADD_ID, ADDRESS, ADD_NAME, USER_ID
+        SELECT
+        ADDRESS_ID AS addressId,
+        ADDRESS,
+        ADDRESS_NAME AS addressName,
+        RECIPIENT_NAME AS recipientName,
+        RECIPIENT_PHONE AS recipientPhone,
+        USER_ID AS userId
         FROM ADDRESS
         WHERE USER_ID = #{userId}
     </select>
 
     <select id="selectDefaultAddress" parameterType="int" resultType="AddressVO">
         SELECT
-        ADD_ID AS addId,
+        ADDRESS_ID AS addressId,
         ADDRESS,
-        ADD_NAME AS addName,
+        ADDRESS_NAME AS addressName,
+        RECIPIENT_NAME AS recipientName,
+        RECIPIENT_PHONE AS recipientPhone,
         USER_ID AS userId
         FROM ADDRESS
         WHERE USER_ID = #{userId}
-        ORDER BY ADD_ID DESC
+        ORDER BY ADDRESS_ID DESC
         LIMIT 1
     </select>
 
+    <select id="selectOtherAddress" parameterType="int" resultType="AddressVO">
+        SELECT
+        ADDRESS_ID AS addressId,
+        ADDRESS,
+        ADDRESS_NAME AS addressName,
+        RECIPIENT_NAME AS recipientName,
+        RECIPIENT_PHONE AS recipientPhone,
+        USER_ID AS userId
+        FROM ADDRESS
+        WHERE USER_ID = #{userId}
+        ORDER BY ADDRESS_ID DESC
+        LIMIT 1,9999999
+    </select>
+
+    <select id="selectUserName" resultType="String">
+        SELECT USER_NAME
+        FROM USERS
+        WHERE USER_ID = #{userId}
+    </select>
 </mapper>

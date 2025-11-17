@@ -6,6 +6,7 @@ import com.example.myFarm.command.AddressVO;
 import com.example.myFarm.command.ItemVO;
 import com.example.myFarm.user.UserService;
 import com.example.myFarm.user.DummyService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,7 +26,24 @@ public class UserController {
     private final UserService userService;
     private final DummyService dummyService;
 
-    private int getCurrentUserId() {
+
+    private int getCurrentUserId(HttpSession session) {
+        // ⭐ 세션 키를 "userId"로 변경하여 로그인 로직과 일치시킵니다.
+        final String USER_ID_SESSION_KEY = "userId";
+
+        Object userIdObject = session.getAttribute(USER_ID_SESSION_KEY);
+
+        if (userIdObject != null) {
+            try {
+                // 세션에서 값을 찾은 경우 반환
+                return (Integer) userIdObject;
+            } catch (ClassCastException e) {
+                System.err.println("세션에 저장된 사용자 ID가 정수형이 아닙니다: " + userIdObject.getClass().getName());
+                // 타입 캐스팅 오류 시 (로그인 로직 문제) 1번 사용자 ID 반환
+                return 1;
+            }
+        }
+        // ⭐ 세션에 ID가 없을 경우 (미로그인 상태) 1번 사용자 ID 반환 (DB 외래 키 오류 방지)
         return 1;
     }
 
@@ -48,17 +66,17 @@ public class UserController {
     }
 
     @GetMapping("/cart")
-    public String getCart(Model model) {
+    public String getCart(Model model, HttpSession session) {
         model.addAttribute("isLoggedIn", true);
-        int userId = getCurrentUserId();
+        int userId = getCurrentUserId(session);
         List<CartVO> cartList = userService.getCartList(userId);
         model.addAttribute("cartList", cartList);
         return "user/cart";
     }
 
     @PostMapping("/pushCart")
-    public String pushCart(@RequestParam Integer itemId, @RequestParam(defaultValue = "1") int amount, RedirectAttributes ra) {
-        int userId = getCurrentUserId();
+    public String pushCart(@RequestParam Integer itemId, @RequestParam(defaultValue = "1") int amount, RedirectAttributes ra, HttpSession session) {
+        int userId = getCurrentUserId(session);
         CartVO cart = new CartVO();
         cart.setUserId(userId);
         cart.setItemId(itemId);
@@ -76,9 +94,8 @@ public class UserController {
 
     @PostMapping("/cart/update")
     @ResponseBody
-    public Map<String, Object> updateCartAmount(@RequestParam Integer itemId, @RequestParam int amount) {
-        // ... (로직 유지) ...
-        int userId = getCurrentUserId();
+    public Map<String, Object> updateCartAmount(@RequestParam Integer itemId, @RequestParam int amount, HttpSession session) {
+        int userId = getCurrentUserId(session);
         if (amount < 1) { amount = 1; }
 
         CartVO cart = new CartVO();
@@ -96,11 +113,8 @@ public class UserController {
 
     @PostMapping("/cart/delete/{itemId}")
     @ResponseBody
-    public Map<String, Object> deleteCart(@PathVariable("itemId") Integer itemId) {
-        // **[유지] 장바구니 삭제는 AJAX로 처리되므로, DELETE 대신 POST를 유지하여 호환성 확보 가능**
-        // 다만 RESTful 원칙을 따르려면 @DeleteMapping으로 변경하고 JS를 수정해야 함.
-        // 현재는 'POST'를 유지하여 기존 JS 코드를 살립니다.
-        int userId = getCurrentUserId();
+    public Map<String, Object> deleteCart(@PathVariable("itemId") Integer itemId, HttpSession session) {
+        int userId = getCurrentUserId(session);
         try {
             userService.deleteCartItem(userId, itemId);
             return Map.of("success", true);
@@ -110,13 +124,11 @@ public class UserController {
     }
 
     @GetMapping("/orderList")
-    public String getOrderList(Model model, @RequestParam(required = false) String successMessage, @RequestParam(required = false) String errorMessage) {
+    public String getOrderList(Model model, @RequestParam(required = false) String successMessage, @RequestParam(required = false) String errorMessage, HttpSession session) {
 
-        List<OrderVO> orderList = userService.getOrderList(getCurrentUserId());
-        List<AddressVO> addressList = userService.getAddressList(getCurrentUserId());
+        List<OrderVO> orderList = userService.getOrderList(getCurrentUserId(session));
 
         model.addAttribute("orderList", orderList);
-        model.addAttribute("addressList", addressList);
         if (successMessage != null) {
             model.addAttribute("successMessage", successMessage);
         }
@@ -126,69 +138,15 @@ public class UserController {
         return "user/orderList";
     }
 
-    @GetMapping("/order/{id}")
-    public String getOrderDetail(@PathVariable("id") Long orderId, Model model) {
-
-        OrderVO orderData = userService.getOrderDetail(orderId, getCurrentUserId());
-
-        if (orderData == null) {
-            return "redirect:/user/orderList";
-        }
-
-        model.addAttribute("order", orderData);
-        List<ItemVO> orderItems = userService.getOrderItems(orderId);
-        model.addAttribute("orderItems", orderItems);
-
-        return "user/orderDetail";
-    }
-
-    @PostMapping("/order/cancel/{id}") // **[유지] PATCH 매핑**
-    public String cancelOrder(@PathVariable("id") Long orderId, RedirectAttributes ra) {
-        // ... (로직 유지) ...
-        try {
-            userService.cancelOrder(orderId, getCurrentUserId());
-            ra.addFlashAttribute("successMessage", orderId + "번 주문이 취소되었으며, 재고가 복구되었습니다.");
-        } catch (IllegalStateException e) {
-            ra.addFlashAttribute("errorMessage", e.getMessage());
-        } catch (Exception e) {
-            ra.addFlashAttribute("errorMessage", "주문 취소 중 시스템 오류가 발생했습니다.");
-        }
-
-        return "redirect:/user/orderList";
-    }
-
-    @PostMapping("/address")
-    public String saveAddress(@ModelAttribute AddressVO addressForm, RedirectAttributes ra) {
-        addressForm.setUserId(getCurrentUserId());
-
-        userService.saveAddress(addressForm);
-
-        String message;
-        if (addressForm.getAddId() == null || addressForm.getAddId() == 0) {
-            message = addressForm.getAddName() + " 배송지가 새로 등록되었습니다.";
-        } else {
-            message = addressForm.getAddName() + " 배송지 정보가 수정되었습니다.";
-        }
-
-        ra.addFlashAttribute("successMessage", message);
-        return "redirect:/user/orderList";
-    }
-
-    @PostMapping("/address/delete/{id}") // **[수정] POST -> DELETE**
-    public String deleteAddress(@PathVariable("id") Long addressId, RedirectAttributes ra) {
-        userService.deleteAddress(addressId, getCurrentUserId());
-        ra.addFlashAttribute("successMessage", addressId + "번 배송지가 삭제되었습니다.");
-        return "redirect:/user/orderList";
-    }
-
     @GetMapping("/order")
     public String getOrderPage(
             @RequestParam(name = "selectedItems", required = false) List<Integer> selectedItems,
             @RequestParam Map<String, String> allParams,
             Model model,
-            RedirectAttributes ra) {
+            RedirectAttributes ra,
+            HttpSession session) {
 
-        int userId = getCurrentUserId();
+        int userId = getCurrentUserId(session);
 
         if (selectedItems == null || selectedItems.isEmpty()) {
             ra.addFlashAttribute("errorMessage", "주문할 상품이 없습니다.");
@@ -236,83 +194,129 @@ public class UserController {
         AddressVO defaultAddress = userService.getDefaultAddress(userId);
         model.addAttribute("defaultAddress", defaultAddress);
 
+        List<AddressVO> otherAddresses = userService.getOtherAddresses(userId);
+        model.addAttribute("otherAddresses", otherAddresses);
+
         return "user/order";
     }
 
+
     @PostMapping("/placeOrder")
     public String placeOrder(
-            @RequestParam(required = false) Long addressId,
-            @RequestParam(required = false) String newAddress,
-            @RequestParam(required = false) String newAddressName,
+            @ModelAttribute OrderVO order,
+            @RequestParam(required = false) String newRecipientName,
+            @RequestParam(required = false) String newPhone,
+            @RequestParam(required = false) String newAddressInput,
+            @RequestParam(required = false) String newAddressNameInput,
             @RequestParam Map<String, String> itemAmounts,
-            RedirectAttributes ra) {
+            RedirectAttributes ra,
+            HttpSession session) {
 
-        int userId = getCurrentUserId();
-        AddressVO selectedAdd = null;
-
-        if (newAddress != null && !newAddress.trim().isEmpty()) {
-            AddressVO newAddressForm = new AddressVO();
-            newAddressForm.setUserId(userId);
-            newAddressForm.setAddress(newAddress);
-            newAddressForm.setAddName(newAddressName != null && !newAddressName.isEmpty() ? newAddressName : "새 주소");
-
-            userService.saveAddress(newAddressForm);
-            selectedAdd = newAddressForm;
-
-        } else if (addressId != null && addressId > 0) {
-            selectedAdd = userService.getAddressDetail(addressId, userId);
-        }
-
-        // **[수정된 핵심 로직] 유효성 검사 활성화 및 강화**
-        // selectedAdd 객체가 null이거나, 주소 필드가 null 또는 비어있으면 에러 반환
-        if (selectedAdd == null || selectedAdd.getAddress() == null || selectedAdd.getAddress().trim().isEmpty()) {
-            ra.addFlashAttribute("errorMessage", "유효한 배송지 정보를 선택하거나 입력해주세요.");
-            // 배송지 문제 시, 다시 주문 페이지로 리다이렉트
-            return "redirect:/user/order";
-        }
-
-
-        OrderVO order = new OrderVO();
+        int userId = getCurrentUserId(session);
         order.setUserId(userId);
-        order.setStatus("주문 대기");
-        // 유효성 검사를 통과했으므로 selectedAdd.getAddress()는 안전하게 접근 가능
-        order.setAddress(selectedAdd.getAddress());
+
+        // ⭐ 1. addressId == 0 (새 주소 입력) 처리
+        if (order.getAddressId() == 0) {
+
+            // 새 주소 입력 필수 필드 체크
+            if (newAddressInput == null || newAddressInput.trim().isEmpty() ||
+                    newRecipientName == null || newRecipientName.trim().isEmpty() ||
+                    newPhone == null || newPhone.trim().isEmpty()) {
+
+                ra.addFlashAttribute("errorMessage", "새 주소 입력 시 모든 필수 정보를 입력해주세요 (수령인, 연락처, 주소).");
+                return "redirect:/user/order"; // /user/cart 대신 /user/order로 리다이렉트
+            }
+
+            // 새 주소 정보를 AddressVO로 변환 및 저장
+            AddressVO newAddress = new AddressVO();
+            newAddress.setUserId(userId);
+            newAddress.setAddress(newAddressInput);
+            newAddress.setAddressName(newAddressNameInput != null && !newAddressNameInput.isEmpty() ? newAddressNameInput : "새 주소");
+            newAddress.setRecipientName(newRecipientName);
+            newAddress.setRecipientPhone(newPhone);
+
+            try {
+                // AddressVO를 DB에 저장하고, 생성된 ID를 받아옵니다.
+                userService.saveAddress(newAddress);
+            } catch (Exception e) {
+                ra.addFlashAttribute("errorMessage", "새 배송지 저장 중 오류가 발생했습니다.");
+                e.printStackTrace();
+                return "redirect:/user/order";
+            }
+
+            // OrderVO에 새로 생성된 addressId를 설정하여 Service Layer로 전달
+            order.setAddressId(newAddress.getAddressId());
+        }
+
+        // ⭐ 2. 기존 주소 선택 (addressId > 0) 처리
+        // addressId가 OrderVO에 이미 설정되어 있으므로 별도 로직은 불필요합니다.
+        // Service Layer (UserServiceImpl)에서 addressId를 통해 ORDERS 테이블에 저장될 최종 주소 스냅샷을 결정합니다.
+
+        // ⭐ 3. 기존 주소 유효성 검사 로직 제거
+        /* else {
+            if (order.getAddress() == null || order.getAddress().trim().isEmpty() ||
+                    order.getRecipientName() == null || order.getRecipientName().trim().isEmpty() ||
+                    order.getPhone() == null || order.getPhone().trim().isEmpty()) {
+
+                ra.addFlashAttribute("errorMessage", "선택된 기본 배송지 정보가 유효하지 않습니다. 주소 관리를 확인해주세요.");
+                return "redirect:/user/cart";
+            }
+        }
+        */
+
+        order.setStatus("결제 완료");
 
         try {
             Long orderId = userService.placeOrder(order, itemAmounts);
 
             ra.addFlashAttribute("successMessage", "주문이 성공적으로 완료되었습니다! (주문 ID: " + orderId + ")");
-            // 요청하신 대로 주문 목록으로 리다이렉트
             return "redirect:/user/orderList";
 
         } catch (IllegalStateException e) {
             ra.addFlashAttribute("errorMessage", "주문 처리 중 오류가 발생했습니다: " + e.getMessage());
-            // 재고 등 문제 시, 주문 목록으로 리다이렉트하여 재확인 유도 (이전 코드 유지)
             return "redirect:/user/orderList";
         } catch (Exception e) {
             ra.addFlashAttribute("errorMessage", "시스템 오류로 주문에 실패했습니다.");
             e.printStackTrace();
-            // 기타 시스템 오류 시, 주문 목록으로 리다이렉트 (이전 코드 유지)
             return "redirect:/user/orderList";
         }
     }
 
-    @GetMapping("/order/success/{orderId}")
-    public String getOrderSuccessPage(@PathVariable("orderId") Long orderId, Model model, RedirectAttributes ra) {
-        int userId = getCurrentUserId();
 
-        OrderVO orderData = userService.getOrderDetail(orderId, userId);
+    @GetMapping("/order/{id}")
+    public String getOrderDetail(@PathVariable("id") Long orderId, Model model, HttpSession session) {
+
+        OrderVO orderData = userService.getOrderDetail(orderId, getCurrentUserId(session));
 
         if (orderData == null) {
-            ra.addFlashAttribute("errorMessage", "유효하지 않은 주문 정보입니다.");
             return "redirect:/user/orderList";
         }
 
-        List<ItemVO> orderItems = userService.getOrderItems(orderId);
-
         model.addAttribute("order", orderData);
+        List<ItemVO> orderItems = userService.getOrderItems(orderId);
         model.addAttribute("orderItems", orderItems);
 
         return "user/orderDetail";
+    }
+
+    @PostMapping("/order/cancel/{id}")
+    public String cancelOrder(@PathVariable("id") Long orderId, RedirectAttributes ra, HttpSession session) {
+        try {
+            userService.cancelOrder(orderId, getCurrentUserId(session));
+            ra.addFlashAttribute("successMessage", orderId + "번 주문이 취소되었으며, 재고가 복구되었습니다.");
+        } catch (IllegalStateException e) {
+            ra.addFlashAttribute("errorMessage", e.getMessage());
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMessage", "주문 취소 중 시스템 오류가 발생했습니다.");
+        }
+
+        return "redirect:/user/orderList";
+    }
+
+    @PostMapping("/address/delete/{id}")
+    public String deleteAddress(@PathVariable("id") Long addressId, RedirectAttributes ra, HttpSession session) {
+        userService.deleteAddress(addressId, getCurrentUserId(session));
+        ra.addFlashAttribute("successMessage", addressId + "번 배송지가 삭제되었습니다.");
+        return "redirect:/user/orderList";
     }
 }

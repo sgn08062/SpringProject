@@ -1,6 +1,3 @@
-/* ==============================
-   기본 테마 변수 (라이트/다크)
-   ============================== */
 :root {
     --font-size: 16px;
     --background: #ffffff;
@@ -342,6 +339,7 @@ a {
     opacity: 0.8;
 }
 
+
 /* ==============================
    푸터
    ============================== */
@@ -380,6 +378,127 @@ a {
 .footer-section a:hover {
     color: var(--secondary); /* 호버 시 초록색으로 변경 */
 }
+
+
+/* ==============================
+   1. 모달 (이전 <style> 블록 내용 시작)
+   ============================== */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+.modal-content {
+    background-color: #fefefe;
+    margin: 8% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+}
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+.modal-content input {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    border-radius: 4px;
+}
+.btn-wrapper {
+    display: flex;
+    gap: 5px;
+}
+.btn-wrapper .btn {
+    flex-grow: 1;
+    text-align: center;
+}
+.btn.buy {
+    background-color: #ffc107;
+}
+.btn.cart {
+    background-color: #28a745;
+}
+.cart-form-inline {
+    display: flex;
+    width: 100%;
+}
+.cart-form-inline .btn.cart {
+    width: 100%;
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    font-weight: bold;
+    color: white;
+}
+#loginModal .modal-content button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    margin: 8px 0;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    border-radius: 4px;
+}
+#detailModal .modal-content button {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    width: auto;
+    margin-top: 10px;
+}
+
+/* 상세 모달 콘텐츠 스타일 */
+#detailContentContainer h2 {
+    margin-top: 0;
+    border-bottom: 2px solid #ccc;
+    padding-bottom: 10px;
+}
+#detailContentContainer p {
+    margin-bottom: 5px;
+}
+#detailContentContainer .detail-price {
+    font-size: 1.5em;
+    color: #d9534f;
+    font-weight: bold;
+    margin: 15px 0;
+}
+.detail-item-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+/* ==============================
+   모달 (이전 <style> 블록 내용 끝)
+   ============================== */
+
 
 /* ==============================
    반응형

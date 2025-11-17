@@ -5,15 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-//더미데이터
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class AddressVO {
-    private Long addId;
-    private String addName;
-    private String address;
-    //private String phone;
-    private int userId;
+    private int addressId; // ADD_ID
+    private int userId; //USER_ID
+    private String address; //ADDRESS
+    private String addressName; //ADDRESS_NAME
+    private String recipientName; //RECIPIENT_NAME
+    private String recipientPhone; //RECIPIENT_PHONE
 }

@@ -20,6 +20,11 @@ public class UserServiceImpl implements UserService {
     private final OrderMapper orderMapper;
 
     @Override
+    public String getUserName(int userId) {
+        return userMapper.selectUserName(userId);
+    }
+
+    @Override
     public List<CartVO> getCartList(int userId) {
         return userMapper.getCartList(userId);
     }
@@ -59,6 +64,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<AddressVO> getOtherAddresses(int userId) {
+        return userMapper.selectOtherAddress(userId);
+    }
+
+    @Override
     public AddressVO getAddressDetail(long addressId, int userId) {
         return userMapper.selectAddressDetail(addressId, userId);
     }
@@ -66,7 +76,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void saveAddress(AddressVO addressForm) {
-        if (addressForm.getAddId() == null || addressForm.getAddId() == 0) {
+        if (addressForm.getAddressId() == 0) {
             userMapper.insertAddress(addressForm);
         } else {
             userMapper.updateAddress(addressForm);
@@ -95,7 +105,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class) // 롤백 설정
+    @Transactional(rollbackFor = Exception.class)
     public void cancelOrder(Long orderId, int userId) {
         OrderVO order = getOrderDetail(orderId, userId);
 
@@ -103,7 +113,6 @@ public class UserServiceImpl implements UserService {
             throw new IllegalStateException("유효하지 않은 주문 ID입니다.");
         }
 
-        // **[체크] 취소 불가능 상태 확인**
         if ("배송중".equals(order.getStatus()) || "배송완료".equals(order.getStatus())) {
             throw new IllegalStateException("이미 배송이 시작되었거나 완료된 주문은 취소할 수 없습니다.");
         }
@@ -111,10 +120,8 @@ public class UserServiceImpl implements UserService {
             throw new IllegalStateException("이미 취소된 주문입니다.");
         }
 
-        // 1. 주문 상태 변경
         orderMapper.cancelOrder(orderId, userId);
 
-        // 2. 재고 반환 (OrderMapper에 추가된 쿼리 사용)
         orderMapper.returnInventoryStock(orderId);
     }
 
@@ -123,6 +130,46 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackFor = Exception.class)
     public Long placeOrder(OrderVO order, Map<String,String> itemAmounts) {
         int userId = order.getUserId();
+
+        String ordRecipientName;
+        long selectedAddressId = order.getAddressId();
+
+        AddressVO defaultAddress = userMapper.selectDefaultAddress(userId);
+        long defaultAddressId = (defaultAddress != null) ? defaultAddress.getAddressId() : 0;
+
+        AddressVO selectedAddress = null;
+
+        if (selectedAddressId > 0) {
+            selectedAddress = userMapper.selectAddressDetail(selectedAddressId, userId);
+        }
+
+        if (selectedAddress == null && selectedAddressId > 0) {
+            throw new IllegalStateException("유효하지 않은 배송지 ID입니다.");
+        }
+
+        if (selectedAddressId == defaultAddressId) {
+
+            ordRecipientName = getUserName(userId);
+
+            if (defaultAddress == null) {
+                throw new IllegalStateException("주문에 필요한 기본 주소 정보가 누락되었습니다.");
+            }
+            order.setAddress(defaultAddress.getAddress());
+            order.setPhone(defaultAddress.getRecipientPhone());
+
+        }
+        else if (selectedAddress != null) {
+
+            ordRecipientName = selectedAddress.getRecipientName();
+
+            order.setAddress(selectedAddress.getAddress());
+            order.setPhone(selectedAddress.getRecipientPhone());
+
+        } else {
+            throw new IllegalStateException("유효하지 않은 주소 선택 정보입니다.");
+        }
+
+        order.setOrdRecipientName(ordRecipientName);
 
         List<ItemVO> finalItemsToOrder = new ArrayList<>();
 
@@ -139,6 +186,11 @@ public class UserServiceImpl implements UserService {
                     if (itemDetail == null) {
                         throw new IllegalStateException(itemId + "번 상품을 찾을 수 없습니다.");
                     }
+
+                    if (itemDetail.getItemStatus() != 1) {
+                        throw new IllegalStateException(itemDetail.getItemName() + "은 현재 판매 가능한 상태가 아닙니다.");
+                    }
+
                     if (itemDetail.getStockAmount() < amount) {
                         throw new IllegalStateException(itemDetail.getItemName() + "의 재고가 부족합니다. (요청: " + amount + ", 재고: " + itemDetail.getStockAmount() + "개)");
                     }
@@ -156,9 +208,9 @@ public class UserServiceImpl implements UserService {
             throw new IllegalStateException("주문할 상품이 선택되지 않았습니다.");
         }
 
-        /*if (order.getPhone() == null || order.getPhone().isEmpty()) {
+        if (order.getPhone() == null || order.getPhone().isEmpty()) {
             throw new IllegalStateException("주문 처리를 위해 배송지 또는 회원 정보에 전화번호가 필요합니다.");
-        }*/
+        }
 
         orderMapper.insertOrder(order);
         Long orderId = order.getOrderId();

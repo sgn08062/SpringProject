@@ -13,7 +13,8 @@ import java.util.List;
 @Data
 public class DummyVO {
 
-    // 1. User 필드 (유지)
+    // 1. User 필드 (❌ 독립된 UserVO 객체로 대체)
+    /*
     private Long userId;
     private String loginId;
     private String userPw;
@@ -21,6 +22,8 @@ public class DummyVO {
     private String phone;
     private String email;
     private String auth;
+    */
+    private UserVO user; // ✅ UserVO 객체로 대체
 
     // 2. Crop/Inventory 필드 (유지)
     private String uuid;
@@ -49,7 +52,10 @@ public class DummyVO {
 
     // 4. VO 객체 필드 (유지)
     private ItemVO item;
+
+    // ✅ AddressVO 객체는 그대로 유지 (Mapper/Service에서 AddressVO를 직접 사용하기 위해 필요할 수 있음)
     private AddressVO address;
+
     private List<ItemVO> itemList;
     private List<AddressVO> addressList;
 }

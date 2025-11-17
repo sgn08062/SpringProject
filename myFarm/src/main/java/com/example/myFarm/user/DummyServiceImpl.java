@@ -17,6 +17,7 @@ public class DummyServiceImpl implements DummyService {
         this.dummyMapper = dummyMapper;
     }
 
+    // ✅ 유지: 상품 조회 기능 (UserController가 임시로 사용)
     @Override
     public List<ItemVO> getAllShopItems() {
         return dummyMapper.selectAllShopItems();
@@ -35,6 +36,13 @@ public class DummyServiceImpl implements DummyService {
         return dummyMapper.selectShopItemById(itemId);
     }
 
+    // ❌ 제거/주석 처리: User 관련 기능 (AccountService로 분리 완료)
+    /* @Override
+    public DummyVO getUserInfo(String loginId) {
+        return null;
+    } */
+
+    // ✅ 유지: 미구현된 다른 더미 기능
     @Override
     public DummyVO getProductDetail(Long prodId) {
         // 💡 더미 구현
@@ -49,12 +57,6 @@ public class DummyServiceImpl implements DummyService {
 
     @Override
     public List<ItemVO> getCheckoutItems(int userId) {
-        // 💡 더미 구현
-        return null;
-    }
-
-    @Override
-    public DummyVO getUserInfo(String loginId) {
         // 💡 더미 구현
         return null;
     }
