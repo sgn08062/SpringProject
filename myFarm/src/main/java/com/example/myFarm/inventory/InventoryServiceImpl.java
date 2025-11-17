@@ -30,8 +30,8 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
-    public InventoryVO getByCropId(long cropId) {
-        return inventoryMapper.selectByCropId(cropId);
+    public InventoryVO getByStorId(long storId) {
+        return inventoryMapper.getByStorId(storId);
     }
 
     @Override

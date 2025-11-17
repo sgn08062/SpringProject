@@ -15,6 +15,6 @@ public interface InventoryMapper {
                         @Param("amount") int amount);
 
 
-    InventoryVO selectByCropId(@Param("cropId") long cropId);
+    InventoryVO getByStorId(@Param("storId") long storId);
     List<InventoryVO> selectAll();
 }

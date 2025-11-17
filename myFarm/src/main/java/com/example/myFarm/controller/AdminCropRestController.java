@@ -10,7 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/admin/api/crops")
-public class AdminCropApiController {
+public class AdminCropRestController {
 
     @Autowired
     private AdminCropService adminCropService;

@@ -19,10 +19,16 @@
         VALUES (#{amount}, #{cropId})
     </insert>
 
-    <select id="selectByCropId" parameterType="long" resultType="InventoryVO">
+    <!--
+        결과에서
+        cropId가 0인 것은
+        농장에서 해당 crop이
+        삭제되었다는 의미
+    -->
+    <select id="getByStorId" parameterType="long" resultType="InventoryVO">
         SELECT STOR_ID, AMOUNT, CROP_ID
         FROM INVENTORY
-        WHERE CROP_ID = #{cropId}
+        WHERE STOR_ID = #{storId}
     </select>
 
     <select id="selectAll" resultType="InventoryVO">

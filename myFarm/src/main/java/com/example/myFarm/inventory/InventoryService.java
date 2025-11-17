@@ -9,6 +9,6 @@ public interface InventoryService {
     void addAmount(long cropId, int amount);
 
 
-    InventoryVO getByCropId(long cropId);
+    InventoryVO getByStorId(long storId);
     List<InventoryVO> getAll();
 }
