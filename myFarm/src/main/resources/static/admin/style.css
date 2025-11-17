@@ -205,3 +205,17 @@ input:checked + .slider:before {
 .modal-content button { width: 100%; margin-top: 15px; }
 .order-info strong { color: var(--primary-color); }
 .product-list-in-modal { list-style: disc; padding-left: 20px; margin-bottom: 20px; }
+
+/* input[type="number"]의 올리기/내리기 버튼(스피너) 제거 */
+
+/* 1. Chrome, Safari, Edge, Opera 브라우저용 */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none; /* UI 기본 모양 제거 */
+    margin: 0;              /* 마진 제거 */
+}
+
+/* 2. Firefox 브라우저용 */
+input[type="number"] {
+    -moz-appearance: textfield; /* 기본 number 필드 모양을 text 필드처럼 변경 */
+}

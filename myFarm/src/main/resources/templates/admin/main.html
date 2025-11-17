@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>관리자 대시보드 - 최종 구현본</title>
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/admin/style.css">
 </head>
 <body>
 <div class="dashboard-container">
@@ -103,9 +103,16 @@
         <span class="close-button" onclick="closeModal('new-product-modal')">&times;</span>
         <h3>새 상품 등록</h3>
         <form id="new-product-form">
-            <label>상품명</label><input type="text" id="new-item-name" placeholder="예: 유기농 토마토" required>
-            <label>가격</label><input type="number" id="new-item-price" placeholder="예: 12000" required>
-            <label>저장품목ID</label><input type="text" id="new-stor-id" placeholder="예: 101" required>
+
+            <label for="new-stor-select">농작물 선택</label>
+            <div class="filter-area">
+                <select id="new-stor-select" required>
+                    <option value="" disabled selected>창고 품목을 선택하세요</option>
+                </select>
+            </div>
+            <label>상품명</label><input type="text" id="new-item-name" required>
+            <label>가격</label><input type="number" id="new-item-price" required>
+
             <button type="submit" class="btn-primary">등록하기</button>
         </form>
     </div>
@@ -125,6 +132,6 @@
     </div>
 </div>
 
-<script src="/script.js"></script>
+<script src="/admin/script.js"></script>
 </body>
 </html>

@@ -16,7 +16,10 @@
 
     <insert id="insertItem" parameterType="com.example.myFarm.command.ShopVO">
         INSERT INTO SHOP (ITEM_NAME, PRICE, STOR_ID, STATUS)
-        VALUES (#{itemName}, #{price}, #{storId}, 1)
+        VALUES (#{itemName},
+                #{price},
+                #{storId},
+                1)
     </insert>
 
     <update id="updateItem" parameterType="com.example.myFarm.command.ShopVO">

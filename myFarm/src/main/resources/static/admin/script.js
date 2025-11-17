@@ -4,13 +4,13 @@
 // ======================================
 const API_BASE_URL = '/admin/shop';
 
-// ⭐ DB 구조에 맞게 STATUS(0/1) 및 STOR_ID 반영
+// DB 구조에 맞게 STATUS(0/1) 및 STOR_ID 반영
 let products = [
     { itemId: 101, itemName: "유기농 방울토마토", price: 12000, status: 1, storId: 101 },
     { itemId: 102, itemName: "신선한 상추", price: 5000, status: 0, storId: 102 }
 ];
 
-// ⭐ Dashboard의 다른 탭을 위한 더미 데이터 (유지)
+// Dashboard의 다른 탭을 위한 더미 데이터 (유지)
 let farms = [{ id: 1, name: "행복농장", owner: "홍길동" }];
 let crops = [{ id: 1, name: "방울토마토", area: "500㎡", sowingDate: "2025-09-15", expectedHarvest: "2025-12-01", status: "재배중", isActive: true }];
 let orders = [
@@ -21,7 +21,6 @@ let orders = [
 
 // ======================================
 // 2. 전역 유틸리티 함수 (ReferenceError 방지)
-// ⚠️ 이 함수들은 HTML의 onclick에서 직접 호출되므로 전역에 정의되어야 합니다.
 // ======================================
 
 // 모달(팝업) 열기
@@ -128,7 +127,7 @@ function renderCropList() {
     `).join('');
 }
 
-// ⭐ renderProductList: API 호출 및 토글 반영
+// renderProductList: API 호출 및 토글 반영
 async function renderProductList() {
     const list = document.getElementById('product-list');
     if (!list) return;
@@ -192,7 +191,7 @@ function renderOrderList() {
     }).join('');
 }
 
-// ⭐ renderStatistics: 통계 API 제거로 인해 0으로 초기화만 진행
+// renderStatistics: 통계 API 제거로 인해 0으로 초기화만 진행
 function renderStatistics() {
     document.getElementById('summary-total-sales').textContent = '0원';
     document.getElementById('summary-total-orders').textContent = '0건';
@@ -221,7 +220,7 @@ function handleNewCrop(e) {
     // renderCropList();
 }
 
-// ⭐ handleNewProduct: API 호출
+// handleNewProduct: API 호출
 async function handleNewProduct(e) {
     e.preventDefault();
 
@@ -302,7 +301,7 @@ function handleEditCrop(e) {
     // renderCropList();
 }
 
-// ⭐ handleEditProduct: API 호출
+// handleEditProduct: API 호출
 async function handleEditProduct(e) {
     e.preventDefault();
     const itemId = document.getElementById('edit-item-id').value;
@@ -343,7 +342,7 @@ async function handleEditProduct(e) {
 // 6. 상태 토글 및 삭제 핸들러
 // ======================================
 
-// ⭐ handleStatusToggle: API 호출
+//  handleStatusToggle: API 호출
 async function handleStatusToggle(itemId, isChecked) {
     const newStatus = isChecked ? 1 : 0;
 
@@ -368,7 +367,7 @@ async function handleStatusToggle(itemId, isChecked) {
     }
 }
 
-// ⭐ handleDeleteProduct: API 호출
+//  handleDeleteProduct: API 호출
 async function handleDeleteProduct(itemId) {
     if (!confirm(`상품 ID: ${itemId}을(를) 정말 삭제하시겠습니까?`)) {
         return;
@@ -417,3 +416,97 @@ document.addEventListener('DOMContentLoaded', () => {
     // 기타
     document.getElementById('shipping-form')?.addEventListener('submit', handleShippingSubmit);
 });
+
+// script.js 파일 하단에 추가 또는 수정합니다.
+
+// ======================================
+// 8. 창고(Inventory) 더미 데이터 및 기능 (UI 확인용)
+// ======================================
+
+    //  1. 창고 품목 더미 데이터를 JavaScript 배열로 정의
+    const DUMMY_INVENTORY_ITEMS = [
+        // storId는 SHOP 테이블의 FOREIGN KEY인 STOR_ID와 연결됩니다.
+        { storId: 101, storName: "창고 - 유기농 토마토", stock: 150 },
+        { storId: 102, storName: "창고 - 신선한 상추", stock: 300 },
+        { storId: 103, storName: "창고 - 달콤한 딸기", stock: 50 }
+    ];
+
+
+    //  2. 창고 목록을 불러와 Select Box 옵션으로 채우는 함수
+    function loadInventoryOptions() {
+        const selectElement = document.getElementById('new-stor-select');
+        if (!selectElement) return;
+
+        // 초기화 및 기본 옵션 설정
+        selectElement.innerHTML = '<option value="" disabled selected>창고 품목을 선택하세요</option>';
+
+        // 더미 데이터를 반복하여 Select Box 옵션 생성
+        DUMMY_INVENTORY_ITEMS.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.storId;
+            option.textContent = `${item.storName} (ID: ${item.storId}, 재고: ${item.stock}개)`;
+            selectElement.appendChild(option);
+        });
+    }
+
+
+    //  3. 모달 열기 함수 수정: 새 상품 모달 열 때 창고 목록 로드
+    function openModal(modalId, itemId = null) {
+        document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            // ... (기존 로직 유지) ...
+
+            // 새 상품 등록 모달일 경우, 더미 창고 목록 로드
+            if (modalId === 'new-product-modal') {
+                loadInventoryOptions();
+            }
+
+            // ... (기존 로직 유지) ...
+            modal.style.display = 'block';
+        }
+    }
+
+
+    //  4. 상품 등록 핸들러 수정: 선택된 storId 값 사용
+    async function handleNewProduct(e) {
+        e.preventDefault();
+
+        const itemName = document.getElementById('new-item-name').value;
+        const price = parseInt(document.getElementById('new-item-price').value || 0);
+        const storId = document.getElementById('new-stor-select').value; // 수정된 select에서 가져옴
+
+        if (!storId) {
+            alert('농작물을 선택해주세요.');
+            return;
+        }
+
+        const itemVO = {
+            itemName: itemName,
+            price: price,
+            storId: storId
+        };
+
+        // --- try...catch 블록 시작 ---
+        try {
+            const response = await fetch(API_BASE_URL + '/additem', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(itemVO)
+            });
+
+            if (response.status === 201) {
+                alert(`상품 '${itemName}' 등록 완료!`);
+                closeModal('new-product-modal');
+                document.getElementById('new-product-form').reset();
+                renderProductList();
+            } else {
+                alert('상품 등록 실패! 서버 응답을 확인하세요.');
+            }
+        } catch (error) {
+            console.error('등록 통신 오류:', error);
+            alert('상품 등록 중 오류가 발생했습니다.');
+        }
+
+    }
+
