@@ -32,9 +32,18 @@
     </select>
 
     <select id="selectAll" resultType="InventoryVO">
-        SELECT STOR_ID, STOR_NAME, AMOUNT, CROP_ID
-        FROM INVENTORY
-        WHERE AMOUNT > 0
-        ORDER BY STOR_ID DESC
+        SELECT
+            T1.STOR_ID,
+            T1.STOR_NAME,
+            T1.AMOUNT,
+            T1.CROP_ID
+        FROM INVENTORY T1
+
+                 LEFT JOIN SHOP T2
+                     ON T1.STOR_ID = T2.STOR_ID
+
+        WHERE T1.AMOUNT > 0
+          AND T2.ITEM_ID IS NULL
+        ORDER BY T1.STOR_ID DESC
     </select>
 </mapper>
