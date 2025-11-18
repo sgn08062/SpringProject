@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.myFarm.order.OrderAmountMapper">
+    <!-- 주문 DTO + 안쪽 상품 리스트 매핑 -->
+    <resultMap id="orderAmountDtoMap"
+               type="OrderAmountDTO">
+
+        <!-- ORDER 테이블 -->
+        <id     property="orderId"     column="ORDER_ID"/>
+        <result property="recipientName" column="ORD_RECIPIENT_NAME"/>
+        <result property="orderDate"   column="ORDER_DATE"/>
+        <result property="status"      column="STATUS"/>
+        <result property="address"     column="ADDRESS"/>
+        <result property="phone"       column="PHONE"/>
+        <result property="totalAmount" column="TOTAL_AMOUNT"/>
+
+        <!-- ORDER_AMOUNT + SHOP 테이블 => OrderAmountVO 리스트 -->
+        <collection property="orderAmountList"
+                    ofType="com.example.myFarm.command.OrderAmountVO">
+            <result property="itemName"  column="S_ITEM_NAME"/>
+            <result property="quantity"  column="OA_AMOUNT"/>
+            <result property="unitPrice" column="OA_UNIT_PRICE"/>
+            <result property="cropId" column="CROP_ID"/>
+        </collection>
+    </resultMap>
+
+    <!-- 주문 상세 조회 -->
+    <select id="findById" parameterType="long" resultMap="orderAmountDtoMap">
+        SELECT
+            o.ORDER_ID,
+            o.ORD_RECIPIENT_NAME,
+            o.ORDER_DATE,
+            o.STATUS,
+            o.ADDRESS,
+            o.PHONE,
+            o.TOTAL_AMOUNT,
+
+            oa.AMOUNT      AS OA_AMOUNT,
+            oa.UNIT_PRICE  AS OA_UNIT_PRICE,
+            s.ITEM_NAME    AS S_ITEM_NAME,
+            inv.CROP_ID    AS CROP_ID
+        FROM ORDERS o
+                 LEFT JOIN ORDER_AMOUNT oa ON o.ORDER_ID = oa.ORDER_ID
+                 LEFT JOIN SHOP s          ON oa.ITEM_ID = s.ITEM_ID
+                 LEFT JOIN INVENTORY inv   ON s.STOR_ID  = inv.STOR_ID
+        WHERE o.ORDER_ID = #{orderId}
+        ORDER BY oa.ITEM_ID
+    </select>
+
+
+</mapper>

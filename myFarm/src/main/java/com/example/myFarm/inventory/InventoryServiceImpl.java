@@ -20,7 +20,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     @Transactional
-    public void addAmount(long cropId, int amount) {
+    public void addAmount(long cropId, long amount) {
         if (amount <= 0) throw new IllegalArgumentException("amount must be > 0");
         int updated = inventoryMapper.increaseInventoryAmount(cropId, amount);
 
