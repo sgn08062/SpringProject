@@ -8,12 +8,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderVO {
-    private long orderId;
-    private String orderDate;
-    private String status;
-    private String address;
-    private String phone;
-    private long totalAmount;
-    private String repItemName;
-    private long userId;
+    private Long orderId;        // 주문 번호 (ORDERS.ORDER_ID)
+    private String customerName; // 고객명 (USERS.USER_NAME 또는 수령인 이름)
+    private String orderDate;    // 주문일 (ORDERS.ORDER_DATE)
+    private Long totalAmount;    // 금액 (ORDERS.TOTAL_AMOUNT)
+    private String status;       // 상태 (ORDERS.STATUS)
 }

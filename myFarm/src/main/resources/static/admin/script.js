@@ -361,6 +361,15 @@ document.addEventListener('visibilitychange', () => {
 // 6. 상품 목록 및 통계 / 주문 목록
 // ======================================
 
+// 주문 목록 조회 API
+async function fetchOrders() {
+    const res = await fetch('/admin/api/order/list', {
+        headers: { 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) throw new Error('주문 목록 로딩 실패');
+    return await res.json(); // List<OrderVO>
+}
+
 // 상품 목록 렌더 (API + fallback)
 async function renderProductList() {
     const list = document.getElementById('product-list');
@@ -415,23 +424,50 @@ async function renderProductList() {
   `).join('');
 }
 
-// 주문 목록 렌더
-function renderOrderList() {
+// 주문 목록 렌더 (주문 번호, 고객명, 주문일, 금액, 상태, 관리)
+async function renderOrderList() {
     const list = document.getElementById('order-list');
     if (!list) return;
-    list.innerHTML = orders.map(order => {
-        const statusText =
-            order.status === 'ready' ? '배송준비' :
-                (order.status === 'paid' ? '결제완료' :
-                    (order.status === 'shipping' ? '배송 중' : '기타'));
-        return `
-      <tr data-order-id="${order.id}" data-status="${order.status}">
-        <td>${order.id}</td><td>${order.customer}</td><td>${order.date}</td><td>${order.total}</td>
-        <td><span class="status-badge status-${order.status}">${statusText}</span></td>
-        <td><button class="btn-small btn-detail" onclick="openModal('order-detail-modal', '${order.id}')">상세보기</button></td>
-      </tr>
-    `;
-    }).join('');
+
+    // 로딩 메시지
+    list.innerHTML = '<tr><td colspan="6">주문 목록을 불러오는 중...</td></tr>';
+
+    try {
+        const orders = await fetchOrders();
+
+        if (!Array.isArray(orders) || orders.length === 0) {
+            list.innerHTML = '<tr><td colspan="6">등록된 주문이 없습니다.</td></tr>';
+            return;
+        }
+
+        list.innerHTML = orders.map(order => {
+            const orderId = order.orderId;
+            const customerName = order.customerName ?? '-';
+            const orderDate = (order.orderDate ?? '').toString().slice(0, 10);
+            const total = Number(order.totalAmount ?? 0).toLocaleString() + '원';
+            const status = order.status ?? '-';
+
+            return `
+        <tr data-order-id="${orderId}" data-status="${status}">
+          <td>${orderId}</td>
+          <td>${customerName}</td>
+          <td>${orderDate}</td>
+          <td>${total}</td>
+          <td>${status}</td>
+          <td>
+            <button class="btn-small btn-detail"
+                    onclick="openModal('order-detail-modal', ${orderId})">
+              상세보기
+            </button>
+          </td>
+        </tr>
+      `;
+        }).join('');
+    } catch (e) {
+        console.error(e);
+        list.innerHTML =
+            '<tr><td colspan="6" style="text-align:center;color:#c00;">주문 목록을 불러오지 못했습니다.</td></tr>';
+    }
 }
 
 // 통계 카드 (현재는 0으로 초기화만)
