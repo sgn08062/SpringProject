@@ -7,5 +7,5 @@ import java.util.List;
 
 @Mapper
 public interface OrderAmountMapper {
-    List<OrderAmountDTO> findById(long orderId);
+    OrderAmountDTO findById(long orderId);
 }

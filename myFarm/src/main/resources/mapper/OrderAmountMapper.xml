@@ -3,8 +3,44 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.myFarm.order.OrderAmountMapper">
-    <select id="findById" parameterType="long">
-        SELECT * FROM ORDER_AMOUNT
-        WHERE ORDER_ID = #{orderId}
+    <!-- 주문 DTO + 안쪽 상품 리스트 매핑 -->
+    <resultMap id="orderAmountDtoMap"
+               type="OrderAmountDTO">
+
+        <!-- ORDER 테이블 -->
+        <id     property="orderId"     column="ORDER_ID"/>
+        <result property="orderDate"   column="ORDER_DATE"/>
+        <result property="status"      column="STATUS"/>
+        <result property="address"     column="ADDRESS"/>
+        <result property="phone"       column="PHONE"/>
+        <result property="totalAmount" column="TOTAL_AMOUNT"/>
+
+        <!-- ORDER_AMOUNT + SHOP 테이블 => OrderAmountVO 리스트 -->
+        <collection property="orderAmountList"
+                    ofType="com.example.myFarm.command.OrderAmountVO">
+            <result property="itemName"  column="S_ITEM_NAME"/>
+            <result property="quantity"  column="OA_AMOUNT"/>
+            <result property="unitPrice" column="OA_UNIT_PRICE"/>
+        </collection>
+    </resultMap>
+
+    <!-- 주문 상세 조회 -->
+    <select id="findById" parameterType="long" resultMap="orderAmountDtoMap">
+        SELECT
+            o.ORDER_ID,
+            o.ORDER_DATE,
+            o.STATUS,
+            o.ADDRESS,
+            o.PHONE,
+            o.TOTAL_AMOUNT,
+
+            oa.AMOUNT as OA_AMOUNT,
+            oa.UNIT_PRICE as OA_UNIT_PRICE,
+            s.ITEM_NAME as S_ITEM_NAME
+        FROM ORDERS o
+        JOIN ORDER_AMOUNT oa ON o.ORDER_ID = oa.ORDER_ID
+        JOIN SHOP s ON oa.ITEM_ID = s.ITEM_ID
+        WHERE o.ORDER_ID = #{orderId}
+        ORDER BY oa.ITEM_ID
     </select>
 </mapper>

@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface AdminOrderService {
     List<OrderVO> list();
-    List<OrderAmountDTO> findById(long orderId);
+    OrderAmountDTO findById(long orderId);
 }

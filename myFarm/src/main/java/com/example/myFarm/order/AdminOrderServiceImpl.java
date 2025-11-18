@@ -20,7 +20,7 @@ public class AdminOrderServiceImpl implements AdminOrderService {
     }
 
     @Override
-    public List<OrderAmountDTO> findById(long orderId) {
+    public OrderAmountDTO findById(long orderId) {
         return orderAmountMapper.findById(orderId);
     }
 }

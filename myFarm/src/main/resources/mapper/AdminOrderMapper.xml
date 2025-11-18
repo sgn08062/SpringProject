@@ -7,8 +7,7 @@
         SELECT * FROM ORDERS;
     </select>
 
-    <select id="findById" parameterType="long" resultType="OrderVO">
-        SELECT * FROM ORDERS
-        WHERE ORDER_ID = #{orderId}
+    <select id="findById" parameterType="long" resultType="OrderAmountDTO">
+
     </select>
 </mapper>
