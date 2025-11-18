@@ -784,60 +784,84 @@ async function handleDelete(type, id) {
 // ======================================
 // 9. 주문 상세 모달 / 배송 상태 변경
 // ======================================
+// 주문 상태 → 라벨/클래스 매핑
+function mapOrderStatus(status) {
+    const s = String(status ?? '').trim(); // 한글이라 toLowerCase() 필요 없음
 
-function populateOrderDetailModal(orderId) {
-    const order = orders.find(o => o.id === orderId);
-    if (!order) return;
-
-    document.getElementById('order-detail-title').textContent = `주문 상세 정보 (${orderId})`;
-    document.getElementById('detail-customer-name').textContent = order.customer;
-    document.getElementById('detail-order-date').textContent = order.date;
-    document.getElementById('detail-total-amount').textContent = order.total;
-
-    const statusBadge = document.getElementById('detail-order-status-badge');
-    const statusText =
-        order.status === 'ready' ? '배송준비' :
-            (order.status === 'paid' ? '결제완료' :
-                (order.status === 'shipping' ? '배송 중' : '기타'));
-    statusBadge.textContent = statusText;
-    statusBadge.className = `status-badge status-${order.status}`;
-
-    const productList = document.getElementById('detail-product-list');
-    productList.innerHTML = order.products.map(p => `
-    <li>${p.name} (${p.qty}개) - ${(p.qty * p.price).toLocaleString()}원</li>
-  `).join('');
-
-    document.getElementById('new-status').value = order.status;
-    document.getElementById('tracking-number').value = '';
-}
-
-function updateOrderStatus(newStatus) {
-    const orderId = document.getElementById('order-detail-title').textContent.match(/\((.*?)\)/)?.[1];
-    if (!orderId) return;
-
-    alert(`주문 ${orderId}의 상태가 '${newStatus}'(으)로 변경 요청되었습니다. (DB UPDATE 필요)`);
-
-    const order = orders.find(o => o.id === orderId);
-    if (order) {
-        order.status = newStatus;
+    if (s === '주문 대기') {
+        return { label: '주문 대기', className: 'status-pending' };
+    }
+    if (s === '배송 중') {
+        return { label: '배송 중', className: 'status-shipping' };
+    }
+    if (s === '결제 완료') {
+        return { label: '결제 완료', className: 'status-paid' };
+    }
+    if (s === '주문 취소') {
+        return { label: '주문 취소', className: 'status-cancelled' };
     }
 
-    closeModal('order-detail-modal');
-    renderOrderList();
+    return { label: s || '기타', className: 'status-etc' };
 }
 
-function handleShippingSubmit(e) {
-    e.preventDefault();
-    const trackingNumber = document.getElementById('tracking-number')?.value;
+// 주문 상세 모달 채우기 (API 기반)
+async function populateOrderDetailModal(orderId) {
+    try {
+        const res = await fetch(`/admin/api/order/${orderId}`, {
+            headers: { 'Content-Type': 'application/json' }
+        });
+        if (!res.ok) throw new Error('주문 상세를 불러오지 못했습니다.');
 
-    if (!trackingNumber) {
-        alert("송장 번호를 입력해주세요.");
-        return;
+        // OrderAmountDTO
+        const dto = await res.json();
+
+        // 제목
+        document.getElementById('order-detail-title').textContent =
+            `주문 상세 정보 (${orderId})`;
+
+        // 고객명 (OrderAmountDTO에 customerName 또는 recipientName 같은 필드 하나만 맞춰주면 됨)
+        const customerName =
+            dto.customerName ??
+            dto.recipientName ??
+            '-';
+        document.getElementById('detail-customer-name').textContent = customerName;
+
+        // 주문일
+        const orderDate = (dto.orderDate ?? dto.createdAt ?? '').toString().slice(0, 10);
+        document.getElementById('detail-order-date').textContent =
+            orderDate || '-';
+
+        // 총 결제 금액
+        const totalAmount = Number(dto.totalAmount ?? 0);
+        document.getElementById('detail-total-amount').textContent =
+            totalAmount.toLocaleString() + '원';
+
+        // 주문 상태
+        const statusInfo = mapOrderStatus(dto.status);
+        const badge = document.getElementById('detail-order-status-badge');
+        badge.textContent = statusInfo.label;
+        badge.className = `status-badge ${statusInfo.className}`;
+
+        // 주문 상품 리스트 (orderAmountList)
+        const productList = document.getElementById('detail-product-list');
+        const items = Array.isArray(dto.orderAmountList) ? dto.orderAmountList : [];
+
+        if (items.length === 0) {
+            productList.innerHTML = '<li>주문 상품이 없습니다.</li>';
+        } else {
+            productList.innerHTML = items.map(p => {
+                const name = p.itemName ?? '-';
+                const qty = Number(p.quantity ?? p.amount ?? 0);
+                const unitPrice = Number(p.unitPrice ?? p.price ?? 0);
+                const sum = (qty * unitPrice).toLocaleString();
+                return `<li>${name} (${qty}개) - ${sum}원</li>`;
+            }).join('');
+        }
+    } catch (err) {
+        alert('주문 상세 조회 중 오류가 발생했습니다.\n' + (err?.message || ''));
     }
-
-    updateOrderStatus('shipping');
-    alert(`송장 번호 '${trackingNumber}' 입력 완료 및 주문 상태 '배송 중'으로 변경 요청되었습니다. (DB UPDATE 필요)`);
 }
+
 
 // ======================================
 // 10. 초기화 (DOMContentLoaded)
@@ -881,7 +905,4 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('edit-farm-form')?.addEventListener('submit', handleEditFarmAddress);
     document.getElementById('edit-crop-form')?.addEventListener('submit', handleEditCrop);
     document.getElementById('edit-product-form')?.addEventListener('submit', handleEditProduct);
-
-    // 배송 폼
-    document.getElementById('shipping-form')?.addEventListener('submit', handleShippingSubmit);
 });

@@ -9,6 +9,7 @@
 
         <!-- ORDER 테이블 -->
         <id     property="orderId"     column="ORDER_ID"/>
+        <result property="recipientName" column="ORD_RECIPIENT_NAME"/>
         <result property="orderDate"   column="ORDER_DATE"/>
         <result property="status"      column="STATUS"/>
         <result property="address"     column="ADDRESS"/>
@@ -28,19 +29,22 @@
     <select id="findById" parameterType="long" resultMap="orderAmountDtoMap">
         SELECT
             o.ORDER_ID,
+            o.ORD_RECIPIENT_NAME,
             o.ORDER_DATE,
             o.STATUS,
             o.ADDRESS,
             o.PHONE,
             o.TOTAL_AMOUNT,
 
-            oa.AMOUNT as OA_AMOUNT,
-            oa.UNIT_PRICE as OA_UNIT_PRICE,
-            s.ITEM_NAME as S_ITEM_NAME
+
+            oa.AMOUNT      as OA_AMOUNT,
+            oa.UNIT_PRICE  as OA_UNIT_PRICE,
+            s.ITEM_NAME    as S_ITEM_NAME
         FROM ORDERS o
-        JOIN ORDER_AMOUNT oa ON o.ORDER_ID = oa.ORDER_ID
-        JOIN SHOP s ON oa.ITEM_ID = s.ITEM_ID
+                 JOIN ORDER_AMOUNT oa ON o.ORDER_ID = oa.ORDER_ID
+                 JOIN SHOP s        ON oa.ITEM_ID = s.ITEM_ID
         WHERE o.ORDER_ID = #{orderId}
         ORDER BY oa.ITEM_ID
     </select>
+
 </mapper>
