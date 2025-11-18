@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.myFarm.shop.AdminShopMapper">
+
+    <select id="findAllItems" resultType="com.example.myFarm.command.ShopVO">
+        SELECT
+            T1.ITEM_ID,
+            T1.ITEM_NAME,
+            T1.PRICE,
+            T1.STATUS,
+            T1.STOR_ID,
+            T2.AMOUNT AS inventoryAmount
+        FROM SHOP T1
+        LEFT JOIN INVENTORY T2
+        ON T1.STOR_ID = T2.STOR_ID
+    </select>
+
+    <insert id="insertItem" parameterType="com.example.myFarm.command.ShopVO">
+        INSERT INTO SHOP (ITEM_NAME, PRICE, STOR_ID, STATUS)
+        VALUES (#{itemName},
+                #{price},
+                #{storId},
+                1)
+    </insert>
+
+    <update id="updateItem" parameterType="com.example.myFarm.command.ShopVO">
+        UPDATE SHOP
+        SET
+            ITEM_NAME = #{itemName},
+            PRICE = #{price}
+            WHERE ITEM_ID = #{itemId}
+    </update>
+
+    <update id="updateItemStatus">
+        UPDATE SHOP
+        SET STATUS = #{status}
+        WHERE ITEM_ID = #{itemId}
+    </update>
+
+    <delete id="deleteItem">
+        DELETE FROM SHOP WHERE ITEM_ID = #{itemId}
+    </delete>
+
+    <select id="getItemDetail" resultType="com.example.myFarm.command.ShopVO">
+        SELECT
+            ITEM_ID,
+            ITEM_NAME,
+            PRICE,
+            STATUS,
+            STOR_ID
+        FROM SHOP
+        WHERE ITEM_ID = #{itemId}
+    </select>
+
+</mapper>

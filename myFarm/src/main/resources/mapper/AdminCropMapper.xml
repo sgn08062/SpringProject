@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.myFarm.admin.AdminCropMapper">
+    <insert id="addCrop"
+            parameterType="CropVO"
+            useGeneratedKeys="true"
+            keyProperty="cropId"
+            keyColumn="CROP_ID">
+        INSERT INTO CROP (
+            CROP_NAME, REG_DATE, STATUS, GROWTH_TIME, QUANTITY, UNIT_NAME, ELAPSED_TICK
+        ) VALUES (
+            #{cropName}, COALESCE(#{regDate}, CURRENT_DATE), #{status}, #{growthTime}, #{quantity}, #{unitName}, #{elapsedTick}
+        )
+    </insert>
+
+    <delete id="deleteCrop" parameterType="long">
+        DELETE FROM CROP WHERE CROP_ID = #{cropId}
+    </delete>
+
+    <update id="enableCrop" parameterType="long">
+        UPDATE CROP SET STATUS = 1 WHERE CROP_ID = #{cropId}
+    </update>
+
+    <update id="disableCrop" parameterType="long">
+        UPDATE CROP SET STATUS = 0 WHERE CROP_ID = #{cropId}
+    </update>
+
+    <select id="getCropList" resultType="CropVO">
+        SELECT
+            CROP_ID,
+            CROP_NAME,
+            REG_DATE AS regDate,
+            STATUS,
+            GROWTH_TIME,
+            QUANTITY,
+            UNIT_NAME,
+            ELAPSED_TICK
+        FROM CROP
+        ORDER BY CROP_ID DESC
+    </select>
+
+    <update id="tickActiveCrops">
+        UPDATE CROP
+        SET ELAPSED_TICK = ELAPSED_TICK + 1
+        WHERE STATUS = 1
+    </update>
+
+    <select id="selectMatureCrops" resultType="map">
+        SELECT CROP_ID as cropId, QUANTITY as quantity
+        FROM CROP
+        WHERE STATUS = 1 AND ELAPSED_TICK >= GROWTH_TIME
+    </select>
+
+    <update id="resetCropAfterHarvest" parameterType="long">
+        UPDATE CROP SET ELAPSED_TICK = 0 WHERE CROP_ID = #{cropId}
+    </update>
+
+    <select id="getCropById" parameterType="long" resultType="CropVO">
+        SELECT * FROM CROP WHERE CROP_ID = #{cropId}
+    </select>
+
+    <update id="updateCrop" parameterType="CropVO">
+        UPDATE CROP
+        SET
+            CROP_NAME    = #{cropName},
+            REG_DATE     = COALESCE(#{regDate}, REG_DATE),
+            GROWTH_TIME  = #{growthTime},
+            QUANTITY     = #{quantity},
+            UNIT_NAME    = #{unitName},
+            ELAPSED_TICK = 0 <!-- 농작물 정보 변경시 성장률은 0으로 초기화 -->
+        WHERE CROP_ID  = #{cropId}
+    </update>
+</mapper>

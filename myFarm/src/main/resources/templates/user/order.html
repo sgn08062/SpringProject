@@ -25,6 +25,10 @@
         .other-address-list { border: 1px solid #eee; padding: 10px; margin-top: 10px; max-height: 200px; overflow-y: auto; }
         .other-address-list .address-option label { border: none; border-bottom: 1px dashed #ddd; margin-bottom: 0; }
         .other-address-list .address-option:last-child label { border-bottom: none; }
+
+        /* 신규 주소 입력 필드 스타일 */
+        #newAddressFields { border: 1px dashed #aaa; padding: 15px; margin-top: 10px; border-radius: 4px; display: none; }
+        #newAddressFields input { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 3px; box-sizing: border-box; }
     </style>
 </head>
 <body>
@@ -70,6 +74,27 @@
                     </label>
                 </div>
             </div>
+        </div>
+
+        <div class="address-option" style="margin-top: 15px;">
+            <input type="radio" id="addr_new" name="addressOption" value="0">
+            <label for="addr_new">
+                **➕ 신규 배송지 직접 입력**
+            </label>
+        </div>
+
+        <div id="newAddressFields" style="display: none;">
+            <label for="new_addressName">배송지명:</label>
+            <input type="text" id="new_addressName" placeholder="예: 우리집, 회사" value="신규 배송지">
+
+            <label for="new_recipientName">수령인:</label>
+            <input type="text" id="new_recipientName" placeholder="수령인 이름">
+
+            <label for="new_phone">연락처:</label>
+            <input type="text" id="new_phone" placeholder="예: 010-1234-5678">
+
+            <label for="new_address">주소:</label>
+            <input type="text" id="new_address" placeholder="배송지 주소 (상세 주소 포함)">
         </div>
 
     </div>
@@ -118,62 +143,128 @@
         const $address = $('#address');
         const $addressName = $('#addressName');
 
-        // 📌 초기 상태 설정
-        // 페이지 로드 시, 기본 주소가 있다면 기존 주소 정보로 hidden 필드들을 채워준다.
-        if (defaultAddress) {
-            // 기본 주소 라디오 버튼의 data 값을 hidden 필드에 미리 채워 둠
-            const $defaultRadio = $('#addr_default');
-            $addressIdInput.val($defaultRadio.val()).prop('disabled', false);
-            $recipientName.val($defaultRadio.data('recipient-name')).prop('disabled', false);
-            $phone.val($defaultRadio.data('phone')).prop('disabled', false);
-            $address.val($defaultRadio.data('address')).prop('disabled', false);
-            $addressName.val($defaultRadio.data('address-name')).prop('disabled', false);
-        } else {
-            // 기본 주소가 없으면 모든 hidden 필드를 비활성화 (주문 불가 상태 또는 서버에서 오류 처리 필요)
-            // 주문 페이지에 주소 정보가 전혀 없으면 결제가 진행되면 안되므로, 주문 전에 주소를 등록하도록 유도해야 합니다.
-            $addressIdInput.prop('disabled', true);
-            $recipientName.prop('disabled', true);
-            $phone.prop('disabled', true);
-            $address.prop('disabled', true);
-            $addressName.prop('disabled', true);
+        // 신규 주소 입력 필드
+        const $newAddressFields = $('#newAddressFields');
+        const $new_addressName = $('#new_addressName');
+        const $new_recipientName = $('#new_recipientName');
+        const $new_phone = $('#new_phone');
+        const $new_address = $('#new_address');
 
-            // 주소 정보가 없음을 사용자에게 알리는 로직을 추가할 수 있습니다.
-            if ($('input[name="addressOption"]').length === 0) {
-                alert("주문 가능한 배송지 정보가 없습니다. 주소를 먼저 등록해주세요.");
-                $('button[type="submit"]').prop('disabled', true).text('배송지 없음');
-            }
-        }
+        const $submitBtn = $('button[type="submit"]');
 
+        /**
+         * OrderVO hidden 필드를 선택된 주소 옵션 정보로 채우는 함수
+         * @param {Object} data - 주소 정보 객체 (addressId, recipientName, phone, address, addressName)
+         */
+        function fillOrderFields(data) {
+            $addressIdInput.val(data.addressId);
+            $recipientName.val(data.recipientName);
+            $phone.val(data.phone);
+            $address.val(data.address);
+            $addressName.val(data.addressName);
 
-        // 라디오 버튼 변경 감지 (기본 주소 또는 기타 주소 선택 시)
-        $('input[name="addressOption"]').on('change', function() {
-            const $selectedRadio = $(this);
-
-            // OrderVO용 숨겨진 필드 활성화
+            // 모든 필드 활성화
             $addressIdInput.prop('disabled', false);
             $recipientName.prop('disabled', false);
             $phone.prop('disabled', false);
             $address.prop('disabled', false);
             $addressName.prop('disabled', false);
+        }
 
-            // 선택된 주소의 data 속성에서 정보를 가져와 숨겨진 OrderVO 필드에 채움
-            $addressIdInput.val($selectedRadio.val());
-            $recipientName.val($selectedRadio.data('recipient-name'));
-            $phone.val($selectedRadio.data('phone'));
-            $address.val($selectedRadio.data('address'));
-            $addressName.val($selectedRadio.data('address-name'));
+        /**
+         * 신규 주소 입력 필드의 현재 값으로 OrderVO hidden 필드를 채우는 함수
+         */
+        function fillOrderFieldsFromNewInputs() {
+            fillOrderFields({
+                addressId: 0, // 0은 신규 주소 등록 요청을 의미
+                recipientName: $new_recipientName.val(),
+                phone: $new_phone.val(),
+                address: $new_address.val(),
+                addressName: $new_addressName.val()
+            });
+        }
+
+
+        // 📌 초기 상태 설정
+        if (defaultAddress) {
+            // 기본 주소 라디오 버튼의 data 값을 hidden 필드에 미리 채워 둠
+            const $defaultRadio = $('#addr_default');
+            fillOrderFields({
+                addressId: $defaultRadio.val(),
+                recipientName: $defaultRadio.data('recipient-name'),
+                phone: $defaultRadio.data('phone'),
+                address: $defaultRadio.data('address'),
+                addressName: $defaultRadio.data('address-name')
+            });
+        } else {
+            // 기본 주소가 없으면 '신규 배송지 입력'을 기본으로 선택하도록 유도
+            $('#addr_new').prop('checked', true).trigger('change');
+        }
+
+        // 주소 정보가 전혀 없는 경우 주문 버튼 비활성화
+        if ($('input[name="addressOption"]').length === 0) {
+            // defaultAddress도 없고, otherAddresses도 없으면 라디오 버튼이 1개만 (addr_new) 남음
+            if (!$('#addr_new').prop('checked')) {
+                alert("주문 가능한 배송지 정보가 없습니다. 주소를 먼저 등록해주세요.");
+                $submitBtn.prop('disabled', true).text('배송지 없음');
+            }
+        }
+
+
+        // 라디오 버튼 변경 감지 (기본 주소, 기타 주소, 신규 주소 선택 시)
+        $('input[name="addressOption"]').on('change', function() {
+            const $selectedRadio = $(this);
+            const addressId = $selectedRadio.val();
+
+            // 1. 신규 배송지 입력 선택 시
+            if (addressId === '0') {
+                $newAddressFields.slideDown();
+                fillOrderFieldsFromNewInputs(); // 현재 입력된 값으로 hidden 필드 업데이트
+            }
+            // 2. 기존 주소 선택 시 (기본 주소 포함)
+            else {
+                $newAddressFields.slideUp();
+
+                // 선택된 주소의 data 속성에서 정보를 가져와 숨겨진 OrderVO 필드에 채움
+                fillOrderFields({
+                    addressId: addressId,
+                    recipientName: $selectedRadio.data('recipient-name'),
+                    phone: $selectedRadio.data('phone'),
+                    address: $selectedRadio.data('address'),
+                    addressName: $selectedRadio.data('address-name')
+                });
+            }
         });
 
-        // 폼 제출 시 최종 값 설정
-        $('#orderForm').on('submit', function(e) {
-            // 새 주소 입력 로직이 제거되었으므로,
-            // 이미 선택된 라디오 버튼의 정보가 hidden 필드에 반영되어 활성화된 상태로 전송됩니다.
+        // ⭐ 신규 주소 입력 필드 값 변경 시 OrderVO hidden 필드에 실시간 반영
+        $newAddressFields.find('input').on('input', function() {
+            if ($('#addr_new').prop('checked')) {
+                fillOrderFieldsFromNewInputs();
+            }
+        });
 
-            // 마지막으로, 주소 ID가 비어있지 않은지 확인 (주소 없으면 전송 방지)
-            if ($addressIdInput.val() === '' || $addressIdInput.prop('disabled')) {
-                e.preventDefault(); // 폼 제출 중지
+
+        // 폼 제출 시 최종 유효성 검사
+        $('#orderForm').on('submit', function(e) {
+
+            // 1. 유효한 주소 옵션이 선택되었는지 확인
+            const selectedAddressId = $addressIdInput.val();
+            if (selectedAddressId === '' || $addressIdInput.prop('disabled')) {
+                e.preventDefault();
                 alert("유효한 배송지를 선택해주세요.");
                 return false;
+            }
+
+            // 2. 신규 주소 입력 선택 시, 필수 필드 값 확인 (addressId = 0)
+            if (selectedAddressId === '0') {
+                if ($new_recipientName.val() === '' || $new_phone.val() === '' || $new_address.val() === '' || $new_addressName.val() === '') {
+                    e.preventDefault();
+                    alert("신규 배송지 정보를 모두 입력해주세요.");
+                    return false;
+                }
+
+                // 최종적으로 신규 입력 필드의 값을 OrderVO 필드에 채움
+                fillOrderFieldsFromNewInputs();
             }
 
             return true; // 폼 제출 진행

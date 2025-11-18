@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.myFarm.inventory.InventoryMapper">
+    <insert id="initInventoryForCrop">
+        INSERT INTO INVENTORY (STOR_NAME, AMOUNT, CROP_ID)
+        VALUES (#{cropName}, 0, #{cropId})
+    </insert>
+
+    <update id="increaseInventoryAmount">
+        UPDATE INVENTORY
+        SET AMOUNT = AMOUNT + #{amount}
+        WHERE CROP_ID = #{cropId}
+    </update>
+
+    <insert id="insertInventory">
+        INSERT INTO INVENTORY (STOR_NAME, AMOUNT, CROP_ID)
+        VALUES (#{cropName}, #{amount}, #{cropId})
+    </insert>
+
+    <!--
+        결과에서
+        cropId가 0인 것은
+        농장에서 해당 crop이
+        삭제되었다는 의미
+    -->
+    <select id="getByStorId" parameterType="long" resultType="InventoryVO">
+        SELECT STOR_ID, STOR_NAME, AMOUNT, CROP_ID
+        FROM INVENTORY
+        WHERE STOR_ID = #{storId}
+    </select>
+
+    <select id="selectAll" resultType="InventoryVO">
+        SELECT
+            T1.STOR_ID,
+            T1.STOR_NAME,
+            T1.AMOUNT,
+            T1.CROP_ID
+        FROM INVENTORY T1
+
+                 LEFT JOIN SHOP T2
+                     ON T1.STOR_ID = T2.STOR_ID
+
+        WHERE T1.AMOUNT > 0
+          AND T2.ITEM_ID IS NULL
+        ORDER BY T1.STOR_ID DESC
+    </select>
+</mapper>

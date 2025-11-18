@@ -165,6 +165,22 @@ public class UserServiceImpl implements UserService {
             order.setAddress(selectedAddress.getAddress());
             order.setPhone(selectedAddress.getRecipientPhone());
 
+        }else if (selectedAddressId == 0) {
+            // 신규 주소 등록 처리
+            AddressVO newAddress = new AddressVO();
+            newAddress.setUserId(userId);
+            newAddress.setRecipientName(order.getOrdRecipientName());
+            newAddress.setRecipientPhone(order.getPhone());
+            newAddress.setAddress(order.getAddress());
+            // OrderVO에 addressName 필드가 있다면 설정
+            // newAddress.setAddressName(order.getAddressName());
+
+            // 1. 새 주소를 Address 테이블에 저장 (addressId는 0으로 전송되었으므로 insert 처리)
+            userMapper.insertAddress(newAddress);
+
+            // 2. 주문 정보는 이미 OrderVO에 신규 주소 정보(Address, Phone, OrdRecipientName)가 담겨 있으므로 별도 설정 불필요
+            ordRecipientName = order.getOrdRecipientName();
+
         } else {
             throw new IllegalStateException("유효하지 않은 주소 선택 정보입니다.");
         }

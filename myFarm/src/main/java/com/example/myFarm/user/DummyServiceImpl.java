@@ -1,46 +1,49 @@
 package com.example.myFarm.user;
 
-import com.example.myFarm.user.DummyMapper;
-import com.example.myFarm.command.DummyVO;
-import com.example.myFarm.command.ItemVO;
-import org.springframework.beans.factory.annotation.Autowired;
+// import com.example.myFarm.user.DummyMapper; // ❌ DummyMapper import 주석 처리
+// import com.example.myFarm.command.DummyVO; // ❌ DummyVO import 주석 처리
+// import com.example.myFarm.command.ItemVO; // ❌ ItemVO import 주석 처리
+// import org.springframework.beans.factory.annotation.Autowired; // ❌ Autowired import 주석 처리
 import org.springframework.stereotype.Service;
-import java.util.List;
+// import java.util.List; // ❌ List import 주석 처리
 
 @Service
 public class DummyServiceImpl implements DummyService {
+    /*
+    // private final DummyMapper dummyMapper; // ❌ 필드 주석 처리
 
-    private final DummyMapper dummyMapper;
-
-    @Autowired
-    public DummyServiceImpl(DummyMapper dummyMapper) {
-        this.dummyMapper = dummyMapper;
-    }
+    // @Autowired // ❌ 생성자 주석 처리
+    // public DummyServiceImpl(DummyMapper dummyMapper) {
+    //     this.dummyMapper = dummyMapper;
+    // }
 
     // ✅ 유지: 상품 조회 기능 (UserController가 임시로 사용)
     @Override
     public List<ItemVO> getAllShopItems() {
-        return dummyMapper.selectAllShopItems();
+        // return dummyMapper.selectAllShopItems(); // ❌ 구현 내용 주석 처리
+        return null;
     }
 
     @Override
     public List<ItemVO> searchAndSortShopItems(String searchKeyword, String sortField) {
-        if (searchKeyword == null || searchKeyword.trim().isEmpty()) {
-            return dummyMapper.selectAllShopItems();
-        }
-        return dummyMapper.searchShopItems(searchKeyword);
+        // if (searchKeyword == null || searchKeyword.trim().isEmpty()) {
+        //     return dummyMapper.selectAllShopItems();
+        // }
+        // return dummyMapper.searchShopItems(searchKeyword); // ❌ 구현 내용 주석 처리
+        return null;
     }
 
     @Override
     public ItemVO getShopItemDetail(Long itemId) {
-        return dummyMapper.selectShopItemById(itemId);
+        // return dummyMapper.selectShopItemById(itemId); // ❌ 구현 내용 주석 처리
+        return null;
     }
 
     // ❌ 제거/주석 처리: User 관련 기능 (AccountService로 분리 완료)
-    /* @Override
+     @Override
     public DummyVO getUserInfo(String loginId) {
         return null;
-    } */
+    }
 
     // ✅ 유지: 미구현된 다른 더미 기능
     @Override
@@ -72,4 +75,5 @@ public class DummyServiceImpl implements DummyService {
         // 💡 더미 구현
         return 0;
     }
+    */
 }

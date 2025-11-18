@@ -1,13 +1,14 @@
 package com.example.myFarm.user;
 
-import com.example.myFarm.command.DummyVO;
-import com.example.myFarm.command.ItemVO;
-import com.example.myFarm.command.AddressVO;
+//import com.example.myFarm.command.DummyVO;
+// import com.example.myFarm.command.ItemVO; // ItemVO도 DummyMapper에만 사용되므로 주석 처리/제거 가능
+// import com.example.myFarm.command.AddressVO; // AddressVO도 DummyMapper에만 사용되므로 주석 처리/제거 가능
 import org.apache.ibatis.annotations.Mapper;
 import java.util.List;
 
 @Mapper
 public interface DummyMapper {
+    /*
     // --- User (AccountService로 분리 완료) ---
     DummyVO selectUserByLoginId(String loginId);
     List<DummyVO> selectAllUsers();
@@ -22,7 +23,7 @@ public interface DummyMapper {
     int selectInventoryAmountByCropUuid(String uuid);
     int updateInventoryAmount(DummyVO inventory);
 
-    // --- Shop/Item (UserController가 임시로 사용 중이므로 유지) ---
+    // --- Shop/Item (UserController가 임시로 사용 중이었으므로 더미 제거 시 주석 처리) ---
     List<ItemVO> selectAllShopItems();
     List<ItemVO> searchShopItems(String searchKeyword);
     ItemVO selectShopItemById(Long itemId);
@@ -34,4 +35,5 @@ public interface DummyMapper {
     // --- Product (미구현 기능 유지) ---
     DummyVO selectProductDetail(Long prodId);
     int insertProduct(DummyVO product);
+    */
 }

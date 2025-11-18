@@ -4,8 +4,10 @@ import com.example.myFarm.command.CartVO;
 import com.example.myFarm.command.OrderVO;
 import com.example.myFarm.command.AddressVO;
 import com.example.myFarm.command.ItemVO;
+import com.example.myFarm.command.ShopVO;
+import com.example.myFarm.shop.AdminShopService;
 import com.example.myFarm.user.UserService;
-import com.example.myFarm.user.DummyService;
+// import com.example.myFarm.user.DummyService; // ❌ DUMMY SERVICE 주석 처리
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -24,7 +26,8 @@ import java.util.stream.Collectors;
 public class UserController {
 
     private final UserService userService;
-    private final DummyService dummyService;
+    private final AdminShopService adminShopService;
+    // private final DummyService dummyService; // ❌ DUMMY SERVICE 필드 주석 처리
 
 
     private int getCurrentUserId(HttpSession session) {
@@ -49,19 +52,37 @@ public class UserController {
 
     @GetMapping("/list")
     public String productList(Model model) {
-        List<ItemVO> itemList = dummyService.getAllShopItems();
+        // List<ItemVO> itemList = dummyService.getAllShopItems(); // ❌ DUMMY METHOD 주석 처리
+        // model.addAttribute("isLoggedIn", true);
+        // model.addAttribute("itemList", itemList);
+        // return "user/list";
+
+        List<ShopVO> itemList = adminShopService.getAllItems();
+
+        // ⭐ 더미 사용 부분 주석 처리 및 임시 처리
+        //model.addAttribute("isLoggedIn", true);
+        //model.addAttribute("itemList", List.of()); // 빈 리스트로 임시 대체
+
         model.addAttribute("isLoggedIn", true);
-        model.addAttribute("itemList", itemList);
+        model.addAttribute("itemList", itemList); // <-- List.of() 대신 itemList 변수 사용
+        model.addAttribute("searchKeyword", null);
+        model.addAttribute("sortField", "regDate");
+
         return "user/list";
     }
 
+
     @GetMapping("/detail")
     public String productDetail(@RequestParam Integer itemId, Model model) {
-        ItemVO itemDetail = dummyService.getShopItemDetail(itemId.longValue());
+        // ItemVO itemDetail = dummyService.getShopItemDetail(itemId.longValue()); // ❌ DUMMY METHOD 주석 처리
 
+        // model.addAttribute("isLoggedIn", true);
+        // model.addAttribute("item", itemDetail);
+        // return "user/detail";
+
+        // ⭐ 더미 사용 부분 주석 처리 및 임시 처리
         model.addAttribute("isLoggedIn", true);
-        model.addAttribute("item", itemDetail);
-
+        model.addAttribute("item", new ItemVO()); // 빈 ItemVO로 임시 대체
         return "user/detail";
     }
 
@@ -201,13 +222,15 @@ public class UserController {
     }
 
 
+    // UserController.java (placeOrder 메서드만 수정)
+
     @PostMapping("/placeOrder")
     public String placeOrder(
             @ModelAttribute OrderVO order,
-            @RequestParam(required = false) String newRecipientName,
-            @RequestParam(required = false) String newPhone,
-            @RequestParam(required = false) String newAddressInput,
-            @RequestParam(required = false) String newAddressNameInput,
+            @RequestParam(name = "recipientName", required = false) String finalRecipientName,
+            @RequestParam(name = "phone", required = false) String finalPhone,
+            @RequestParam(name = "address", required = false) String finalAddress,
+            @RequestParam(name = "addressName", required = false) String finalAddressName,
             @RequestParam Map<String, String> itemAmounts,
             RedirectAttributes ra,
             HttpSession session) {
@@ -215,55 +238,9 @@ public class UserController {
         int userId = getCurrentUserId(session);
         order.setUserId(userId);
 
-        // ⭐ 1. addressId == 0 (새 주소 입력) 처리
-        if (order.getAddressId() == 0) {
-
-            // 새 주소 입력 필수 필드 체크
-            if (newAddressInput == null || newAddressInput.trim().isEmpty() ||
-                    newRecipientName == null || newRecipientName.trim().isEmpty() ||
-                    newPhone == null || newPhone.trim().isEmpty()) {
-
-                ra.addFlashAttribute("errorMessage", "새 주소 입력 시 모든 필수 정보를 입력해주세요 (수령인, 연락처, 주소).");
-                return "redirect:/user/order"; // /user/cart 대신 /user/order로 리다이렉트
-            }
-
-            // 새 주소 정보를 AddressVO로 변환 및 저장
-            AddressVO newAddress = new AddressVO();
-            newAddress.setUserId(userId);
-            newAddress.setAddress(newAddressInput);
-            newAddress.setAddressName(newAddressNameInput != null && !newAddressNameInput.isEmpty() ? newAddressNameInput : "새 주소");
-            newAddress.setRecipientName(newRecipientName);
-            newAddress.setRecipientPhone(newPhone);
-
-            try {
-                // AddressVO를 DB에 저장하고, 생성된 ID를 받아옵니다.
-                userService.saveAddress(newAddress);
-            } catch (Exception e) {
-                ra.addFlashAttribute("errorMessage", "새 배송지 저장 중 오류가 발생했습니다.");
-                e.printStackTrace();
-                return "redirect:/user/order";
-            }
-
-            // OrderVO에 새로 생성된 addressId를 설정하여 Service Layer로 전달
-            order.setAddressId(newAddress.getAddressId());
-        }
-
-        // ⭐ 2. 기존 주소 선택 (addressId > 0) 처리
-        // addressId가 OrderVO에 이미 설정되어 있으므로 별도 로직은 불필요합니다.
-        // Service Layer (UserServiceImpl)에서 addressId를 통해 ORDERS 테이블에 저장될 최종 주소 스냅샷을 결정합니다.
-
-        // ⭐ 3. 기존 주소 유효성 검사 로직 제거
-        /* else {
-            if (order.getAddress() == null || order.getAddress().trim().isEmpty() ||
-                    order.getRecipientName() == null || order.getRecipientName().trim().isEmpty() ||
-                    order.getPhone() == null || order.getPhone().trim().isEmpty()) {
-
-                ra.addFlashAttribute("errorMessage", "선택된 기본 배송지 정보가 유효하지 않습니다. 주소 관리를 확인해주세요.");
-                return "redirect:/user/cart";
-            }
-        }
-        */
-
+        order.setOrdRecipientName(finalRecipientName); // OrderVO의 수령인 필드에 설정
+        order.setPhone(finalPhone);
+        order.setAddress(finalAddress);
         order.setStatus("결제 완료");
 
         try {
@@ -273,8 +250,10 @@ public class UserController {
             return "redirect:/user/orderList";
 
         } catch (IllegalStateException e) {
+            // 비즈니스 로직 오류 (주소 누락, 재고 부족 등)
             ra.addFlashAttribute("errorMessage", "주문 처리 중 오류가 발생했습니다: " + e.getMessage());
-            return "redirect:/user/orderList";
+            // 주소 누락 오류가 발생하면, 다시 주문 페이지로 돌려보내는 것이 사용자 경험상 좋습니다.
+            return "redirect:/user/order";
         } catch (Exception e) {
             ra.addFlashAttribute("errorMessage", "시스템 오류로 주문에 실패했습니다.");
             e.printStackTrace();

@@ -61,7 +61,7 @@
                     <img th:case="*" th:src="@{https://images.unsplash.com/photo-1745791562822-7ac21012bbb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080}" th:alt="${item.itemName} + ' 이미지'">
                 </th:block>
 
-                <div th:unless="${item.amount != null and item.amount > 0}" class="sold-out-overlay">SOLD OUT</div>
+                <div th:unless="${item.inventoryAmount != null and item.inventoryAmount > 0}" class="sold-out-overlay">SOLD OUT</div>
             </div>
         </a>
 
@@ -74,13 +74,13 @@
             <p class="price" th:text="|${#numbers.formatDecimal(item.price ?: 0, 0, 'COMMA', 0, 'POINT')}원 / 개|">가격 / 단위</p>
 
             <div class="btn-wrapper">
-                <th:block th:if="${item.amount != null and item.amount > 0}">
+                <th:block th:if="${item.inventoryAmount != null and item.inventoryAmount > 0}">
                     <form th:action="@{/user/pushCart}" method="post" class="cart-form-inline">
                         <input type="hidden" name="itemId" th:value="${item.itemId}">
                         <input type="hidden" name="amount" value="1">
                         <button type="submit" class="btn cart">주문하기</button> </form>
                 </th:block>
-                <th:block th:unless="${item.amount != null and item.amount > 0}">
+                <th:block th:unless="${item.inventoryAmount != null and item.inventoryAmount > 0}">
                     <span class="btn" style="background-color: var(--muted); color: var(--muted-foreground); cursor: default; width: 100%;">품절</span>
                 </th:block>
             </div>
@@ -195,9 +195,9 @@
             type: 'GET',
             data: { itemId: itemId },
             success: function(response) {
-                // 💡 응답 데이터(ItemVO)를 받아서 모달 내용을 동적으로 구성
+                // 💡 응답 데이터(ShopVO - JSON)를 받아서 모달 내용을 동적으로 구성
 
-                // 임시 이미지 URL (실제 DB 데이터에 따라 변경해야 함)
+                // 임시 이미지 URL (기존 유지)
                 let itemImage = '';
                 switch(itemId) {
                     case 1: itemImage = 'https://images.unsplash.com/photo-1745791562822-7ac21012bbb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080'; break;
@@ -206,19 +206,23 @@
                     default: itemImage = 'https://images.unsplash.com/photo-1745791562822-7ac21012bbb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080';
                 }
 
+                // ⭐ 재고 필드: response.inventoryAmount 사용
+                const stock = response.inventoryAmount || 0;
+                const isSoldOut = stock <= 0;
+
                 let content = `
                     <img src="${itemImage}" alt="${response.itemName} 이미지" class="detail-item-image">
                     <h2>${response.itemName}</h2>
                     <p class="detail-price">${new Intl.NumberFormat('ko-KR').format(response.price)}원 / 개</p>
-                    <p>재고: ${response.amount > 0 ? response.amount + '개' : '품절'}</p>
+                    <p>재고: ${stock > 0 ? stock + '개' : '품절'}</p>
                     <p>판매자: 농부 김씨</p>
                     <hr>
                     <p><strong>상품 설명:</strong> 싱싱하고 맛있는 제철 농산물입니다. 지금 바로 만나보세요!</p>
                     <div class="btn-wrapper" style="margin-top: 20px;">
-                        ${response.amount > 0
+                        ${!isSoldOut
                     ? `<form action="/*[[@{/user/pushCart}]]*/" method="post" class="cart-form-inline">
                                     <input type="hidden" name="itemId" value="${response.itemId}">
-                                    <input type="number" name="amount" value="1" min="1" max="${response.amount}" style="width: 60px; margin-right: 5px;">
+                                    <input type="number" name="amount" value="1" min="1" max="${stock}" style="width: 60px; margin-right: 5px;">
                                     <button type="submit" class="btn cart">주문하기</button> </form>`
                     : `<span class="btn" style="background-color: var(--muted); cursor: default; width: 100%;">품절</span>`}
                     </div>

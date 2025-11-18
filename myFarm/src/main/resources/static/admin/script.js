@@ -1,0 +1,886 @@
+// script.js
+
+// ======================================
+// 1. API 기본 설정 및 전역 상수 / 더미 데이터
+// ======================================
+const API_BASE_URL = '/admin/shop';
+
+// 상품 더미 데이터 (API 실패 시 fallback용, DB 구조 맞춤)
+let products = [
+    { itemId: 101, itemName: "유기농 방울토마토", price: 12000, status: 1, storId: 101 },
+    { itemId: 102, itemName: "신선한 상추", price: 5000, status: 0, storId: 102 }
+];
+
+// 농가/작물/주문 더미 (일부 화면에서 사용 또는 fallback)
+let farms = [
+    { id: 1, name: "행복농장", owner: "홍길동", address: "서울시 강서구", phone: "010-1234-5678", account: "우리은행 1002-123-456789" }
+];
+
+let crops = [
+    { id: 1, name: "방울토마토", quantity: "500kg", sowingDate: "2025-09-15", status: "재배중", isActive: true }
+];
+
+let orders = [
+    { id: 'ORD-001', customer: '김고객', date: '2025-11-05', total: '24,000원', status: 'ready', products: [{ name: '유기농 방울토마토', qty: 2, price: 12000 }] },
+    { id: 'ORD-002', customer: '이고객', date: '2025-11-06', total: '50,000원', status: 'paid', products: [{ name: '신선한 상추', qty: 10, price: 5000 }] }
+];
+
+// ======================================
+// 2. 창고(Inventory) API 연동 및 Select Box 옵션
+// ======================================
+
+// 인벤토리 목록을 API에서 가져오는 함수
+async function fetchInventoryItems() {
+    try {
+        // 백엔드에서 새로 추가한 API 호출
+        const response = await fetch('/admin/api/inventory');
+        if (!response.ok) {
+            throw new Error(`인벤토리 API 호출 실패: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error("인벤토리 항목 로딩 오류:", error);
+        alert('창고 품목을 불러오는 중 오류가 발생했습니다.');
+        return [];
+    }
+}
+
+async function loadInventoryOptions() {
+    const selectElement = document.getElementById('new-stor-select');
+    if (!selectElement) return;
+
+    // API 호출
+    const inventoryItems = await fetchInventoryItems();
+
+    // Select Box 초기화
+    selectElement.innerHTML = '<option value="" disabled selected>창고 품목을 선택하세요</option>';
+
+    if (inventoryItems.length === 0) {
+        const option = document.createElement('option');
+        option.disabled = true;
+        option.textContent = "등록된 인벤토리 품목이 없습니다.";
+        selectElement.appendChild(option);
+        return;
+    }
+
+    // 데이터를 기반으로 옵션 생성
+    inventoryItems.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.storId;
+        option.textContent = `${item.storName} (ID: ${item.storId}, 재고: ${item.amount || 0}개)`;
+        selectElement.appendChild(option);
+    });
+}
+
+// ======================================
+// 3. 공통 UI 유틸 (모달 / 탭)
+// ======================================
+
+// 모달 열기
+function openModal(modalId, itemId = null) {
+    document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+
+    const idDisplay = document.getElementById(modalId.replace('modal', 'id-display'));
+    if (idDisplay) idDisplay.textContent = itemId ?? '';
+
+    // 주문 상세 모달
+    if (modalId === 'order-detail-modal' && itemId) {
+        populateOrderDetailModal(itemId);
+    }
+
+    // 작물 수정 모달 (단건 조회)
+    if (modalId === 'edit-crop-modal' && itemId != null) {
+        loadCropIntoEditForm(itemId).catch(() => {
+            alert('농작물 정보를 불러오지 못했습니다.');
+        });
+    }
+
+    // 상품 수정 모달 (단건 조회)
+    if (modalId === 'edit-product-modal' && itemId != null) {
+        populateEditForm(modalId, itemId);
+    }
+
+    // 새 상품 등록 모달: 창고 SelectBox 옵션 로드
+    if (modalId === 'new-product-modal') {
+        loadInventoryOptions();
+    }
+
+    modal.style.display = 'block';
+}
+
+// 모달 닫기
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// 모달 외부 클릭 시 닫기
+window.onclick = function (event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = "none";
+    }
+};
+
+// 탭 전환 + 탭별 데이터 로드
+function initTabFunctionality() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabContents.forEach(content => {
+        content.style.display = content.classList.contains('active') ? 'block' : 'none';
+    });
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            const targetId = e.currentTarget.dataset.target;
+
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+
+            tabContents.forEach(content => content.style.display = 'none');
+            const targetContent = document.getElementById(targetId);
+            if (targetContent) targetContent.style.display = 'block';
+
+            // 탭 변경 시 필요한 데이터만 재로드
+            if (targetId === 'product-manage') {
+                renderProductList();
+            }
+            if (targetId === 'farm-manage') {
+                fetchAddress().then(renderFarmAddressFromData).catch(console.error);
+                fetchCrops().then(renderCropListFromData).catch(console.error);
+            }
+            if (targetId === 'order-manage') {
+                renderOrderList();
+            }
+        });
+    });
+}
+
+// ======================================
+// 4. 농가 정보(주소) API 연동
+// ======================================
+
+// 주소 목록 조회
+async function fetchAddress() {
+    const res = await fetch('/admin/api/address/', {
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+    });
+    if (!res.ok) throw new Error("주소 목록 로딩 실패");
+    return await res.json();
+}
+
+// 주소 목록 테이블 렌더 (id="farm-info")
+function renderFarmAddressFromData(addr) {
+    const tbody = document.getElementById("farm-info");
+    if (!tbody) return;
+
+    if (!Array.isArray(addr) || addr.length === 0) {
+        tbody.innerHTML = `
+      <tr><td colspan="5" style="text-align:center;color:#888;">등록된 농가 정보가 없습니다.</td></tr>
+    `;
+        return;
+    }
+
+    tbody.innerHTML = addr.map(a => `
+    <tr data-address-id="${a.addressId}">
+      <td class="col-name">${a.addressName ?? "-"}</td>
+      <td class="col-address">${a.address ?? "-"}</td>
+      <td class="col-owner">${a.recipientName ?? "-"}</td>
+      <td class="col-phone">${a.recipientPhone ?? "-"}</td>
+      <td>
+        <button class="btn-small btn-edit" onclick="openFarmEdit(this, ${a.addressId})">수정</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+// 농가 정보 수정 모달 열기 (테이블 값에서 그대로 읽어서 세팅)
+function openFarmEdit(buttonEl, addressId) {
+    const tr = buttonEl.closest('tr');
+    if (!tr) return;
+
+    const name = tr.querySelector('.col-name')?.textContent?.trim() || '';
+    const address = tr.querySelector('.col-address')?.textContent?.trim() || '';
+    const owner = tr.querySelector('.col-owner')?.textContent?.trim() || '';
+    const phone = tr.querySelector('.col-phone')?.textContent?.trim() || '';
+
+    document.getElementById('edit-farm-id-display').textContent = String(addressId);
+    document.getElementById('edit-farm-name').value = name;
+    document.getElementById('edit-farm-address').value = address;
+    document.getElementById('edit-farm-owner').value = owner;
+    document.getElementById('edit-farm-contact').value = phone;
+
+    openModal('edit-farm-modal', addressId);
+}
+
+// 농가 정보 수정 API 호출
+async function handleEditFarmAddress(e) {
+    e.preventDefault();
+
+    const addressId = Number(document.getElementById('edit-farm-id-display').textContent || '0');
+
+    const payload = {
+        addressId: addressId,
+        addressName: document.getElementById('edit-farm-name').value.trim(),
+        address: document.getElementById('edit-farm-address').value.trim(),
+        recipientName: document.getElementById('edit-farm-owner').value.trim(),
+        recipientPhone: document.getElementById('edit-farm-contact').value.trim()
+    };
+
+    if (!payload.addressName || !payload.address) {
+        alert('농가명과 주소는 필수입니다.');
+        return;
+    }
+
+    try {
+        const res = await fetch('/admin/api/address/update', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const text = await res.text().catch(() => '');
+        if (!res.ok || text !== 'success') throw new Error(text || '업데이트 실패');
+
+        const list = await fetchAddress();
+        renderFarmAddressFromData(list);
+
+        closeModal('edit-farm-modal');
+        alert('주소 정보가 수정되었습니다.');
+    } catch (err) {
+        alert('수정 중 오류가 발생했습니다.\n' + (err?.message || ''));
+    }
+}
+
+// ======================================
+// 5. 작물 재배 현황 API 연동 (/admin/api/crops)
+// ======================================
+
+async function fetchCrops() {
+    const res = await fetch('/admin/api/crops', {
+        headers: { 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) throw new Error('Failed to load crops');
+    return await res.json();
+}
+
+// 퍼센트 계산
+function percentOf(crop) {
+    const et = Number(crop.elapsedTick);
+    const gt = Number(crop.growthTime);
+    if (!Number.isFinite(et) || !Number.isFinite(gt) || gt <= 0) return '-';
+    return Math.min(100, Math.floor((et / gt) * 100)) + '%';
+}
+
+// 작물 목록 테이블 렌더 (id="crop-list")
+function renderCropListFromData(cropList) {
+    const list = document.getElementById('crop-list');
+    if (!list) return;
+
+    list.innerHTML = cropList.map(crop => {
+        const isOn = Number(crop.status) === 1 || crop.status === true || crop.status === '1';
+        return `
+      <tr data-id="${crop.cropId}">
+        <td>${crop.cropName ?? '-'}</td>
+        <td>${
+            (crop.quantity ?? crop.quantity === 0 ? crop.quantity : '-') +
+            (crop.unitName ? ' ' + crop.unitName : '')
+        }</td>
+        <td>${crop.regDate ?? '-'}</td>
+        <td id="crop-progress-${crop.cropId}">${percentOf(crop)}</td>
+        <td>
+          <label class="switch">
+            <input type="checkbox" class="crop-status" ${isOn ? 'checked' : ''}>
+            <span class="slider"></span>
+          </label>
+        </td>
+        <td>
+          <button class="btn-small btn-edit" onclick="openModal('edit-crop-modal', ${crop.cropId})">수정</button>
+          <button class="btn-small btn-delete" onclick="handleDelete('crop', ${crop.cropId})">삭제</button>
+        </td>
+      </tr>
+    `;
+    }).join('');
+
+    bindCropStatusToggles();
+}
+
+// 재배 상태 토글
+function bindCropStatusToggles() {
+    document.querySelectorAll('#crop-list input.crop-status').forEach(chk => {
+        chk.addEventListener('change', async (e) => {
+            const tr = e.target.closest('tr');
+            const cropId = tr?.dataset.id;
+            const checked = e.target.checked;
+            const url = checked
+                ? `/admin/api/crops/enable/${cropId}`
+                : `/admin/api/crops/disable/${cropId}`;
+
+            try {
+                const res = await fetch(url, { method: 'POST' });
+                if (!res.ok) throw new Error();
+            } catch (err) {
+                e.target.checked = !checked;
+                alert('재배상태 변경에 실패했습니다.');
+            }
+        });
+    });
+}
+
+// 작물 진행도(%)만 부분 갱신
+async function refreshCropProgressCells() {
+    try {
+        const cropList = await fetchCrops();
+        cropList.forEach(crop => {
+            const cell = document.getElementById(`crop-progress-${crop.cropId}`);
+            if (cell) cell.textContent = percentOf(crop);
+        });
+    } catch (e) {
+        // 무시 후 다음 틱에서 다시 시도
+    }
+}
+
+// 수정 모달에 작물 단건 로드
+async function loadCropIntoEditForm(cropId) {
+    const res = await fetch(`/admin/api/crops/${cropId}`);
+    if (!res.ok) throw new Error('crop not found');
+    const crop = await res.json();
+
+    const editCropNameEl = document.getElementById('edit-crop-name'); // 요소를 변수로 저장
+
+    document.getElementById('edit-crop-id-display').textContent = crop.cropId ?? '';
+    editCropNameEl.value = crop.cropName ?? '';
+
+    editCropNameEl.readOnly = true;
+
+    document.getElementById('edit-crop-id-display').textContent = crop.cropId ?? '';
+    document.getElementById('edit-crop-name').value = crop.cropName ?? '';
+    document.getElementById('edit-growth-time').value = (crop.growthTime ?? 60);
+    document.getElementById('edit-quantity').value = (crop.quantity ?? 0);
+    document.getElementById('edit-unit-name').value = crop.unitName ?? '';
+    document.getElementById('edit-reg-date').value = (crop.regDate ?? '').toString().slice(0, 10);
+}
+
+// 자동 새로고침 타이머
+let cropProgressTimer = null;
+function startCropAutoRefresh(intervalMs = 1000) {
+    if (cropProgressTimer) clearInterval(cropProgressTimer);
+    cropProgressTimer = setInterval(refreshCropProgressCells, intervalMs);
+}
+
+// 탭 비활성/활성 시 타이머 제어
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        if (cropProgressTimer) {
+            clearInterval(cropProgressTimer);
+            cropProgressTimer = null;
+        }
+    } else {
+        startCropAutoRefresh();
+        refreshCropProgressCells();
+    }
+});
+
+// ======================================
+// 6. 상품 목록 및 통계 / 주문 목록
+// ======================================
+
+// 상품 목록 렌더 (API + fallback)
+async function renderProductList() {
+    const list = document.getElementById('product-list');
+    if (!list) return;
+
+    list.innerHTML = '<tr><td colspan="6">상품 데이터를 불러오는 중...</td></tr>';
+
+    let productsToRender = [];
+    try {
+        const response = await fetch(API_BASE_URL);
+        if (response.ok) {
+            productsToRender = await response.json();
+            const el = document.getElementById('summary-total-items');
+            if (el) el.textContent = productsToRender.length + '개';
+        } else {
+            console.warn('API 호출 실패 (GET /admin/shop). 더미 데이터 사용.');
+            productsToRender = products;
+            const el = document.getElementById('summary-total-items');
+            if (el) el.textContent = productsToRender.length + '개';
+        }
+    } catch (e) {
+        console.error('상품 목록 로딩 오류:', e);
+        productsToRender = products;
+        const el = document.getElementById('summary-total-items');
+        if (el) el.textContent = productsToRender.length + '개';
+    }
+
+    if (productsToRender.length === 0) {
+        list.innerHTML = '<tr><td colspan="6">등록된 상품이 없습니다.</td></tr>';
+        return;
+    }
+
+    list.innerHTML = productsToRender.map(product => `
+    <tr data-id="${product.itemId}">
+      <td>${product.itemId}</td>
+      <td>${product.itemName}</td>
+      <td>${product.price ? product.price.toLocaleString() + '원' : 'N/A'}</td>
+      <td>${product.inventoryAmount !== undefined ? product.inventoryAmount.toLocaleString() + '개' : '연동 오류'}</td>
+      <td>${product.storId || 'N/A'}</td>
+      <td>
+        <label class="switch">
+          <input type="checkbox"
+                 ${product.status === 1 ? 'checked' : ''}
+                 onchange="handleStatusToggle(${product.itemId}, this.checked)">
+          <span class="slider"></span>
+        </label>
+      </td>
+      <td>
+        <button class="btn-small btn-edit" onclick="openModal('edit-product-modal', ${product.itemId})">수정</button>
+        <button class="btn-small btn-delete" onclick="handleDeleteProduct(${product.itemId})">삭제</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// 주문 목록 렌더
+function renderOrderList() {
+    const list = document.getElementById('order-list');
+    if (!list) return;
+    list.innerHTML = orders.map(order => {
+        const statusText =
+            order.status === 'ready' ? '배송준비' :
+                (order.status === 'paid' ? '결제완료' :
+                    (order.status === 'shipping' ? '배송 중' : '기타'));
+        return `
+      <tr data-order-id="${order.id}" data-status="${order.status}">
+        <td>${order.id}</td><td>${order.customer}</td><td>${order.date}</td><td>${order.total}</td>
+        <td><span class="status-badge status-${order.status}">${statusText}</span></td>
+        <td><button class="btn-small btn-detail" onclick="openModal('order-detail-modal', '${order.id}')">상세보기</button></td>
+      </tr>
+    `;
+    }).join('');
+}
+
+// 통계 카드 (현재는 0으로 초기화만)
+function renderStatistics() {
+    const totalSales = document.getElementById('summary-total-sales');
+    const totalOrders = document.getElementById('summary-total-orders');
+    const avgOrder = document.getElementById('summary-avg-order');
+
+    if (totalSales) totalSales.textContent = '0원';
+    if (totalOrders) totalOrders.textContent = '0건';
+    if (avgOrder) avgOrder.textContent = '0원';
+}
+
+// 전체 목록 초기 렌더
+function renderAllLists() {
+    renderProductList();
+    renderOrderList();
+    renderStatistics();
+}
+
+// ======================================
+// 7. 등록(Create) 핸들러
+// ======================================
+
+// 새 농가 등록 (더미, 실제 DB INSERT 시 서버 API 필요)
+function handleNewFarm(e) {
+    e.preventDefault();
+    const name = document.getElementById('farm-name')?.value || '새 농가';
+    const owner = document.getElementById('farm-owner')?.value || '미지정';
+    const account = document.getElementById('farm-account')?.value || '계좌 미등록';
+
+    farms.push({
+        id: Date.now(),
+        name,
+        owner,
+        account,
+        address: "주소 미입력",
+        phone: "연락처 미입력"
+    });
+
+    alert(`농가 '${name}' 등록 완료 (DB INSERT 필요)`);
+    closeModal('new-farm-modal');
+    // 필요 시 별도 농가 리스트 렌더 함수 호출 가능
+}
+
+// 새 작물 등록 (실제 API 연동)
+async function handleNewCrop(e) {
+    e.preventDefault();
+
+    const name = document.getElementById('crop-name')?.value?.trim();
+    const quantity = parseInt(document.getElementById('quantity')?.value || '0', 10) || 0;
+    const unitName = document.getElementById('unit-name')?.value?.trim() || '';
+    const regDate = document.getElementById('reg-date')?.value || null;
+    const statusSel = document.getElementById('status')?.value;
+    const gtRaw = document.getElementById('growth-time')?.value || '';
+    let growthTime = parseInt(gtRaw, 10);
+    if (!Number.isFinite(growthTime) || growthTime <= 0) growthTime = 60;
+
+    if (!name) {
+        alert('농작물명을 입력하세요.');
+        return;
+    }
+
+    const payload = {
+        cropName: name,
+        quantity: quantity,
+        unitName: unitName,
+        regDate: regDate,
+        status: (statusSel === 'enable') ? 1 : 0,
+        growthTime: growthTime,
+        elapsedTick: 0
+    };
+
+    try {
+        const res = await fetch('/admin/api/crops', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error(await res.text().catch(() => '등록 실패'));
+
+        const list = await fetchCrops();
+        renderCropListFromData(list);
+        closeModal('new-crop-modal');
+        document.getElementById('new-crop-form')?.reset();
+        alert('농작물이 등록되었습니다.');
+    } catch (err) {
+        alert('등록 중 오류가 발생했습니다.\n' + (err?.message || ''));
+    }
+}
+
+// 새 상품 등록 (API 연동 + 창고 SelectBox 사용)
+async function handleNewProduct(e) {
+    e.preventDefault();
+
+    const itemName = document.getElementById('new-item-name').value;
+    const price = parseInt(document.getElementById('new-item-price').value || 0);
+    const storId = document.getElementById('new-stor-select').value;
+
+    if (!storId) {
+        alert('농작물을 선택해주세요.');
+        return;
+    }
+
+    const itemVO = {
+        itemName: itemName,
+        price: price,
+        storId: storId
+    };
+
+    try {
+        const response = await fetch(API_BASE_URL + '/additem', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(itemVO)
+        });
+
+        if (response.status === 201) {
+            alert(`상품 '${itemName}' 등록 완료!`);
+            closeModal('new-product-modal');
+            document.getElementById('new-product-form').reset();
+            renderProductList();
+        } else {
+            alert('상품 등록 실패! 서버 응답을 확인하세요.');
+        }
+    } catch (error) {
+        console.error('등록 통신 오류:', error);
+        alert('상품 등록 중 오류가 발생했습니다.');
+    }
+}
+
+// ======================================
+// 8. 수정(Update) 및 삭제(Delete)
+// ======================================
+
+// 상품 수정 모달에 데이터 채우기
+async function populateEditForm(modalId, itemId) {
+    if (modalId === 'edit-product-modal') {
+        try {
+            const response = await fetch(API_BASE_URL + '/item/' + itemId);
+            if (!response.ok) throw new Error('상세 상품 데이터를 찾을 수 없습니다.');
+
+            const item = await response.json();
+
+            document.getElementById('edit-item-id').value = item.itemId;
+            document.getElementById('edit-product-id-display').textContent = item.itemId;
+
+            document.getElementById('edit-item-name').value = item.itemName || '';
+            document.getElementById('edit-item-price').value = item.price || 0;
+
+            const storIdEl = document.getElementById('edit-stor-id');
+            storIdEl.value = item.storId || '';
+            storIdEl.disabled = true; // 사용자가 수정할 수 없도록 비활성화
+
+        } catch (error) {
+            console.error('데이터 로드 오류:', error);
+            alert('수정할 상품 데이터를 불러오는 데 실패했습니다.');
+        }
+    }
+}
+
+// 작물 수정 (API)
+function handleEditCrop(e) {
+    e.preventDefault();
+    const cropId = document.getElementById('edit-crop-id-display').textContent;
+
+    const name = document.getElementById('edit-crop-name')?.value?.trim();
+    const gtRaw = document.getElementById('edit-growth-time')?.value;
+    const qtyRaw = document.getElementById('edit-quantity')?.value;
+    const unitName = document.getElementById('edit-unit-name')?.value?.trim();
+    const regDate = document.getElementById('edit-reg-date')?.value || null;
+
+    const growthTime = gtRaw === '' ? null : Number(gtRaw);
+    const quantity = qtyRaw === '' ? null : Number(qtyRaw);
+
+    const payload = {
+        cropId: Number(cropId),
+        cropName: (name && name.length > 0) ? name : null,
+        growthTime: Number.isFinite(growthTime) ? growthTime : null,
+        quantity: Number.isFinite(quantity) ? quantity : null,
+        unitName: (unitName && unitName.length > 0) ? unitName : null,
+        regDate: regDate || null
+    };
+
+    fetch(`/admin/api/crops/${cropId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+        .then(async res => {
+            if (!res.ok) throw new Error(await res.text().catch(() => '수정 실패'));
+            return fetchCrops();
+        })
+        .then(list => {
+            renderCropListFromData(list);
+            closeModal('edit-crop-modal');
+            alert('농작물 정보가 수정되었습니다.');
+        })
+        .catch(err => {
+            alert('수정 중 오류가 발생했습니다.\n' + (err?.message || ''));
+        });
+}
+
+// 상품 수정 (API)
+async function handleEditProduct(e) {
+    e.preventDefault();
+    const itemId = document.getElementById('edit-item-id').value;
+
+    const newName = document.getElementById('edit-item-name').value;
+    const newPrice = parseInt(document.getElementById('edit-item-price').value);
+    const newStorId = document.getElementById('edit-stor-id').value;
+
+    const itemVO = {
+        itemName: newName,
+        price: newPrice,
+        storId: newStorId
+    };
+
+    try {
+        const response = await fetch(API_BASE_URL + '/item/' + itemId, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(itemVO)
+        });
+
+        if (response.ok) {
+            alert(`상품 ID ${itemId} 정보 수정 완료!`);
+            closeModal('edit-product-modal');
+            renderProductList();
+        } else {
+            alert('상품 수정 실패! 서버 응답을 확인하세요.');
+        }
+    } catch (error) {
+        console.error('수정 통신 오류:', error);
+        alert('상품 수정 중 통신 오류가 발생했습니다.');
+    }
+}
+
+// 상품 상태 토글 (API)
+async function handleStatusToggle(itemId, isChecked) {
+    const newStatus = isChecked ? 1 : 0;
+
+    try {
+        const response = await fetch(API_BASE_URL + '/status/' + itemId, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        if (!response.ok) {
+            alert('상태 변경 실패! 서버 응답을 확인하세요.');
+            renderProductList();
+        }
+    } catch (error) {
+        console.error('상태 변경 통신 오류:', error);
+        alert('판매 상태 변경 중 통신 오류가 발생했습니다.');
+        renderProductList();
+    }
+}
+
+// 상품 삭제 (API)
+async function handleDeleteProduct(itemId) {
+    if (!confirm(`상품 ID: ${itemId}을(를) 정말 삭제하시겠습니까?`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(API_BASE_URL + '/item/' + itemId, {
+            method: 'DELETE'
+        });
+
+        if (response.status === 204) {
+            alert(`상품 ID: ${itemId} 삭제 완료.`);
+            renderProductList();
+        } else {
+            alert('상품 삭제에 실패했습니다. (서버 오류)');
+        }
+    } catch (error) {
+        console.error('삭제 통신 오류:', error);
+        alert('상품 삭제 중 통신 오류가 발생했습니다.');
+    }
+}
+
+// 공통 삭제 핸들러 (현재는 작물/농가만 사용)
+async function handleDelete(type, id) {
+    const label = (type === 'crop' ? '농작물' : '농가');
+    if (!confirm(`${label} ID: ${id}을(를) 정말 삭제하시겠습니까?`)) return;
+
+    if (type === 'crop') {
+        try {
+            const res = await fetch(`/admin/api/crops/${id}`, { method: 'DELETE' });
+            if (!res.ok && res.status !== 204) {
+                const msg = await res.text().catch(() => '');
+                throw new Error(msg || '삭제 실패');
+            }
+
+            const tr = document.querySelector(`#crop-list tr[data-id="${id}"]`);
+            if (tr) tr.remove();
+
+            const list = await fetchCrops();
+            renderCropListFromData(list);
+
+            alert('삭제되었습니다.');
+        } catch (err) {
+            alert('삭제 중 오류가 발생했습니다.\n' + (err?.message || ''));
+        }
+        return;
+    }
+
+    if (type === 'farm') {
+        farms = farms.filter(f => f.id !== id);
+        alert('농가가 삭제되었습니다. (DB DELETE 필요)');
+        // 필요 시 별도 농가 리스트 렌더 함수 호출 가능
+        return;
+    }
+}
+
+// ======================================
+// 9. 주문 상세 모달 / 배송 상태 변경
+// ======================================
+
+function populateOrderDetailModal(orderId) {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    document.getElementById('order-detail-title').textContent = `주문 상세 정보 (${orderId})`;
+    document.getElementById('detail-customer-name').textContent = order.customer;
+    document.getElementById('detail-order-date').textContent = order.date;
+    document.getElementById('detail-total-amount').textContent = order.total;
+
+    const statusBadge = document.getElementById('detail-order-status-badge');
+    const statusText =
+        order.status === 'ready' ? '배송준비' :
+            (order.status === 'paid' ? '결제완료' :
+                (order.status === 'shipping' ? '배송 중' : '기타'));
+    statusBadge.textContent = statusText;
+    statusBadge.className = `status-badge status-${order.status}`;
+
+    const productList = document.getElementById('detail-product-list');
+    productList.innerHTML = order.products.map(p => `
+    <li>${p.name} (${p.qty}개) - ${(p.qty * p.price).toLocaleString()}원</li>
+  `).join('');
+
+    document.getElementById('new-status').value = order.status;
+    document.getElementById('tracking-number').value = '';
+}
+
+function updateOrderStatus(newStatus) {
+    const orderId = document.getElementById('order-detail-title').textContent.match(/\((.*?)\)/)?.[1];
+    if (!orderId) return;
+
+    alert(`주문 ${orderId}의 상태가 '${newStatus}'(으)로 변경 요청되었습니다. (DB UPDATE 필요)`);
+
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+        order.status = newStatus;
+    }
+
+    closeModal('order-detail-modal');
+    renderOrderList();
+}
+
+function handleShippingSubmit(e) {
+    e.preventDefault();
+    const trackingNumber = document.getElementById('tracking-number')?.value;
+
+    if (!trackingNumber) {
+        alert("송장 번호를 입력해주세요.");
+        return;
+    }
+
+    updateOrderStatus('shipping');
+    alert(`송장 번호 '${trackingNumber}' 입력 완료 및 주문 상태 '배송 중'으로 변경 요청되었습니다. (DB UPDATE 필요)`);
+}
+
+// ======================================
+// 10. 초기화 (DOMContentLoaded)
+// ======================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 탭 / 기본 렌더
+    initTabFunctionality();
+    renderAllLists();
+
+    // 농가 주소 로드
+    fetchAddress()
+        .then(renderFarmAddressFromData)
+        .catch(() => {
+            const tbody = document.getElementById('farm-info');
+            if (tbody) {
+                tbody.innerHTML = `
+          <tr><td colspan="5" style="text-align:center;color:#c00;">
+            농가 정보를 불러오지 못했습니다.
+          </td></tr>`;
+            }
+        });
+
+    // 작물 목록 로드 + 자동 진행률 갱신 시작
+    fetchCrops()
+        .then(cropList => {
+            renderCropListFromData(cropList);
+            startCropAutoRefresh(1000);   // 1초 간격
+            refreshCropProgressCells();
+        })
+        .catch(() => {
+            // 실패 시 별도 fallback 필요하면 여기에서 처리
+        });
+
+    // 등록 폼
+    document.getElementById('new-farm-form')?.addEventListener('submit', handleNewFarm);
+    document.getElementById('new-crop-form')?.addEventListener('submit', handleNewCrop);
+    document.getElementById('new-product-form')?.addEventListener('submit', handleNewProduct);
+
+    // 수정 폼
+    document.getElementById('edit-farm-form')?.addEventListener('submit', handleEditFarmAddress);
+    document.getElementById('edit-crop-form')?.addEventListener('submit', handleEditCrop);
+    document.getElementById('edit-product-form')?.addEventListener('submit', handleEditProduct);
+
+    // 배송 폼
+    document.getElementById('shipping-form')?.addEventListener('submit', handleShippingSubmit);
+});
