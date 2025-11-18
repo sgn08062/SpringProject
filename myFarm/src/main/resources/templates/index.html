@@ -1,17 +1,32 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FARM | 자연 그대로의 신선함</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <link rel="stylesheet" th:href="@{/css/style.css}"> <!-- css 스타일 -->
+
 </head>
-<body class="cart-hidden">
+
+
+
+<body class="cart-hidden"> <!-- 장바구니 숨김 처리 class -->
+
+
+<!-- 로고, 검색바, 로그인 / 회원가입, 장바구니 -->
 <header>
+
+
     <div class="logo" onclick="location.href='/'">🌿 FARM</div>
+
+
     <div class="search-bar">
         <input type="text" placeholder="신선한 농작물을 찾아보세요 🍅">
     </div>
+
+
     <nav>
         <div class="nav-links">
             <div id="before-login">

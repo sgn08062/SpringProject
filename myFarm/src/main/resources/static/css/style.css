@@ -505,12 +505,6 @@ body.cart-hidden .cart { display: none; }
 body.cart-hidden .main-content-area { 
   margin-right: 40px; /* [v6] 장바구니 숨길 시 여백 원복 */
 }
-/* [v7] cart-hidden일 때 footer 마진을 건드릴 필요 없음 (버그 수정) */
-/* body.cart-hidden footer { 
-  margin-right: 40px;
-}
-*/
-
 
 /* [v4 리뉴얼] 반응형 */
 @media (max-width: 1024px) { 

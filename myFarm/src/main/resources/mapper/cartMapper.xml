@@ -42,4 +42,9 @@
         WHERE USER_ID = #{userId} AND ITEM_ID = #{itemId}
     </delete>
 
+    <select id="findUserIdByLoginId" resultType="Long">
+        SELECT user_id
+        FROM users  WHERE login_id = #{loginId}
+    </select>
+
 </mapper>

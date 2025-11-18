@@ -50,4 +50,6 @@ public interface CartMapper {
             @Param("userId") Long userId,
             @Param("itemId") Long itemId
     );
+
+    Long findUserIdByLoginId(String loginId);
 }
