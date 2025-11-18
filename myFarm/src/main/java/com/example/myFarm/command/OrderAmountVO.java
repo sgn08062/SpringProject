@@ -11,4 +11,7 @@ public class OrderAmountVO {
     private String itemName;
     private long quantity;
     private long unitPrice;
+
+    // 재고 복원용
+    private long cropId;
 }

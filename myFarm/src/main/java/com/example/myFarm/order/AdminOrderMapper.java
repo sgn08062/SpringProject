@@ -10,4 +10,6 @@ import java.util.List;
 public interface AdminOrderMapper {
     List<OrderVO> list();
     int updateStatus(long orderId, String status);
+
+    String getStatus(long orderId);
 }

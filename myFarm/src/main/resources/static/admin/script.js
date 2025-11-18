@@ -843,11 +843,30 @@ async function populateOrderDetailModal(orderId) {
         badge.textContent = statusInfo.label;
         badge.className = `status-badge ${statusInfo.className}`;
 
-        // ✅ 상태 select 기본값 세팅
+        // 상태 select
         const statusSelect = document.getElementById('detail-status-select');
-        if (statusSelect && dto.status) {
-            statusSelect.value = dto.status;
+        const statusBtn = document.querySelector('.status-change button');
+
+        if (statusSelect) {
+            statusSelect.value = dto.status || '주문 대기';
         }
+
+        // ✅ 주문 취소된 주문이면 셀렉트/버튼 비활성화
+        if (dto.status === '주문 취소') {
+            if (statusSelect) statusSelect.disabled = true;
+            if (statusBtn) {
+                statusBtn.disabled = true;
+                statusBtn.textContent = '취소된 주문';
+            }
+        } else {
+            // 취소가 아닌 상태에서는 항상 활성화
+            if (statusSelect) statusSelect.disabled = false;
+            if (statusBtn) {
+                statusBtn.disabled = false;
+                statusBtn.textContent = '변경';
+            }
+        }
+
 
         // 주문 상품 리스트 (orderAmountList)
         const productList = document.getElementById('detail-product-list');

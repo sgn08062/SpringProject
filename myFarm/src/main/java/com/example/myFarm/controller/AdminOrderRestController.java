@@ -45,7 +45,10 @@ public class AdminOrderRestController {
         int result = orderService.updateStatus(orderId, status);
         if (result == 1) {
             return ResponseEntity.ok("success");
-        } else {
+        } else if (result == -1){
+            return ResponseEntity.badRequest().body("already cancel");
+        }
+        else {
             return ResponseEntity.status(404).body("order not found");
         }
     }

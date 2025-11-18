@@ -11,7 +11,7 @@ public interface InventoryMapper {
     int initInventoryForCrop(@Param("cropId") long cropId,
                              @Param("cropName") String cropName);
     int increaseInventoryAmount(@Param("cropId") long cropId,
-                                @Param("amount") int amount);
+                                @Param("amount") long amount);
 
 
     InventoryVO getByStorId(@Param("storId") long storId);

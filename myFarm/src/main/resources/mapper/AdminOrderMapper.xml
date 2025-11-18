@@ -22,4 +22,10 @@
         SET STATUS = #{status}
         WHERE ORDER_ID = #{orderId}
     </update>
+
+    <select id="getStatus" parameterType="long" resultType="string">
+        SELECT STATUS
+        FROM ORDERS
+        WHERE ORDER_ID = #{orderId}
+    </select>
 </mapper>

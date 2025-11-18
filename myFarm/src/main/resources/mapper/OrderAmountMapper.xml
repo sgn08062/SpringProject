@@ -22,6 +22,7 @@
             <result property="itemName"  column="S_ITEM_NAME"/>
             <result property="quantity"  column="OA_AMOUNT"/>
             <result property="unitPrice" column="OA_UNIT_PRICE"/>
+            <result property="cropId" column="CROP_ID"/>
         </collection>
     </resultMap>
 
@@ -36,15 +37,17 @@
             o.PHONE,
             o.TOTAL_AMOUNT,
 
-
-            oa.AMOUNT      as OA_AMOUNT,
-            oa.UNIT_PRICE  as OA_UNIT_PRICE,
-            s.ITEM_NAME    as S_ITEM_NAME
+            oa.AMOUNT      AS OA_AMOUNT,
+            oa.UNIT_PRICE  AS OA_UNIT_PRICE,
+            s.ITEM_NAME    AS S_ITEM_NAME,
+            inv.CROP_ID    AS CROP_ID
         FROM ORDERS o
-                 JOIN ORDER_AMOUNT oa ON o.ORDER_ID = oa.ORDER_ID
-                 JOIN SHOP s        ON oa.ITEM_ID = s.ITEM_ID
+                 LEFT JOIN ORDER_AMOUNT oa ON o.ORDER_ID = oa.ORDER_ID
+                 LEFT JOIN SHOP s          ON oa.ITEM_ID = s.ITEM_ID
+                 LEFT JOIN INVENTORY inv   ON s.STOR_ID  = inv.STOR_ID
         WHERE o.ORDER_ID = #{orderId}
         ORDER BY oa.ITEM_ID
     </select>
+
 
 </mapper>
