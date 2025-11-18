@@ -23,4 +23,9 @@ public class AdminOrderServiceImpl implements AdminOrderService {
     public OrderAmountDTO findById(long orderId) {
         return orderAmountMapper.findById(orderId);
     }
+
+    @Override
+    public int updateStatus(long orderId, String status) {
+        return adminOrderMapper.updateStatus(orderId, status);
+    }
 }

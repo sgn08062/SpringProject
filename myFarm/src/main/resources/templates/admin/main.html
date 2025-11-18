@@ -233,6 +233,20 @@
             <ul id="detail-product-list">
                 <li>주문 상품이 없습니다.</li>
             </ul>
+
+            <hr style="margin: 16px 0;">
+
+            <h4>주문 상태 변경</h4>
+            <div class="status-change">
+                <label for="detail-status-select">주문 상태</label>
+                <select id="detail-status-select">
+                    <option value="주문 대기">주문 대기</option>
+                    <option value="배송 중">배송 중</option>
+                    <option value="결제 완료">결제 완료</option>
+                    <option value="주문 취소">주문 취소</option>
+                </select>
+                <button type="button" class="btn-secondary" onclick="handleOrderStatusChange()">변경</button>
+            </div>
         </div>
     </div>
 <script src="/admin/script.js"></script>

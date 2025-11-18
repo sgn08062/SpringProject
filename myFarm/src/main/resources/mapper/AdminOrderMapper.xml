@@ -16,4 +16,10 @@
                       ON o.USER_ID = u.USER_ID
         ORDER BY o.ORDER_ID DESC
     </select>
+
+    <update id="updateStatus">
+        UPDATE ORDERS
+        SET STATUS = #{status}
+        WHERE ORDER_ID = #{orderId}
+    </update>
 </mapper>

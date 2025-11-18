@@ -9,4 +9,5 @@ import java.util.List;
 @Mapper
 public interface AdminOrderMapper {
     List<OrderVO> list();
+    int updateStatus(long orderId, String status);
 }

@@ -64,6 +64,7 @@ function openModal(modalId, itemId = null) {
 
     // 주문 상세 모달
     if (modalId === 'order-detail-modal' && itemId) {
+        modal.dataset.orderId = itemId;
         populateOrderDetailModal(itemId);
     }
 
@@ -842,6 +843,12 @@ async function populateOrderDetailModal(orderId) {
         badge.textContent = statusInfo.label;
         badge.className = `status-badge ${statusInfo.className}`;
 
+        // ✅ 상태 select 기본값 세팅
+        const statusSelect = document.getElementById('detail-status-select');
+        if (statusSelect && dto.status) {
+            statusSelect.value = dto.status;
+        }
+
         // 주문 상품 리스트 (orderAmountList)
         const productList = document.getElementById('detail-product-list');
         const items = Array.isArray(dto.orderAmountList) ? dto.orderAmountList : [];
@@ -861,6 +868,56 @@ async function populateOrderDetailModal(orderId) {
         alert('주문 상세 조회 중 오류가 발생했습니다.\n' + (err?.message || ''));
     }
 }
+
+// ✅ 주문 상태 변경 요청
+async function handleOrderStatusChange() {
+    const modal = document.getElementById('order-detail-modal');
+    if (!modal) return;
+
+    const orderId = modal.dataset.orderId;
+    if (!orderId) {
+        alert('주문 번호를 찾을 수 없습니다.');
+        return;
+    }
+
+    const statusSelect = document.getElementById('detail-status-select');
+    if (!statusSelect) return;
+
+    const newStatus = statusSelect.value;
+
+    if (!confirm(`주문 ${orderId}의 상태를 '${newStatus}'(으)로 변경하시겠습니까?`)) {
+        return;
+    }
+
+    try {
+        const res = await fetch(`/admin/api/order/${orderId}/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        const text = await res.text().catch(() => '');
+        if (!res.ok || text !== 'success') {
+            throw new Error(text || '상태 변경 실패');
+        }
+
+        // 뱃지 갱신
+        const info = mapOrderStatus(newStatus);
+        const badge = document.getElementById('detail-order-status-badge');
+        badge.textContent = info.label;
+        badge.className = `status-badge ${info.className}`;
+
+        alert('주문 상태가 변경되었습니다.');
+
+        // 목록도 새로고침해서 반영
+        if (typeof renderOrderList === 'function') {
+            renderOrderList();
+        }
+    } catch (err) {
+        alert('상태 변경 중 오류가 발생했습니다.\n' + (err?.message || ''));
+    }
+}
+
 
 
 // ======================================

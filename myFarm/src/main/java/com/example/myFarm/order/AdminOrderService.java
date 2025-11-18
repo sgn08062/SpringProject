@@ -8,4 +8,5 @@ import java.util.List;
 public interface AdminOrderService {
     List<OrderVO> list();
     OrderAmountDTO findById(long orderId);
+    int updateStatus(long orderId, String status);
 }
