@@ -445,8 +445,6 @@ async function renderProductList() {
   `).join('');
 }
 
-// 주문 목록 렌더
-function renderOrderList() {
 // 주문 목록 렌더 (주문 번호, 고객명, 주문일, 금액, 상태, 관리)
 async function renderOrderList() {
     const list = document.getElementById('order-list');
@@ -492,14 +490,40 @@ async function renderOrderList() {
     }
 }
 
-function renderStatistics() {
-    const totalSales = document.getElementById('summary-total-sales');
-    const totalOrders = document.getElementById('summary-total-orders');
-    const avgOrder = document.getElementById('summary-avg-order');
+// 주문/매출 통계 요약 카드 렌더링
+async function renderStatistics() {
+    const totalSalesEl  = document.getElementById('summary-total-sales');
+    const totalOrdersEl = document.getElementById('summary-total-orders');
+    const avgOrderEl    = document.getElementById('summary-avg-order');
 
-    if (totalSales) totalSales.textContent = '0원';
-    if (totalOrders) totalOrders.textContent = '0건';
-    if (avgOrder) avgOrder.textContent = '0원';
+    // 요소가 없으면 그냥 종료
+    if (!totalSalesEl || !totalOrdersEl || !avgOrderEl) return;
+
+    try {
+        const res = await fetch('/api/stats/total', {
+            method: 'GET',
+            headers: {
+                'Content-type': 'application/json'
+            }
+        });
+
+        if (!res.ok) {
+            console.error('통계 API 호출 실패:', res.status);
+            // 실패하면 HTML에 적혀 있던 기본값(0원/0건) 그대로 둔다.
+            return;
+        }
+
+        const data = await res.json();
+        // 기대 JSON 형식:
+        // { "totalSales": 170000, "totalOrders": 5, "totalAvg": 34000 }
+
+        totalSalesEl.textContent  = `${Number(data.totalSales ?? 0).toLocaleString()}원`;
+        totalOrdersEl.textContent = `${Number(data.totalOrders ?? 0).toLocaleString()}건`;
+        avgOrderEl.textContent    = `${Number(data.totalAvg ?? 0).toLocaleString()}원`;
+    } catch (err) {
+        console.error('통계 로딩 중 오류:', err);
+        // 에러가 나도 화면은 0원/0건 유지
+    }
 }
 
 function renderAllLists() {
@@ -950,12 +974,175 @@ async function handleOrderStatusChange() {
 }
 
 // ======================================
+// 11. 월별 매출 Chart.js 라인 그래프
+// ======================================
+
+// 전역 Chart 인스턴스 보관용
+let monthlySalesChart = null;
+
+// 월별 통계 데이터 불러와서 그래프 그리기
+async function loadMonthlySalesChart() {
+    const canvas = document.getElementById('monthly-sales-chart');
+    if (!canvas) {
+        console.warn('[stats] #monthly-sales-chart 캔버스를 찾을 수 없습니다.');
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/stats/monthly', {
+            headers: { 'Accept': 'application/json' }
+        });
+
+        if (!res.ok) {
+            throw new Error('월별 통계 API 호출 실패: ' + res.status);
+        }
+
+        // [{ monthlyOrder, monthlyCount, monthlyTotal, monthlyAvg }, ...]
+        const data = await res.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+            console.warn('[stats] 월별 통계 데이터가 없습니다.');
+            return;
+        }
+
+        const labels        = data.map(item => item.monthlyOrder);   // "2025-07" ...
+        const monthlyTotals = data.map(item => item.monthlyTotal);   // 총 매출액
+        const monthlyAvgs   = data.map(item => item.monthlyAvg);     // 평균 주문액
+        const monthlyCounts = data.map(item => item.monthlyCount);   // 주문 건수
+
+        // ✅ 라벨 개수 기반으로 캔버스 가로 길이 설정
+        const minWidthPerLabel = 80; // 한 달당 80px
+        canvas.width = Math.max(labels.length * minWidthPerLabel, 600);
+
+        const ctx = canvas.getContext('2d');
+
+        if (monthlySalesChart) {
+            monthlySalesChart.destroy();
+        }
+
+        monthlySalesChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: '월별 총 매출액',
+                        data: monthlyTotals,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        yAxisID: 'y'        // 왼쪽 축(금액)
+                    },
+                    {
+                        label: '월별 평균 주문액',
+                        data: monthlyAvgs,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.15)',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        yAxisID: 'y'        // 왼쪽 축(금액)
+                    },
+                    {
+                        label: '월별 주문 건수',
+                        type: 'bar',
+                        data: monthlyCounts,
+                        yAxisID: 'y2',
+
+                        // 막대 스타일
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        barThickness: 10,
+
+                        // 막대에선 필요 없는 옵션들 삭제/무효
+                        pointRadius: 0,
+                        pointHoverRadius: 0,
+                        tension: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: false,              // ✅ 캔버스 width 그대로 사용
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const value = context.parsed.y || 0;
+                                const label = context.dataset.label || '';
+                                if (label.includes('건수')) {
+                                    return `${label}: ${value.toLocaleString()}건`;
+                                }
+                                return `${label}: ${value.toLocaleString()}원`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: '월 (YYYY-MM)'
+                        }
+                    },
+                    y: { // 금액 축 (왼쪽)
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: '금액(원)'
+                        },
+                        ticks: {
+                            callback: function (value) {
+                                return value.toLocaleString() + '원';
+                            }
+                        }
+                    },
+                    y2: { // 주문 건수 축 (오른쪽)
+                        position: 'right',
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: '주문 건수(건)'
+                        },
+                        grid: {
+                            drawOnChartArea: false
+                        },
+                        ticks: {
+                            stepSize: 1,
+                            callback: function (value) {
+                                return value.toLocaleString() + '건';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+    } catch (e) {
+        console.error('[stats] 월별 매출 차트 로딩 실패:', e);
+    }
+}
+
+// ======================================
 // 10. 초기화 (DOMContentLoaded)
 // ======================================
 
 document.addEventListener('DOMContentLoaded', () => {
     initTabFunctionality();
     renderAllLists();
+    loadMonthlySalesChart();
 
     fetchAddress()
         .then(renderFarmAddressFromData)
@@ -986,4 +1173,4 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('edit-farm-form')?.addEventListener('submit', handleEditFarmAddress);
     document.getElementById('edit-crop-form')?.addEventListener('submit', handleEditCrop);
     document.getElementById('edit-product-form')?.addEventListener('submit', handleEditProduct);
-});}
+});
