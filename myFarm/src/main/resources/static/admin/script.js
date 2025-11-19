@@ -431,7 +431,7 @@ async function renderProductList() {
       </td>
       <td>
         <button class="btn-small btn-edit" onclick="openModal('edit-product-modal', ${product.itemId})">수정</button>
-        <button class="btn-small btn-delete" onclick="handleDeleteProduct(${product.itemId})">삭제</button>
+       <!--  <button class="btn-small btn-delete" onclick="handleDeleteProduct(${product.itemId})">삭제</button> -->
       </td>
     </tr>
   `).join('');
@@ -731,27 +731,27 @@ async function handleStatusToggle(itemId, isChecked) {
     }
 }
 
-async function handleDeleteProduct(itemId) {
-    if (!confirm(`상품 ID: ${itemId}을(를) 정말 삭제하시겠습니까?`)) {
-        return;
-    }
-
-    try {
-        const response = await fetch(API_BASE_URL + '/item/' + itemId, {
-            method: 'DELETE'
-        });
-
-        if (response.status === 204) {
-            alert(`상품 ID: ${itemId} 삭제 완료.`);
-            renderProductList();
-        } else {
-            alert('상품 삭제에 실패했습니다. (서버 오류)');
-        }
-    } catch (error) {
-        console.error('삭제 통신 오류:', error);
-        alert('상품 삭제 중 통신 오류가 발생했습니다.');
-    }
-}
+// async function handleDeleteProduct(itemId) {
+//     if (!confirm(`상품 ID: ${itemId}을(를) 정말 삭제하시겠습니까?`)) {
+//         return;
+//     }
+//
+//     try {
+//         const response = await fetch(API_BASE_URL + '/item/' + itemId, {
+//             method: 'DELETE'
+//         });
+//
+//         if (response.status === 204) {
+//             alert(`상품 ID: ${itemId} 삭제 완료.`);
+//             renderProductList();
+//         } else {
+//             alert('상품 삭제에 실패했습니다. (서버 오류)');
+//         }
+//     } catch (error) {
+//         console.error('삭제 통신 오류:', error);
+//         alert('상품 삭제 중 통신 오류가 발생했습니다.');
+//     }
+// }
 
 async function handleDelete(type, id) {
     const label = (type === 'crop' ? '농작물' : '농가');

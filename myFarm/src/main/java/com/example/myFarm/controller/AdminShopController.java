@@ -38,12 +38,13 @@ public class AdminShopController {
         return ResponseEntity.ok().build();
     }
 
-    // 4. 삭제 (API)
-    @DeleteMapping("/item/{itemId}")
-    public ResponseEntity<Void> deleteItem(@PathVariable Long itemId) {
-        AdminshopService.deleteItem(itemId);
-        return ResponseEntity.noContent().build();
-    }
+//    // 4. 삭제 (API)
+//    @DeleteMapping("/item/{itemId}")
+//    public ResponseEntity<Void> deleteItem(@PathVariable Long itemId) {
+//        System.out.println("💥 deleteItem 호출됨: " + itemId);
+//        AdminshopService.deleteItem(itemId);
+//        return ResponseEntity.noContent().build();
+//    }
 
     // 5. 상세 조회 (API)
     @GetMapping("/item/{itemId}")
