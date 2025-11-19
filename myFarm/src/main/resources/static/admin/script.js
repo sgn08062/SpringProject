@@ -482,15 +482,42 @@ async function renderOrderList() {
     }
 }
 
-function renderStatistics() {
-    const totalSales = document.getElementById('summary-total-sales');
-    const totalOrders = document.getElementById('summary-total-orders');
-    const avgOrder = document.getElementById('summary-avg-order');
+// 주문/매출 통계 요약 카드 렌더링
+async function renderStatistics() {
+    const totalSalesEl  = document.getElementById('summary-total-sales');
+    const totalOrdersEl = document.getElementById('summary-total-orders');
+    const avgOrderEl    = document.getElementById('summary-avg-order');
 
-    if (totalSales) totalSales.textContent = '0원';
-    if (totalOrders) totalOrders.textContent = '0건';
-    if (avgOrder) avgOrder.textContent = '0원';
+    // 요소가 없으면 그냥 종료
+    if (!totalSalesEl || !totalOrdersEl || !avgOrderEl) return;
+
+    try {
+        const res = await fetch('/api/stats/total', {
+            method: 'GET',
+            headers: {
+                'Content-type': 'application/json'
+            }
+        });
+
+        if (!res.ok) {
+            console.error('통계 API 호출 실패:', res.status);
+            // 실패하면 HTML에 적혀 있던 기본값(0원/0건) 그대로 둔다.
+            return;
+        }
+
+        const data = await res.json();
+        // 기대 JSON 형식:
+        // { "totalSales": 170000, "totalOrders": 5, "totalAvg": 34000 }
+
+        totalSalesEl.textContent  = `${Number(data.totalSales ?? 0).toLocaleString()}원`;
+        totalOrdersEl.textContent = `${Number(data.totalOrders ?? 0).toLocaleString()}건`;
+        avgOrderEl.textContent    = `${Number(data.totalAvg ?? 0).toLocaleString()}원`;
+    } catch (err) {
+        console.error('통계 로딩 중 오류:', err);
+        // 에러가 나도 화면은 0원/0건 유지
+    }
 }
+
 
 function renderAllLists() {
     renderProductList();
