@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface InventoryService {
     int initForCrop(long cropId, String cropName);
-    void addAmount(long cropId, int amount);
+    void addAmount(long cropId, long amount);
 
 
     InventoryVO getByStorId(long storId);

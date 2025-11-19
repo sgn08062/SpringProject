@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 // 페이지 API 관련 컨트롤러
 @RestController
-@RequestMapping("/user/api/address")
+@RequestMapping({"/user/api/address", "/admin/api/address"})
 public class AddressRestController {
 
     @Autowired
@@ -25,10 +25,11 @@ public class AddressRestController {
             value = "/",
             produces = "application/json"
     )
-    public ResponseEntity<List<AddressVO>> insertAddress(HttpSession session) {
+    public ResponseEntity<List<AddressVO>> getAddressList(HttpSession session) {
         Object uid = session.getAttribute("userId");
 
         List<AddressVO> list = addressService.getAddressList((Integer) uid);
+        System.out.println("농가 아이디: "+ list.get(0).getAddressId());
 
         return ResponseEntity.ok(list);
     }

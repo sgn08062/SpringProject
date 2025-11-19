@@ -31,7 +31,7 @@ public class CropGrowthScheduler {
         // 수확
         for(Map<String, Object> row: ready){
             long cropId = Long.parseLong(row.get("cropId").toString());
-            int quantity = Integer.parseInt(row.get("quantity").toString());
+            long quantity = Long.parseLong(row.get("quantity").toString());
 
             inventoryService.addAmount(cropId, quantity);
             adminCropMapper.resetCropAfterHarvest(cropId);

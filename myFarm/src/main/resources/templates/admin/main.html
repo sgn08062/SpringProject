@@ -12,7 +12,7 @@
             <h1 class="logo">🌿 FARM 관리자 대시보드</h1>
             <div class="header-links">
                 <span id="admin-greeting">관리자님</span>
-                <a href="#" id="logoutBtn" class="shop-link">로그아웃</a>
+                <a href="#" id="logout-btn" class="shop-link">로그아웃</a>
             </div>
         </header>
 
@@ -224,37 +224,32 @@
             <h3 id="order-detail-title">주문 상세 정보</h3>
 
             <div id="order-info-display">
-                <p><strong>고객명:</strong> <span id="detail-customer-name">김고객</span></p>
-                <p><strong>주문일:</strong> <span id="detail-order-date">2025-11-05</span></p>
-                <p><strong>총 결제 금액:</strong> <span id="detail-total-amount">24,000원</span></p>
-                <p><strong>주문 상태:</strong> <span class="status-badge" id="detail-order-status-badge">배송준비</span></p>
+                <p><strong>고객명:</strong> <span id="detail-customer-name">-</span></p>
+                <p><strong>주문일:</strong> <span id="detail-order-date">-</span></p>
+                <p><strong>총 결제 금액:</strong> <span id="detail-total-amount">0원</span></p>
+                <p><strong>주문 상태:</strong> <span class="status-badge" id="detail-order-status-badge">-</span></p>
             </div>
 
             <h4>주문 상품 목록 (ORDER_AMOUNT)</h4>
             <ul id="detail-product-list">
-                <li>유기농 방울토마토 (2개) - 24,000원</li>
+                <li>주문 상품이 없습니다.</li>
             </ul>
 
-            <h4>배송 처리 (송장 번호 입력 및 상태 변경)</h4>
-            <form id="shipping-form">
-                <label for="new-status">주문 상태 변경</label>
-                <select id="new-status">
-                    <option value="paid">결제 완료</option>
-                    <option value="ready">배송 준비 중</option>
-                    <option value="shipping">배송 중</option>
-                    <option value="delivered">배송 완료</option>
+            <hr style="margin: 16px 0;">
+
+            <h4>주문 상태 변경</h4>
+            <div class="status-change">
+                <label for="detail-status-select">주문 상태</label>
+                <select id="detail-status-select">
+                    <option value="주문 대기">주문 대기</option>
+                    <option value="배송 중">배송 중</option>
+                    <option value="결제 완료">결제 완료</option>
+                    <option value="주문 취소">주문 취소</option>
                 </select>
-                <button type="button" class="btn-secondary" onclick="updateOrderStatus(document.getElementById('new-status').value)">상태 변경</button>
-
-                <hr>
-
-                <label for="tracking-number">송장 번호</label>
-                <input type="text" id="tracking-number" placeholder="예: 1234-5678-9012">
-                <button type="submit" class="btn-primary">배송 정보 입력/수정</button>
-            </form>
+                <button type="button" class="btn-secondary" onclick="handleOrderStatusChange()">변경</button>
+            </div>
         </div>
     </div>
-
 <script src="/admin/script.js"></script>
 <script src="/js/auth.js" defer></script>
 </body>

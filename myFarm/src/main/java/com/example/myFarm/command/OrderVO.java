@@ -19,6 +19,8 @@ public class OrderVO {
 
     private Long orderId;
     private String status;
+    private String customerName; // 고객명 (USERS.USER_NAME 또는 수령인 이름)
+
 
     private String ordRecipientName; // 주문 시점의 수령인 이름 (ORDERS 테이블에 저장)
 
@@ -32,7 +34,7 @@ public class OrderVO {
     private int userId;
 
     private LocalDateTime orderDate;
-    private int totalAmount;
+    private long totalAmount;
     private String representativeItemName;
 
 }
