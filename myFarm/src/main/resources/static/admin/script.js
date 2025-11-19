@@ -420,6 +420,7 @@ async function renderProductList() {
       <td>${product.itemId}</td>
       <td>${product.itemName}</td>
       <td>${product.price ? product.price.toLocaleString() + '원' : 'N/A'}</td>
+      <td>${product.inventoryAmount ?? 'N/A'}</td>   
       <td>${product.storId || 'N/A'}</td>
       <td>
         <label class="switch">
