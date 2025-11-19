@@ -375,8 +375,26 @@ document.addEventListener('visibilitychange', () => {
 // ======================================
 
 // 주문 목록 조회 API
-async function fetchOrders() {
-    const res = await fetch('/admin/api/order/list', {
+// [수정] 인자로 keyword와 status를 받도록 변경
+async function fetchOrders(keyword = '', status = '') {
+    const params = new URLSearchParams();
+
+    // 고객명 검색어 (customerName) 추가
+    if (keyword) {
+        // [주의] Controller에서 어떤 이름으로 받을지 확인하고 key를 결정하세요.
+        // 여기서는 customerName으로 가정합니다.
+        params.append('customerName', keyword);
+    }
+
+    // 주문 상태 (status) 필터링 값 추가
+    if (status) {
+        params.append('status', status);
+    }
+
+    // 쿼리 파라미터를 URL에 추가
+    const url = `/admin/api/order/list?${params.toString()}`;
+
+    const res = await fetch(url, {
         headers: { 'Content-Type': 'application/json' }
     });
     if (!res.ok) throw new Error('주문 목록 로딩 실패');
@@ -439,47 +457,53 @@ async function renderProductList() {
 }
 
 // 주문 목록 렌더 (주문 번호, 고객명, 주문일, 금액, 상태, 관리)
+// 주문 목록 렌더 (주문 번호, 고객명, 주문일, 금액, 상태, 관리)
 async function renderOrderList() {
     const list = document.getElementById('order-list');
     if (!list) return;
 
     list.innerHTML = '<tr><td colspan="6">주문 목록을 불러오는 중...</td></tr>';
 
+    const keyword = document.getElementById('order-search-keyword')?.value || '';
+    const status = document.getElementById('order-status-select')?.value || '';
+
     try {
-        const orders = await fetchOrders();
+        const orders = await fetchOrders(keyword, status);
 
         if (!Array.isArray(orders) || orders.length === 0) {
             list.innerHTML = '<tr><td colspan="6">등록된 주문이 없습니다.</td></tr>';
+            // 주문 요약 카드 업데이트 (0건)
+            const el = document.getElementById('summary-total-orders');
+            if (el) el.textContent = '0건';
             return;
         }
 
+        // 주문 요약 카드 업데이트 (총 주문 건수)
+        const el = document.getElementById('summary-total-orders');
+        if (el) el.textContent = orders.length + '건';
+
+        // 렌더링 로직 시작!
         list.innerHTML = orders.map(order => {
-            const orderId = order.orderId;
-            const customerName = order.customerName ?? '-';
-            const orderDate = (order.orderDate ?? '').toString().slice(0, 10);
-            const total = Number(order.totalAmount ?? 0).toLocaleString() + '원';
-            const status = order.status ?? '-';
+            const statusInfo = mapOrderStatus(order.status);
+            const totalAmount = Number(order.totalAmount ?? 0);
 
             return `
-        <tr data-order-id="${orderId}" data-status="${status}">
-          <td>${orderId}</td>
-          <td>${customerName}</td>
-          <td>${orderDate}</td>
-          <td>${total}</td>
-          <td>${status}</td>
-          <td>
-            <button class="btn-small btn-detail"
-                    onclick="openModal('order-detail-modal', ${orderId})">
-              상세보기
-            </button>
-          </td>
-        </tr>
-      `;
+                <tr data-id="${order.orderId}">
+                    <td>${order.orderId}</td>
+                    <td>${order.customerName ?? order.recipientName ?? '-'}</td>
+                    <td>${(order.orderDate ?? '').toString().slice(0, 10)}</td>
+                    <td>${totalAmount.toLocaleString()}원</td>
+                    <td><span class="status-badge ${statusInfo.className}">${statusInfo.label}</span></td>
+                    <td>
+                        <button class="btn-small btn-detail" onclick="openModal('order-detail-modal', ${order.orderId})">상세</button>
+                    </td>
+                </tr>
+            `;
         }).join('');
+
     } catch (e) {
-        console.error(e);
-        list.innerHTML =
-            '<tr><td colspan="6" style="text-align:center;color:#c00;">주문 목록을 불러오지 못했습니다.</td></tr>';
+        console.error('주문 목록 로딩 오류:', e);
+        list.innerHTML = '<tr><td colspan="6" style="color:#c00;">주문 목록을 불러오는 중 오류가 발생했습니다.</td></tr>';
     }
 }
 
@@ -977,4 +1001,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('edit-farm-form')?.addEventListener('submit', handleEditFarmAddress);
     document.getElementById('edit-crop-form')?.addEventListener('submit', handleEditCrop);
     document.getElementById('edit-product-form')?.addEventListener('submit', handleEditProduct);
+
+    // 검색 버튼에 이벤트 리스너 추가
+    document.querySelector('.filter-area .btn-secondary')?.addEventListener('click', () => {
+        renderOrderList();
+    });
 });

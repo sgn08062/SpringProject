@@ -3,17 +3,29 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.example.myFarm.order.AdminOrderMapper">
-    <!-- 전체 주문 목록: 주문 번호, 고객명, 주문일, 금액, 상태 -->
-    <select id="list" resultType="com.example.myFarm.command.OrderVO">
+
+    <select id="getFilteredOrderList"
+            resultType="com.example.myFarm.command.OrderVO"
+            parameterType="java.util.Map">
         SELECT
-            o.ORDER_ID     AS orderId,
-            u.USER_NAME    AS customerName,
-            o.ORDER_DATE   AS orderDate,
-            o.TOTAL_AMOUNT AS totalAmount,
-            o.STATUS       AS status
+        o.ORDER_ID     AS orderId,
+        u.USER_NAME    AS customerName,
+        o.ORDER_DATE   AS orderDate,
+        o.TOTAL_AMOUNT AS totalAmount,
+        o.STATUS       AS status
         FROM ORDERS o
-                 JOIN USERS u
-                      ON o.USER_ID = u.USER_ID
+        JOIN USERS u
+        ON o.USER_ID = u.USER_ID
+        <where>
+            <if test="customerName != null and customerName != ''">
+                AND u.USER_NAME LIKE CONCAT('%', #{customerName}, '%')
+            </if>
+
+            <if test="status != null and status != ''">
+                AND o.STATUS = #{status}
+            </if>
+
+        </where>
         ORDER BY o.ORDER_ID DESC
     </select>
 

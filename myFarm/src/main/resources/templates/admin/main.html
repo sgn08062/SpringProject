@@ -92,8 +92,14 @@
         <div class="tab-content" id="order-manage">
             <h2>📦 전체 주문 목록</h2>
             <div class="filter-area">
-                <input type="text" placeholder="주문번호, 고객명 검색">
-                <select><option>전체 상태</option><option>입금 전</option></select>
+                <input type="text" id="order-search-keyword" placeholder="고객명 검색">
+                <select id="order-status-select">
+                    <option value="">전체 상태</option>
+                    <option value="주문 대기">주문 대기</option>
+                    <option value="배송 중">배송 중</option>
+                    <option value="결제 완료">결제 완료</option>
+                    <option value="주문 취소">주문 취소</option>
+                </select>
                 <button class="btn-secondary">검색</button>
             </div>
             <table class="data-table order-table">
