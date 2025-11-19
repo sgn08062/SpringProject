@@ -1040,13 +1040,21 @@ async function loadMonthlySalesChart() {
                     },
                     {
                         label: '월별 주문 건수',
+                        type: 'bar',
                         data: monthlyCounts,
+                        yAxisID: 'y2',
+
+                        // 막대 스타일
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
                         borderColor: 'rgba(54, 162, 235, 1)',
-                        backgroundColor: 'rgba(54, 162, 235, 0.15)',
-                        borderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        yAxisID: 'y2'       // 오른쪽 축(건수)
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        barThickness: 10,
+
+                        // 막대에선 필요 없는 옵션들 삭제/무효
+                        pointRadius: 0,
+                        pointHoverRadius: 0,
+                        tension: 0
                     }
                 ]
             },
