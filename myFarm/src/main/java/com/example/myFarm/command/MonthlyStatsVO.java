@@ -8,7 +8,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MonthlyStatsVO {
-    long monthlyOrder;
+    String monthlyOrder;
+    long monthlyCount;
     long monthlyTotal;
     long monthlyAvg;
 }

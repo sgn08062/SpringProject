@@ -7,6 +7,19 @@
         SELECT SUM(TOTAL_AMOUNT) TOTAL_SALES,
                COUNT(*) TOTAL_ORDERS,
                ROUND(AVG((TOTAL_AMOUNT))) TOTAL_AVG
-        FROM ORDERS;
+        FROM ORDERS
+        WHERE STATUS IN ('배송 중', '결제 완료');
+    </select>
+
+    <select id="getMonthlyStats" resultType="MonthlyStatsVO">
+        SELECT
+            DATE_FORMAT(ORDER_DATE, '%Y-%m') AS MONTHLY_ORDER,
+            COUNT(*) AS MONTHLY_COUNT,
+            SUM(TOTAL_AMOUNT) AS MONTHLY_TOTAL,
+            ROUND(AVG(TOTAL_AMOUNT)) AS MONTHLY_AVG
+        FROM ORDERS
+        WHERE STATUS IN ('배송 중', '결제 완료')
+        GROUP BY DATE_FORMAT(ORDER_DATE, '%Y-%m')
+        ORDER BY MONTHLY_ORDER;
     </select>
 </mapper>
