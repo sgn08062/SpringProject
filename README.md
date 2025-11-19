@@ -8,7 +8,8 @@
 2025년 11월 11일 - 어드민 관리 페이지 입장 url 및 controller 방식을 REST API 방식으로 수정한 api 추가 <br>
 2025년 11월 12일 - 소비자 주소 관리 메서드 Controller와 RestController 방식으로 분리 <br>
 2025년 11월 13일 - 어드민 농작물 관리 페이지 및 controller 방식을 REST API 방식으로 수정 <br>
-2025년 11월 14일 - 어드민 농장 주소 관리 API 구현
+2025년 11월 14일 - 어드민 농장 주소 관리 API 구현<br>
+2025년 11월 19일 - 어드민 shop, order, inventory api 추가<br>
 
 ## COMMON API
 
@@ -73,25 +74,28 @@
 
 | 행동 | API | method |
 | :--- | :--- | :--- |
-| 상품 목록 조회 (관리자 전용) | /shop | GET |
-| 상품 등록 html | /shop/additem | GET |
-| 상품 등록 | /shop/additem | POST |
-| 상품 수정 | /shop/item/{id} | PUT |
-| 상품 삭제 | /shop/item/{id} | DELETE |
+| 상품 목록 조회 (관리자 전용) | / | GET |
+| 상품 상세 조회 (관리자 전용) | /item/{itemId} | GET |
+| 상품 등록 html | /additem | GET |
+| 상품 등록 | /additem | POST |
+| 상품 수정 | /item/{id} | PUT |
+| 상품 삭제 | /item/{id} | DELETE |
+| 판매 상태 토글 | /status/{itemId} | PUT |
 
 ### 📋 판매 사이트 주문 관리 메서드 (/order)
-
+* **Base URL:** `/admin/api/order`
 | 행동 | API | method |
 | :--- | :--- | :--- |
-| 주문 목록 조회 | /order | GET |
-| 주문 상세 조회 | /order/{id} | GET |
-| 주문 상태 변경 | /order/status/{id} | PATCH |
+| 주문 목록 조회 | /list | GET |
+| 주문 상세 조회 | /{orderId} | GET |
+| 주문 상태 변경 | /{orderId}/status | POST |
 
 ### 📦 창고 관리 메서드 (/inventory)
-
+* **Base URL:** `/admin/api/inventory`
 | 행동 | API | method |
 | :--- | :--- | :--- |
-| 창고 조회 | /inventory | GET |
+| 창고 조회 | / | GET |
+| 창고 품목 상세 조회 | /{id} | GET |
 
 ---
 
