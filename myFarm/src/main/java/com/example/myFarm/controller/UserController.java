@@ -87,10 +87,16 @@ public class UserController {
     }
 
     @GetMapping("/cart")
-    public String getCart(Model model, HttpSession session) {
+    public String getCart(Model model, HttpSession session, RedirectAttributes ra) {
         model.addAttribute("isLoggedIn", true);
         int userId = getCurrentUserId(session);
         List<CartVO> cartList = userService.getCartList(userId);
+
+        if (cartList == null || cartList.isEmpty()) {
+            ra.addFlashAttribute("errorMessage", "🛒 장바구니에 담긴 상품이 없습니다. 상품 목록에서 상품을 담아주세요.");
+            return "redirect:/user/list";
+        }
+
         model.addAttribute("cartList", cartList);
         return "user/cart";
     }

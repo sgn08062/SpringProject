@@ -21,10 +21,10 @@
         .address-option input[type="radio"]:checked + label { border-color: #28a745; background-color: #e9ffe9; font-weight: bold; }
         .address-detail-text { margin-left: 20px; font-size: 0.9em; color: #555; }
 
-        /* 새로운 주소 목록 섹션 추가 */
-        .other-address-list { border: 1px solid #eee; padding: 10px; margin-top: 10px; max-height: 200px; overflow-y: auto; }
-        .other-address-list .address-option label { border: none; border-bottom: 1px dashed #ddd; margin-bottom: 0; }
-        .other-address-list .address-option:last-child label { border-bottom: none; }
+        /* 새로운 주소 목록 섹션 추가 (통합된 리스트) */
+        .stored-address-list { border: 1px solid #eee; padding: 10px; margin-top: 10px; max-height: 250px; overflow-y: auto; }
+        .stored-address-list .address-option label { border: none; border-bottom: 1px dashed #ddd; margin-bottom: 0; }
+        .stored-address-list .address-option:last-child label { border-bottom: none; }
 
         /* 신규 주소 입력 필드 스타일 */
         #newAddressFields { border: 1px dashed #aaa; padding: 15px; margin-top: 10px; border-radius: 4px; display: none; }
@@ -49,41 +49,45 @@
 
     <div class="address-options">
 
-        <div th:if="${defaultAddress != null}" class="address-option">
-            <input type="radio" id="addr_default" name="addressOption" th:value="${defaultAddress.addressId}"
-                   th:data-recipient-name="${defaultAddress.recipientName}" th:data-phone="${defaultAddress.recipientPhone}"
-                   th:data-address="${defaultAddress.address}" th:data-address-name="${defaultAddress.addressName}" th:checked="true">
-            <label for="addr_default">
-                **기본 배송지:** [[${defaultAddress.addressName}]]
-                <span class="address-detail-text">([[${defaultAddress.address}]])</span>
-                <p style="font-size: 0.8em; margin: 5px 0 0 0;">수령인: [[${defaultAddress.recipientName}]] / [[${defaultAddress.recipientPhone}]]</p>
-            </label>
-        </div>
+        <div th:if="${defaultAddress != null or (otherAddresses != null and otherAddresses.size() > 0)}">
+            <p style="margin-top: 15px; font-weight: bold;">📦 저장된 배송지 정보</p>
+            <div class="stored-address-list">
 
-        <div th:if="${otherAddresses != null and otherAddresses.size() > 0}">
-            <p style="margin-top: 15px; font-weight: bold;">📦 기타 저장된 주소</p>
-            <div class="other-address-list">
+                <div th:if="${defaultAddress != null}" class="address-option">
+                    <input type="radio" id="addr_default" name="addressOption" th:value="${defaultAddress.addressId}"
+                           th:data-recipient-name="${defaultAddress.recipientName}" th:data-phone="${defaultAddress.recipientPhone}"
+                           th:data-address="${defaultAddress.address}" th:data-address-name="${defaultAddress.addressName}" th:checked="true">
+                    <label for="addr_default">
+                        **[기본]** [[${defaultAddress.addressName}]]
+                        <span class="address-detail-text">([[${defaultAddress.address}]])</span>
+                        <p style="font-size: 0.8em; margin: 5px 0 0 0;">수령인: [[${defaultAddress.recipientName}]] / [[${defaultAddress.recipientPhone}]]</p>
+                    </label>
+                </div>
+
                 <div th:each="addr : ${otherAddresses}" class="address-option">
                     <input type="radio" th:id="'addr_' + ${addr.addressId}" name="addressOption" th:value="${addr.addressId}"
                            th:data-recipient-name="${addr.recipientName}" th:data-phone="${addr.recipientPhone}"
-                           th:data-address="${addr.address}" th:data-address-name="${addr.addressName}">
+                           th:data-address="${addr.address}" th:data-address-name="${addr.addressName}"
+                           th:checked="${defaultAddress == null and otherAddresses.indexOf(addr) == 0 ? true : false}">
                     <label th:for="'addr_' + ${addr.addressId}">
                         [[${addr.addressName}]]
                         <span class="address-detail-text">([[${addr.address}]])</span>
                         <p style="font-size: 0.8em; margin: 5px 0 0 0;">수령인: [[${addr.recipientName}]] / [[${addr.recipientPhone}]]</p>
                     </label>
                 </div>
+
             </div>
         </div>
 
-        <div class="address-option" style="margin-top: 15px;">
-            <input type="radio" id="addr_new" name="addressOption" value="0">
+        <div class="address-option" th:style="${defaultAddress == null and (otherAddresses == null or otherAddresses.size() == 0) ? 'margin-top: 5px; border: 2px solid #dc3545;' : 'margin-top: 15px;'}">
+            <input type="radio" id="addr_new" name="addressOption" value="0"
+                   th:checked="${defaultAddress == null and (otherAddresses == null or otherAddresses.size() == 0) ? true : false}">
             <label for="addr_new">
                 **➕ 신규 배송지 직접 입력**
             </label>
         </div>
 
-        <div id="newAddressFields" style="display: none;">
+        <div id="newAddressFields" th:style="${defaultAddress == null and (otherAddresses == null or otherAddresses.size() == 0) ? 'display: block;' : 'display: none;'}">
             <label for="new_addressName">배송지명:</label>
             <input type="text" id="new_addressName" placeholder="예: 우리집, 회사" value="신규 배송지">
 
@@ -133,6 +137,7 @@
 
 <script th:inline="javascript">
     const defaultAddress = /*[[${defaultAddress}]]*/ null;
+    const otherAddresses = /*[[${otherAddresses}]]*/ [];
 
     $(document).ready(function() {
 
@@ -157,13 +162,14 @@
          * @param {Object} data - 주소 정보 객체 (addressId, recipientName, phone, address, addressName)
          */
         function fillOrderFields(data) {
+            // ❌ REMOVED: addressId: 0, (잘못된 구문 제거)
             $addressIdInput.val(data.addressId);
             $recipientName.val(data.recipientName);
             $phone.val(data.phone);
             $address.val(data.address);
             $addressName.val(data.addressName);
 
-            // 모든 필드 활성화
+            // 모든 필드 활성화 (기존 로직 유지)
             $addressIdInput.prop('disabled', false);
             $recipientName.prop('disabled', false);
             $phone.prop('disabled', false);
@@ -173,10 +179,11 @@
 
         /**
          * 신규 주소 입력 필드의 현재 값으로 OrderVO hidden 필드를 채우는 함수
+         * addressId는 0으로 설정하여 서버에 Address 테이블 INSERT를 방지하고 Order 테이블에만 저장되도록 유도
          */
         function fillOrderFieldsFromNewInputs() {
             fillOrderFields({
-                addressId: 0, // 0은 신규 주소 등록 요청을 의미
+                addressId: 0, // 👈 핵심: 0은 신규/임시 주소를 의미하며 Address 테이블 INSERT를 방지하는 용도
                 recipientName: $new_recipientName.val(),
                 phone: $new_phone.val(),
                 address: $new_address.val(),
@@ -185,49 +192,47 @@
         }
 
 
-        // 📌 초기 상태 설정
-        if (defaultAddress) {
-            // 기본 주소 라디오 버튼의 data 값을 hidden 필드에 미리 채워 둠
-            const $defaultRadio = $('#addr_default');
-            fillOrderFields({
-                addressId: $defaultRadio.val(),
-                recipientName: $defaultRadio.data('recipient-name'),
-                phone: $defaultRadio.data('phone'),
-                address: $defaultRadio.data('address'),
-                addressName: $defaultRadio.data('address-name')
-            });
-        } else {
-            // 기본 주소가 없으면 '신규 배송지 입력'을 기본으로 선택하도록 유도
-            $('#addr_new').prop('checked', true).trigger('change');
-        }
+        // 📌 초기 상태 설정 및 OrderVO 필드 초기화
+        const hasStoredAddresses = defaultAddress || (otherAddresses && otherAddresses.length > 0);
 
-        // 주소 정보가 전혀 없는 경우 주문 버튼 비활성화
-        if ($('input[name="addressOption"]').length === 0) {
-            // defaultAddress도 없고, otherAddresses도 없으면 라디오 버튼이 1개만 (addr_new) 남음
-            if (!$('#addr_new').prop('checked')) {
-                alert("주문 가능한 배송지 정보가 없습니다. 주소를 먼저 등록해주세요.");
-                $submitBtn.prop('disabled', true).text('배송지 없음');
+        if (hasStoredAddresses) {
+            // 저장된 주소가 있으면, 선택된 주소 (기본 또는 기타 첫 번째)의 data 값으로 hidden 필드 초기화
+            const $checkedRadio = $('input[name="addressOption"]:checked');
+            // 라디오 버튼이 있을 때만 데이터를 가져옴
+            if ($checkedRadio.length) {
+                fillOrderFields({
+                    addressId: $checkedRadio.val(),
+                    recipientName: $checkedRadio.data('recipient-name'),
+                    phone: $checkedRadio.data('phone'),
+                    address: $checkedRadio.data('address'),
+                    addressName: $checkedRadio.data('address-name')
+                });
             }
+        } else {
+            // 저장된 주소가 전혀 없으면 '신규 배송지 입력'을 기본으로 선택하도록 유도하고 hidden 필드 초기화
+            $('#addr_new').prop('checked', true);
+            fillOrderFieldsFromNewInputs();
+            $newAddressFields.slideDown(); // 신규 입력 필드도 보이게 함
         }
 
-
-        // 라디오 버튼 변경 감지 (기본 주소, 기타 주소, 신규 주소 선택 시)
+        // 라디오 버튼 변경 감지 (기존 주소, 신규 주소 선택 시)
         $('input[name="addressOption"]').on('change', function() {
             const $selectedRadio = $(this);
             const addressId = $selectedRadio.val();
 
-            // 1. 신규 배송지 입력 선택 시
+            // 1. 신규 배송지 입력 선택 시 (addressId === '0')
             if (addressId === '0') {
                 $newAddressFields.slideDown();
-                fillOrderFieldsFromNewInputs(); // 현재 입력된 값으로 hidden 필드 업데이트
+                // 신규 입력 필드의 값을 0과 함께 hidden 필드에 반영
+                fillOrderFieldsFromNewInputs();
             }
-            // 2. 기존 주소 선택 시 (기본 주소 포함)
+            // 2. 기존 주소 선택 시 (addressId !== '0')
             else {
                 $newAddressFields.slideUp();
 
                 // 선택된 주소의 data 속성에서 정보를 가져와 숨겨진 OrderVO 필드에 채움
                 fillOrderFields({
-                    addressId: addressId,
+                    addressId: addressId, // 실제 Address ID
                     recipientName: $selectedRadio.data('recipient-name'),
                     phone: $selectedRadio.data('phone'),
                     address: $selectedRadio.data('address'),
@@ -239,6 +244,7 @@
         // ⭐ 신규 주소 입력 필드 값 변경 시 OrderVO hidden 필드에 실시간 반영
         $newAddressFields.find('input').on('input', function() {
             if ($('#addr_new').prop('checked')) {
+                // 신규 입력 필드의 값을 0과 함께 hidden 필드에 반영
                 fillOrderFieldsFromNewInputs();
             }
         });
@@ -263,7 +269,7 @@
                     return false;
                 }
 
-                // 최종적으로 신규 입력 필드의 값을 OrderVO 필드에 채움
+                // 최종적으로 신규 입력 필드의 값을 0과 함께 OrderVO 필드에 채움
                 fillOrderFieldsFromNewInputs();
             }
 
