@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.myFarm.cart.mapper.CartMapperSub">
+
+    <select id="findCartItemsByUserId" resultType="com.example.myFarm.cart.dto.CartViewDTO">
+        SELECT
+            c.USER_ID AS userId,
+            c.ITEM_ID AS itemId,
+            c.AMOUNT AS amount,
+            s.ITEM_NAME AS itemName,
+            s.PRICE AS price
+        FROM
+            CART c
+                JOIN
+            SHOP s ON c.ITEM_ID = s.ITEM_ID
+        WHERE
+            c.USER_ID = #{userId}
+    </select>
+
+    <select id="findCartItemByCompositeKey" resultType="com.example.myFarm.cart.dto.CartDTO">
+        SELECT USER_ID AS userId, ITEM_ID AS itemId, AMOUNT AS amount
+        FROM CART
+        WHERE USER_ID = #{userId} AND ITEM_ID = #{itemId}
+    </select>
+
+    <insert id="insertCartItem">
+        INSERT INTO CART (USER_ID, ITEM_ID, AMOUNT)
+        VALUES (#{userId}, #{itemId}, #{amount})
+    </insert>
+
+    <update id="updateCartItemAmount">
+        UPDATE CART
+        SET AMOUNT = #{amount}
+        WHERE USER_ID = #{userId} AND ITEM_ID = #{itemId}
+    </update>
+
+    <delete id="deleteCartItem">
+        DELETE FROM CART
+        WHERE USER_ID = #{userId} AND ITEM_ID = #{itemId}
+    </delete>
+
+    <select id="findUserIdByLoginId" resultType="Long">
+        SELECT user_id
+        FROM users  WHERE login_id = #{loginId}
+    </select>
+
+</mapper>

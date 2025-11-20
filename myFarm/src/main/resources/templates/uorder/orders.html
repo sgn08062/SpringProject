@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>주문/결제</title>
+    <link rel="stylesheet" th:href="@{/main/main.css}">
+    <link rel="stylesheet" th:href="@{/css/order.css}">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; text-align: center; }
+        th, td { border: 1px solid #ddd; padding: 10px; }
+        th { background-color: #f2f2f2; }
+        td:nth-child(2), td:nth-child(4) { text-align: right; }
+        h2 { margin-top: 20px; }
+        #finalTotal { font-size: 1.5em; color: #dc3545; font-weight: bold; }
+        button[type="submit"] { padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1.1em; margin-top: 20px; }
+
+        .address-option label { display: block; margin-bottom: 10px; padding: 10px; border: 1px solid #ccc; cursor: pointer; border-radius: 4px; }
+        .address-option input[type="radio"]:checked + label { border-color: #28a745; background-color: #e9ffe9; font-weight: bold; }
+        .address-detail-text { margin-left: 20px; font-size: 0.9em; color: #555; }
+
+        .stored-address-list { border: 1px solid #eee; padding: 10px; margin-top: 10px; max-height: 250px; overflow-y: auto; }
+        .stored-address-list .address-option label { border: none; border-bottom: 1px dashed #ddd; margin-bottom: 0; }
+        .stored-address-list .address-option:last-child label { border-bottom: none; }
+
+        #newAddressFields { border: 1px dashed #aaa; padding: 15px; margin-top: 10px; border-radius: 4px; display: none; }
+        #newAddressFields input { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 3px; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+<h1>🛒 주문/결제</h1>
+
+<div th:if="${successMessage}" class="message success" th:text="${successMessage}"></div>
+<div th:if="${errorMessage}" class="message error" th:text="${errorMessage}"></div>
+
+<form th:action="@{/uorder/place}" method="post" id="orderForm">
+
+    <input type="hidden" name="addressId" id="addressId" th:value="${defaultAddress != null ? defaultAddress.addressId : ''}">
+    <input type="hidden" name="ordRecipientName" id="recipientName" th:value="${defaultAddress != null ? defaultAddress.recipientName : ''}">
+    <input type="hidden" name="phone" id="phone" th:value="${defaultAddress != null ? defaultAddress.recipientPhone : ''}">
+    <input type="hidden" name="address" id="address" th:value="${defaultAddress != null ? defaultAddress.address : ''}">
+    <input type="hidden" name="addressName" id="addressName" th:value="${defaultAddress != null ? defaultAddress.addressName : ''}">
+
+    <h2>배송 정보</h2>
+
+    <div class="address-options">
+
+        <div th:if="${defaultAddress != null or (otherAddresses != null and otherAddresses.size() > 0)}">
+            <p style="margin-top: 15px; font-weight: bold;">📦 저장된 배송지 정보</p>
+            <div class="stored-address-list">
+
+                <div th:if="${defaultAddress != null}" class="address-option">
+                    <input type="radio" id="addr_default" name="addressOption" th:value="${defaultAddress.addressId}"
+                           th:data-recipient-name="${defaultAddress.recipientName}" th:data-phone="${defaultAddress.recipientPhone}"
+                           th:data-address="${defaultAddress.address}" th:data-address-name="${defaultAddress.addressName}" th:checked="true">
+                    <label for="addr_default">
+                        **[기본]** [[${defaultAddress.addressName}]]
+                        <span class="address-detail-text">([[${defaultAddress.address}]])</span>
+                        <p style="font-size: 0.8em; margin: 5px 0 0 0;">수령인: [[${defaultAddress.recipientName}]] / [[${defaultAddress.recipientPhone}]]</p>
+                    </label>
+                </div>
+
+                <div th:each="addr : ${otherAddresses}" class="address-option">
+                    <input type="radio" th:id="'addr_' + ${addr.addressId}" name="addressOption" th:value="${addr.addressId}"
+                           th:data-recipient-name="${addr.recipientName}" th:data-phone="${addr.recipientPhone}"
+                           th:data-address="${addr.address}" th:data-address-name="${addr.addressName}"
+                           th:checked="${defaultAddress == null and otherAddresses.indexOf(addr) == 0 ? true : false}">
+                    <label th:for="'addr_' + ${addr.addressId}">
+                        [[${addr.addressName}]]
+                        <span class="address-detail-text">([[${addr.address}]])</span>
+                        <p style="font-size: 0.8em; margin: 5px 0 0 0;">수령인: [[${addr.recipientName}]] / [[${addr.recipientPhone}]]</p>
+                    </label>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="address-option" th:style="${defaultAddress == null and (otherAddresses == null or otherAddresses.size() == 0) ? 'margin-top: 5px; border: 2px solid #dc3545;' : 'margin-top: 15px;'}">
+            <input type="radio" id="addr_new" name="addressOption" value="0"
+                   th:checked="${defaultAddress == null and (otherAddresses == null or otherAddresses.size() == 0) ? true : false}">
+            <label for="addr_new">
+                **➕ 신규 배송지 직접 입력**
+            </label>
+        </div>
+
+        <div id="newAddressFields" th:style="${defaultAddress == null and (otherAddresses == null or otherAddresses.size() == 0) ? 'display: block;' : 'display: none;'}">
+            <label for="new_addressName">배송지명:</label>
+            <input type="text" id="new_addressName" placeholder="예: 우리집, 회사" value="신규 배송지">
+
+            <label for="new_recipientName">수령인:</label>
+            <input type="text" id="new_recipientName" placeholder="수령인 이름">
+
+            <label for="new_phone">연락처:</label>
+            <input type="text" id="new_phone" placeholder="예: 010-1234-5678">
+
+            <label for="new_address">주소:</label>
+            <input type="text" id="new_address" placeholder="배송지 주소 (상세 주소 포함)">
+        </div>
+
+    </div>
+
+    <hr>
+
+    <h2>주문 상품 목록</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>상품명</th>
+            <th>단가</th>
+            <th>수량</th>
+            <th>합계</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${checkoutItems}">
+            <input type="hidden" th:name="'itemAmount_' + ${item.itemId}" th:value="${item.orderAmount}">
+            <input type="hidden" name="selectedItems" th:value="${item.itemId}">
+
+            <td th:text="${item.itemName}">상품명</td>
+            <td style="text-align: right;" th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + '원'">단가</td>
+            <td th:text="${item.orderAmount}">수량</td>
+            <td style="text-align: right;" th:with="total=${item.orderAmount * item.price}" th:text="${#numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT')} + '원'">합계</td>
+        </tr>
+        </tbody>
+    </table>
+    <hr>
+
+    <h2>최종 결제 금액: <span id="finalTotal" th:with="displayPrice=${totalPrice != null ? totalPrice : 0}" th:text="${#numbers.formatDecimal(displayPrice, 0, 'COMMA', 0, 'POINT')} + '원'">총 가격</span></h2>
+
+    <button type="submit">결제하기 (주문 확정)</button>
+
+</form>
+
+<script th:inline="javascript">
+    const defaultAddress = /*[[${defaultAddress}]]*/ null;
+    const otherAddresses = /*[[${otherAddresses}]]*/ [];
+
+    $(document).ready(function() {
+
+        const $addressIdInput = $('#addressId');
+        // name="ordRecipientName"이지만 id는 recipientName을 사용
+        const $recipientName = $('#recipientName');
+        const $phone = $('#phone');
+        const $address = $('#address');
+        const $addressName = $('#addressName');
+
+        const $newAddressFields = $('#newAddressFields');
+        const $new_addressName = $('#new_addressName');
+        const $new_recipientName = $('#new_recipientName');
+        const $new_phone = $('#new_phone');
+        const $new_address = $('#new_address');
+
+        // const $submitBtn = $('button[type="submit"]'); // 사용되지 않아 주석 처리
+
+        function fillOrderFields(data) {
+            $addressIdInput.val(data.addressId);
+            $recipientName.val(data.recipientName);
+            $phone.val(data.phone);
+            $address.val(data.address);
+            $addressName.val(data.addressName);
+
+            // Hidden Field의 disabled 처리는 일반적으로 불필요하므로 제거
+        }
+
+        function fillOrderFieldsFromNewInputs() {
+            fillOrderFields({
+                addressId: 0,
+                recipientName: $new_recipientName.val(),
+                phone: $new_phone.val(),
+                address: $new_address.val(),
+                addressName: $new_addressName.val()
+            });
+        }
+
+
+        const hasStoredAddresses = defaultAddress || (otherAddresses && otherAddresses.length > 0);
+
+        // 페이지 로딩 시 초기 주소 선택/입력 필드 설정
+        if (hasStoredAddresses) {
+            const $checkedRadio = $('input[name="addressOption"]:checked');
+            if ($checkedRadio.length) {
+                fillOrderFields({
+                    addressId: $checkedRadio.val(),
+                    recipientName: $checkedRadio.data('recipient-name'),
+                    phone: $checkedRadio.data('phone'),
+                    address: $checkedRadio.data('address'),
+                    addressName: $checkedRadio.data('address-name')
+                });
+            }
+        } else {
+            // 저장된 주소가 없으면 신규 입력 기본 선택 및 필드 채우기
+            $('#addr_new').prop('checked', true);
+            fillOrderFieldsFromNewInputs();
+            $newAddressFields.slideDown();
+        }
+
+        // 라디오 버튼 변경 시 처리
+        $('input[name="addressOption"]').on('change', function() {
+            const $selectedRadio = $(this);
+            const addressId = $selectedRadio.val();
+
+            if (addressId === '0') {
+                $newAddressFields.slideDown();
+                fillOrderFieldsFromNewInputs(); // 신규 필드의 값으로 OrderVO Hidden Fields 채우기
+            }
+            else {
+                $newAddressFields.slideUp();
+
+                fillOrderFields({ // 저장된 주소의 data-* 속성 값으로 OrderVO Hidden Fields 채우기
+                    addressId: addressId,
+                    recipientName: $selectedRadio.data('recipient-name'),
+                    phone: $selectedRadio.data('phone'),
+                    address: $selectedRadio.data('address'),
+                    addressName: $selectedRadio.data('address-name')
+                });
+            }
+        });
+
+        // 신규 주소 입력 필드 값이 변경될 때마다 OrderVO Hidden Fields 업데이트
+        $newAddressFields.find('input').on('input', function() {
+            if ($('#addr_new').prop('checked')) {
+                fillOrderFieldsFromNewInputs();
+            }
+        });
+
+
+        $('#orderForm').on('submit', function(e) {
+
+            const selectedAddressId = $addressIdInput.val();
+
+            if (selectedAddressId === '') {
+                e.preventDefault();
+                alert("유효한 배송지를 선택해주세요.");
+                return false;
+            }
+
+            if (selectedAddressId === '0') {
+                // 신규 주소 입력 필드 유효성 검사
+                if ($new_recipientName.val() === '' || $new_phone.val() === '' || $new_address.val() === '' || $new_addressName.val() === '') {
+                    e.preventDefault();
+                    alert("신규 배송지 정보를 모두 입력해주세요.");
+                    return false;
+                }
+
+                // 신규 주소일 경우 최종적으로 OrderVO 필드 업데이트 (혹시 모를 마지막 확인)
+                fillOrderFieldsFromNewInputs();
+            }
+
+            return true;
+        });
+    });
+</script>
+</body>
+</html>

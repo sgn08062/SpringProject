@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="|주문 상세 - ${order.orderId}번|">주문 상세</title>
+    <link rel="stylesheet" href="../main/main.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+        .order-summary {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin-bottom: 30px;
+            background-color: #f9f9f9;
+            border-radius: 6px;
+        }
+        .order-summary p {
+            margin: 8px 0;
+            font-size: 1.1em;
+        }
+        .order-summary strong {
+            display: inline-block;
+            width: 120px;
+            color: #555;
+        }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; text-align: center; }
+        th, td { border: 1px solid #ddd; padding: 12px; }
+        th { background-color: #e9e9e9; }
+
+        .btn-cancel {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+        .btn-cancel:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+<h1 th:text="|주문 상세 정보 (ID: ${order.orderId})|">주문 상세 정보</h1>
+
+<div class="order-summary">
+    <h2>주문 요약</h2>
+    <p><strong>주문 번호:</strong> <span th:text="${order.orderId}">1001</span></p>
+    <p><strong>대표 상품:</strong> <span th:text="${order.representativeItemName}">사과 외 2건</span></p>
+    <p><strong>주문 일자:</strong> <span th:text="${order.orderDate != null ? #temporals.format(order.orderDate, 'yyyy-MM-dd HH:mm:ss') : '날짜 없음'}">2023-10-27 10:00:00</span></p>
+    <p><strong>주문 상태:</strong> <span th:text="${order.status}">결제 완료</span></p>
+    <hr style="border-top: 1px solid #ddd;">
+    <p><strong>수령인:</strong> <span th:text="${order.ordRecipientName}">홍길동</span></p>
+    <p><strong>연락처:</strong> <span th:text="${order.phone}">010-1234-5678</span></p>
+    <p><strong>배송지:</strong> <span th:text="${order.address}">서울시 강남구</span></p>
+    <hr style="border-top: 1px solid #ddd;">
+    <p><strong>총 결제 금액:</strong> <span style="font-size: 1.2em; color: #dc3545;" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + '원'">15,000원</span></p>
+</div>
+
+<h2>주문 상품 목록</h2>
+<div th:if="${items != null and not #lists.isEmpty(items)}">
+    <table>
+        <thead>
+        <tr>
+            <th>상품 ID</th>
+            <th>상품명</th>
+            <th>주문 당시 단가</th>
+            <th>수량</th>
+            <th>총액</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${items}">
+            <td th:text="${item.itemId}">1</td>
+            <td th:text="${item.itemName}">상품 A</td>
+            <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + '원'">10,000원</td>
+            <td th:text="${item.orderAmount}">1</td>
+            <td th:text="${#numbers.formatDecimal(item.price * item.orderAmount, 0, 'COMMA', 0, 'POINT')} + '원'">10,000원</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div th:if="${items == null or #lists.isEmpty(items)}">
+    <p>주문된 상품 내역이 없습니다.</p>
+</div>
+
+<th:block th:if="${order.status == '결제 완료' or order.status == '상품 준비중'}">
+    <button type="button" class="btn-cancel" th:onclick="|cancelOrder(${order.orderId})|">
+        주문 취소하기
+    </button>
+</th:block>
+
+<p style="margin-top: 30px;">
+    <a th:href="@{/uorder/list}">← 주문 목록으로 돌아가기</a>
+</p>
+
+<script th:inline="javascript">
+    // ⭐ 수정됨: 주문 취소 URL을 /uorder/cancel 로 통일합니다.
+    const cancelUrl = /*[[@{/uorder/cancel}]]*/ '/uorder/cancel';
+
+    /**
+     * 주문 취소 처리 함수
+     * @param {number} orderId
+     */
+    function cancelOrder(orderId) {
+        if (!confirm(`${orderId}번 주문을 정말로 취소하시겠습니까?`)) {
+            return;
+        }
+
+        $.ajax({
+            // Controller의 POST /uorder/cancel/{orderId} 경로 사용
+            url: `${cancelUrl}/${orderId}`,
+            type: 'POST',
+            success: function(response) {
+                // 서버 응답 메시지를 표시하거나 기본 성공 메시지를 사용
+                alert(response.message || "주문이 성공적으로 취소되었습니다.");
+                // 취소 후 페이지 새로고침하여 상태 업데이트
+                location.reload();
+            },
+            error: function(xhr) {
+                let errorMessage = "주문 취소 중 오류가 발생했습니다.";
+                try {
+                    // 서버에서 JSON 응답으로 에러 메시지를 보낼 경우
+                    const responseJson = JSON.parse(xhr.responseText);
+                    errorMessage = responseJson.message || responseJson;
+                } catch (e) {
+                    // JSON 형식이 아니거나 파싱 실패 시
+                    if (xhr.responseText) {
+                        // HTTP 상태 코드에 따른 일반적인 에러 메시지
+                        errorMessage = xhr.responseText;
+                    }
+                }
+                alert(errorMessage);
+            }
+        });
+    }
+</script>
+</body>
+</html>

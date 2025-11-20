@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>주문 및 주소 관리</title>
+    <link rel="stylesheet" href="../main/main.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tabs { margin-bottom: 20px; }
+        .tabs button { padding: 10px 15px; cursor: pointer; border: 1px solid #ccc; border-bottom: none; background-color: #f0f0f0; margin-right: 5px; }
+        .tabs button.active { background-color: white; border-bottom: 1px solid white; border-top: 2px solid #28a745; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; text-align: center; }
+        th, td { border: 1px solid #ddd; padding: 10px; }
+        th { background-color: #f2f2f2; }
+        .cancel-button:disabled { background-color: #ccc; cursor: not-allowed; }
+        .cancel-button { padding: 5px 10px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .detail-button { padding: 5px 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; text-decoration: none; display: inline-block;}
+        /* 새 배송지 추가 버튼 스타일 */
+        .add-address-button {
+            display: inline-block;
+            padding: 8px 15px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<h1>📦 주문 및 주소 관리</h1>
+
+<div th:if="${successMessage}" class="message success" th:text="${successMessage}"></div>
+<div th:if="${errorMessage}" class="message error" th:text="${errorMessage}"></div>
+
+<div class="tabs">
+    <button class="tab-button active" onclick="openTab(event, 'orderListTab')">주문 내역</button>
+    <button class="tab-button" onclick="openTab(event, 'addressListTab')">배송지 관리</button>
+</div>
+
+<div id="orderListTab" class="tab-content active">
+    <h2>주문 내역</h2>
+    <div th:if="${orderList != null and not #lists.isEmpty(orderList)}">
+        <table>
+            <thead>
+            <tr>
+                <th>주문 번호</th>
+                <th>대표 상품</th>
+                <th>총액</th>
+                <th>배송지</th>
+                <th>상태</th>
+                <th>주문 일자</th>
+                <th>상세보기</th> <th>주문 취소</th> </tr>
+            </thead>
+            <tbody>
+            <tr th:each="order : ${orderList}">
+                <td th:text="${order.orderId}">1</td>
+                <td th:text="${order.representativeItemName}">상품명</td>
+                <td th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + '원'">총액</td>
+                <td th:text="${order.address}">배송 주소</td>
+                <td th:text="${order.status}">상태</td>
+                <td th:text="${order.orderDate != null ? #temporals.format(order.orderDate, 'yyyy-MM-dd HH:mm:ss') : '날짜 없음'}">일자</td>
+                <td>
+                    <a th:href="@{/uorder/detail/{id}(id=${order.orderId})}" class="detail-button">상세보기</a>
+                </td>
+                <td>
+                    <button
+                            class="cancel-button"
+                            th:data-order-id="${order.orderId}"
+                            th:disabled="${order.status == '배송 중' or order.status == '배송완료' or order.status == '주문 취소'}"
+                            th:text="${order.status == '주문 취소' ? '취소 완료' : '주문 취소'}">
+                        주문 취소
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div th:if="${orderList == null or #lists.isEmpty(orderList)}">
+        <p>아직 주문 내역이 없습니다.</p>
+    </div>
+</div>
+
+<div id="addressListTab" class="tab-content">
+    <h2>배송지 관리</h2>
+    <div th:if="${addressList != null and not #lists.isEmpty(addressList)}">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>배송지명</th>
+                <th>주소</th>
+                <th>관리</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="address : ${addressList}">
+                <td th:text="${address.addId}"></td>
+                <td th:text="${address.addName}"></td>
+                <td th:text="${address.address}"></td>
+                <td>
+                    <form th:action="@{/uorder/address/delete/{id}(id=${address.addId})}" method="post" style="display:inline;">
+                        <button type="submit" onclick="return confirm('정말 이 배송지를 삭제하시겠습니까?');">삭제</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div th:if="${addressList == null or #lists.isEmpty(addressList)}">
+        <p>등록된 배송지가 없습니다.</p>
+    </div>
+    <a th:href="@{/uorder/address/new}" class="add-address-button">➕ 새 배송지 추가</a>
+</div>
+
+<form id="cancelForm" method="post" action="" style="display:none;"></form>
+
+
+<script>
+    function openTab(evt, tabName) {
+        $('.tab-content').removeClass('active');
+        $('.tab-button').removeClass('active');
+        $('#' + tabName).addClass('active');
+        $(evt.currentTarget).addClass('active');
+    }
+
+    $(document).ready(function() {
+        // ⭐ 개선: 초기 로드 시 첫 번째 탭을 활성화합니다.
+        // openTab({currentTarget: $('.tab-button').first()}, 'orderListTab'); // 이 코드는 이미 DOMContentLoaded 시점에서는 불필요합니다.
+
+        $('.cancel-button').on('click', function() {
+            const orderId = $(this).data('order-id');
+            const statusText = $(this).text().trim();
+
+            if (statusText === '취소 완료') {
+                alert("이미 취소된 주문입니다.");
+                return;
+            }
+            if ($(this).prop('disabled')) {
+                alert("현재 주문 상태(" + statusText + ")에서는 취소가 불가능합니다.");
+                return;
+            }
+
+            if (confirm(orderId + "번 주문을 정말 취소하시겠습니까? 주문 취소 시 재고가 복구됩니다.")) {
+
+                const $form = $('#cancelForm');
+                // ⭐ 수정: OrderController의 POST 경로에 맞게 action을 설정
+                $form.attr('action', '/uorder/cancel/' + orderId);
+
+                $form.submit();
+            }
+        });
+    });
+</script>
+</body>
+</html>
