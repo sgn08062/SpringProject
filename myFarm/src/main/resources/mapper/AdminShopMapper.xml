@@ -39,9 +39,9 @@
         WHERE ITEM_ID = #{itemId}
     </update>
 
-    <delete id="deleteItem">
-        DELETE FROM SHOP WHERE ITEM_ID = #{itemId}
-    </delete>
+<!--    <delete id="deleteItem">-->
+<!--        DELETE FROM SHOP WHERE ITEM_ID = #{itemId}-->
+<!--    </delete>-->
 
     <select id="getItemDetail" resultType="com.example.myFarm.command.ShopVO">
         SELECT

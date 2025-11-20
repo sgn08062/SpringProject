@@ -382,8 +382,26 @@ document.addEventListener('visibilitychange', () => {
 // ======================================
 
 // 주문 목록 조회 API
-async function fetchOrders() {
-    const res = await fetch('/admin/api/order/list', {
+// [수정] 인자로 keyword와 status를 받도록 변경
+async function fetchOrders(keyword = '', status = '') {
+    const params = new URLSearchParams();
+
+    // 고객명 검색어 (customerName) 추가
+    if (keyword) {
+        // [주의] Controller에서 어떤 이름으로 받을지 확인하고 key를 결정하세요.
+        // 여기서는 customerName으로 가정합니다.
+        params.append('customerName', keyword);
+    }
+
+    // 주문 상태 (status) 필터링 값 추가
+    if (status) {
+        params.append('status', status);
+    }
+
+    // 쿼리 파라미터를 URL에 추가
+    const url = `/admin/api/order/list?${params.toString()}`;
+
+    const res = await fetch(url, {
         headers: { 'Content-Type': 'application/json' }
     });
     if (!res.ok) throw new Error('주문 목록 로딩 실패');
@@ -439,7 +457,7 @@ async function renderProductList() {
       </td>
       <td>
         <button class="btn-small btn-edit" onclick="openModal('edit-product-modal', ${product.itemId})">수정</button>
-        <button class="btn-small btn-delete" onclick="handleDeleteProduct(${product.itemId})">삭제</button>
+       <!--  <button class="btn-small btn-delete" onclick="handleDeleteProduct(${product.itemId})">삭제</button> -->
       </td>
     </tr>
   `).join('');
@@ -452,8 +470,11 @@ async function renderOrderList() {
 
     list.innerHTML = '<tr><td colspan="6">주문 목록을 불러오는 중...</td></tr>';
 
+    const keyword = document.getElementById('order-search-keyword')?.value || '';
+    const status = document.getElementById('order-status-select')?.value || '';
+
     try {
-        const orders = await fetchOrders();
+        const orders = await fetchOrders(keyword, status);
 
         if (!Array.isArray(orders) || orders.length === 0) {
             list.innerHTML = '<tr><td colspan="6">등록된 주문이 없습니다.</td></tr>';
@@ -765,27 +786,27 @@ async function handleStatusToggle(itemId, isChecked) {
     }
 }
 
-async function handleDeleteProduct(itemId) {
-    if (!confirm(`상품 ID: ${itemId}을(를) 정말 삭제하시겠습니까?`)) {
-        return;
-    }
-
-    try {
-        const response = await fetch(API_BASE_URL + '/item/' + itemId, {
-            method: 'DELETE'
-        });
-
-        if (response.status === 204) {
-            alert(`상품 ID: ${itemId} 삭제 완료.`);
-            renderProductList();
-        } else {
-            alert('상품 삭제에 실패했습니다. (서버 오류)');
-        }
-    } catch (error) {
-        console.error('삭제 통신 오류:', error);
-        alert('상품 삭제 중 통신 오류가 발생했습니다.');
-    }
-}
+// async function handleDeleteProduct(itemId) {
+//     if (!confirm(`상품 ID: ${itemId}을(를) 정말 삭제하시겠습니까?`)) {
+//         return;
+//     }
+//
+//     try {
+//         const response = await fetch(API_BASE_URL + '/item/' + itemId, {
+//             method: 'DELETE'
+//         });
+//
+//         if (response.status === 204) {
+//             alert(`상품 ID: ${itemId} 삭제 완료.`);
+//             renderProductList();
+//         } else {
+//             alert('상품 삭제에 실패했습니다. (서버 오류)');
+//         }
+//     } catch (error) {
+//         console.error('삭제 통신 오류:', error);
+//         alert('상품 삭제 중 통신 오류가 발생했습니다.');
+//     }
+// }
 
 async function handleDelete(type, id) {
     const label = (type === 'crop' ? '농작물' : '농가');
@@ -820,7 +841,7 @@ async function handleDelete(type, id) {
 }
 
 // ======================================
-// 9. 주문 상세 모달 / 배송 상태 변경
+// 9. 주문 상세 모달 / 상태 변경
 // ======================================
 
 // 주문 상태 → 라벨/클래스 매핑
@@ -1173,4 +1194,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('edit-farm-form')?.addEventListener('submit', handleEditFarmAddress);
     document.getElementById('edit-crop-form')?.addEventListener('submit', handleEditCrop);
     document.getElementById('edit-product-form')?.addEventListener('submit', handleEditProduct);
+
+    // 검색 버튼에 이벤트 리스너 추가
+    document.querySelector('.filter-area .btn-secondary')?.addEventListener('click', () => {
+        renderOrderList();
+    });
 });

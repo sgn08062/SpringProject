@@ -10,7 +10,7 @@ public interface AdminShopMapper {
     List<ShopVO> findAllItems();
     void insertItem(ShopVO itemVO);
     void updateItem(ShopVO itemVO);
-    void deleteItem(Long itemId);
+//    void deleteItem(Long itemId);
     ShopVO getItemDetail(Long itemId);
 
     void updateItemStatus(@Param("itemId") Long itemId,

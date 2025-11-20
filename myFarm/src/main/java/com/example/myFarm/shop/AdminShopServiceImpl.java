@@ -30,11 +30,11 @@ public class AdminShopServiceImpl implements AdminShopService {
         AdminShopMapper.updateItem(itemVO);
     }
 
-    @Override
-    @Transactional
-    public void deleteItem(Long itemId) {
-        AdminShopMapper.deleteItem(itemId);
-    }
+//    @Override
+//    @Transactional
+//    public void deleteItem(Long itemId) {
+//        AdminShopMapper.deleteItem(itemId);
+//    }
 
     @Override
     public ShopVO getItemDetail(Long itemId) {
