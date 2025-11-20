@@ -34,13 +34,16 @@
     <select id="selectAll" resultType="InventoryVO">
         SELECT
             T1.STOR_ID,
-            T1.STOR_NAME,
+            T3.CROP_NAME AS STOR_NAME,
             T1.AMOUNT,
             T1.CROP_ID
         FROM INVENTORY T1
 
                  LEFT JOIN SHOP T2
                      ON T1.STOR_ID = T2.STOR_ID
+
+                 LEFT JOIN CROP T3
+                     ON T1.CROP_ID = T3.CROP_ID
 
         WHERE T1.AMOUNT > 0
           AND T2.ITEM_ID IS NULL
