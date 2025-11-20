@@ -1,19 +1,27 @@
 package com.example.myFarm.controller;
 
 import com.example.myFarm.command.ShopVO;
+import com.example.myFarm.image.ImageService;
 import com.example.myFarm.shop.AdminShopService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 
 @RestController
 @RequestMapping("/admin/shop")
-@RequiredArgsConstructor
 public class AdminShopController {
 
-    private final AdminShopService AdminshopService;
+    @Autowired
+    private AdminShopService AdminshopService;
+
+    @Autowired
+    private ImageService imageService;
 
     // 1. 목록 조회 (API)
     @GetMapping
@@ -24,9 +32,25 @@ public class AdminShopController {
 
     // 2. 등록 (API)
     @PostMapping("/additem")
-    public ResponseEntity<Void> addItem(@RequestBody ShopVO itemVO) {
-        AdminshopService.addItem(itemVO);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+    @Transactional
+    public ResponseEntity<Void> addItem(@ModelAttribute ShopVO shopVO,
+                                        @RequestParam(value = "mainImage", required = false) MultipartFile mainImage,
+                                        @RequestParam(value = "detailImages", required = false) List<MultipartFile> detailImages) {
+        AdminshopService.addItem(shopVO);
+        System.out.println("shopVO 디버그 " + shopVO.toString());
+        Long itemId = shopVO.getItemId();
+        if (itemId == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        try {
+            imageService.saveItemImages(itemId, mainImage, detailImages);
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        return ResponseEntity.ok().build();
     }
 
     // 3. 수정 (API)

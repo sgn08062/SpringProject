@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.myFarm.image.ImageMapper">
+
+    <insert id="insertImage" parameterType="ImageVO">
+        INSERT INTO IMAGE (
+            IMAGE_URL,
+            IMAGE_TYPE,
+            ITEM_ID
+        )
+        VALUES (
+            #{imageUrl},
+            #{imageType},
+            #{itemId}
+        )
+    </insert>
+</mapper>

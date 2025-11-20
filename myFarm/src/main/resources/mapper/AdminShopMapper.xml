@@ -17,13 +17,18 @@
         ON T1.STOR_ID = T2.STOR_ID
     </select>
 
-    <insert id="insertItem" parameterType="com.example.myFarm.command.ShopVO">
+    <insert id="insertItem"
+            parameterType="com.example.myFarm.command.ShopVO"
+            useGeneratedKeys="true"
+            keyProperty="itemId"
+            keyColumn="ITEM_ID">
         INSERT INTO SHOP (ITEM_NAME, PRICE, STOR_ID, STATUS)
         VALUES (#{itemName},
                 #{price},
                 #{storId},
                 1)
     </insert>
+
 
     <update id="updateItem" parameterType="com.example.myFarm.command.ShopVO">
         UPDATE SHOP

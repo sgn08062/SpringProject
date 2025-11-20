@@ -624,39 +624,47 @@ async function handleNewCrop(e) {
 async function handleNewProduct(e) {
     e.preventDefault();
 
-    const itemName = document.getElementById('new-item-name').value;
-    const price = parseInt(document.getElementById('new-item-price').value || 0);
-    const storId = document.getElementById('new-stor-select').value;
+    const form = document.getElementById("new-product-form");
+    const formData = new FormData(form);
 
+    const storId   = formData.get("storId");
+    const itemName = formData.get("itemName");
+    const priceRaw = formData.get("price");
+    const price    = parseInt(priceRaw || "0", 10);
+
+    // 필수값 체크
     if (!storId) {
-        alert('농작물을 선택해주세요.');
+        alert("농작물을 선택해주세요.");
         return;
     }
-
-    const itemVO = {
-        itemName: itemName,
-        price: price,
-        storId: storId
-    };
+    if (!itemName || itemName.trim().length === 0) {
+        alert("상품명을 입력해주세요.");
+        return;
+    }
+    if (isNaN(price) || price < 0) {
+        alert("가격을 올바르게 입력해주세요.");
+        return;
+    }
+    // 숫자로 정제해서 다시 넣어주고 싶으면
+    formData.set("price", String(price));
 
     try {
-        const response = await fetch(API_BASE_URL + '/additem', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(itemVO)
+        const response = await fetch(API_BASE_URL + "/additem", {
+            method: "POST",
+            body: formData
         });
 
-        if (response.status === 201) {
+        if (response.status === 201 || response.ok) {
             alert(`상품 '${itemName}' 등록 완료!`);
-            closeModal('new-product-modal');
-            document.getElementById('new-product-form').reset();
+            closeModal("new-product-modal");
+            form.reset();
             renderProductList();
         } else {
-            alert('상품 등록 실패! 서버 응답을 확인하세요.');
+            alert("상품 등록 실패! 서버 응답을 확인하세요.");
         }
     } catch (error) {
-        console.error('등록 통신 오류:', error);
-        alert('상품 등록 중 오류가 발생했습니다.');
+        console.error("등록 통신 오류:", error);
+        alert("상품 등록 중 오류가 발생했습니다.");
     }
 }
 
@@ -1186,6 +1194,23 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch(() => {
             // 실패 시 fallback 필요하면 여기서 처리
         });
+
+    // 상세 이미지 5장 제한
+    const detailInput = document.getElementById('detail-images');
+    if (detailInput) {
+        detailInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+
+            if (files.length > 5) {
+                alert('상세 이미지는 최대 5장까지만 업로드할 수 있습니다.\n선택한 이미지 중 앞의 5장만 사용합니다.');
+
+                // 앞의 5개만 남기고 나머지는 버림
+                const dt = new DataTransfer();
+                files.slice(0, 5).forEach(file => dt.items.add(file));
+                e.target.files = dt.files;
+            }
+        });
+    }
 
     document.getElementById('new-farm-form')?.addEventListener('submit', handleNewFarm);
     document.getElementById('new-crop-form')?.addEventListener('submit', handleNewCrop);
