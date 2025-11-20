@@ -1,10 +1,11 @@
-/*
 package com.example.myFarm.controller;
 
 import com.example.myFarm.command.AddressVO;
 import com.example.myFarm.command.OrderVO;
 import com.example.myFarm.command.ItemVO;
-/import com.example.myFarm.uorder.OrderService;
+import com.example.myFarm.command.CartVO;
+import com.example.myFarm.uorder.OrderService;
+import com.example.myFarm.cart.CartService;
 import com.example.myFarm.util.SessionUtil;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/uorder")
@@ -22,12 +24,73 @@ import java.util.Map;
 public class UserOrderController {
 
     private final OrderService orderService;
+    private final CartService cartService;
 
-    @GetMapping("/orders")
-    public String getOrderPage(HttpSession session, Model model) {
+    @PostMapping("/orders")
+    public String getOrderPage(@RequestParam List<Integer> selectedItems,
+                               @RequestParam Map<String, String> itemAmounts,
+                               HttpSession session,
+                               Model model,
+                               RedirectAttributes ra) {
         int userId = SessionUtil.getCurrentUserId(session);
-        model.addAttribute("userId", userId);
-        return "uorder/orders";
+
+        if (selectedItems == null || selectedItems.isEmpty()) {
+            ra.addFlashAttribute("errorMessage", "주문할 상품이 없습니다.");
+            return "redirect:/cart";
+        }
+
+        try {
+            List<CartVO> cartList = cartService.getCartList(userId);
+
+            List<ItemVO> checkoutItems = cartList.stream()
+                    .filter(cart -> selectedItems.contains(cart.getItemId()))
+                    .map(cart -> {
+                        String amountKey = "itemAmount_" + cart.getItemId();
+                        int finalAmount = cart.getAmount();
+
+                        if (itemAmounts.containsKey(amountKey)) {
+                            try {
+                                finalAmount = Math.max(1, Integer.parseInt(itemAmounts.get(amountKey)));
+                            } catch (NumberFormatException ignored) {}
+                        }
+
+                        ItemVO item = new ItemVO();
+                        item.setItemId(cart.getItemId());
+                        item.setItemName(cart.getItemName());
+                        item.setPrice(cart.getPrice());
+                        item.setOrderAmount(finalAmount);
+                        item.setStockAmount(cart.getStockAmount());
+
+                        return item;
+                    })
+                    .filter(item -> item.getStockAmount() >= item.getOrderAmount())
+                    .collect(Collectors.toList());
+
+            if (checkoutItems.isEmpty()) {
+                ra.addFlashAttribute("errorMessage", "선택하신 상품을 찾을 수 없거나 이미 품절된 상품이 포함되어 주문할 수 없습니다.");
+                return "redirect:/cart";
+            }
+
+            model.addAttribute("checkoutItems", checkoutItems);
+
+            AddressVO defaultAddress = orderService.getDefaultAddress(userId);
+            List<AddressVO> otherAddresses = orderService.getOtherAddresses(userId);
+
+            model.addAttribute("defaultAddress", defaultAddress);
+            model.addAttribute("otherAddresses", otherAddresses);
+
+            int totalPrice = checkoutItems.stream()
+                    .mapToInt(item -> item.getPrice() * item.getOrderAmount())
+                    .sum();
+            model.addAttribute("totalPrice", totalPrice);
+
+            model.addAttribute("userId", userId);
+
+            return "uorder/orders";
+        } catch (IllegalStateException e) {
+            ra.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/cart";
+        }
     }
 
     @PostMapping("/place")
@@ -43,11 +106,13 @@ public class UserOrderController {
             Long orderId = orderService.placeOrder(order, itemAmounts);
 
             ra.addFlashAttribute("message", orderId + "번 주문이 완료되었습니다.");
-            return "redirect:/uorder/detail/" + orderId;
+
+            // 🚨 수정된 부분: 상세 페이지 -> 목록 페이지로 변경
+            return "redirect:/uorder/list";
 
         } catch (IllegalStateException e) {
             ra.addFlashAttribute("error", e.getMessage());
-            return "redirect:/cart";
+            return "redirect:/uorder/orders";
         }
     }
 
@@ -80,7 +145,7 @@ public class UserOrderController {
         } catch (IllegalStateException e) {
             ra.addFlashAttribute("error", e.getMessage());
         }
-        return "redirect:/uorder/detail/" + orderId;
+        return "redirect:/uorder/list";
     }
 
     @GetMapping("/address")
@@ -125,4 +190,4 @@ public class UserOrderController {
         model.addAttribute("userName", userName);
         return "uorder/info";
     }
-}*/
+}

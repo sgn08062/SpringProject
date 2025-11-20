@@ -1,4 +1,4 @@
-package com.example.myFarm.user;
+package com.example.myFarm.uorder;
 
 import com.example.myFarm.command.ItemVO;
 import com.example.myFarm.command.OrderVO;

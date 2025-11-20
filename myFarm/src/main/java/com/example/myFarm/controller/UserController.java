@@ -1,9 +1,9 @@
 package com.example.myFarm.controller;
 
-import com.example.myFarm.cart.CartService; // ⭐ 추가: CartService 주입을 위해 필요
+// import com.example.myFarm.cart.CartService; // ⭐ 주석 처리: CartController, UserOrderController로 이동
 import com.example.myFarm.command.CartVO;
-import com.example.myFarm.command.OrderVO;
-import com.example.myFarm.command.AddressVO;
+// import com.example.myFarm.command.OrderVO; // ⭐ 주석 처리: UserOrderController로 이동
+// import com.example.myFarm.command.AddressVO; // ⭐ 주석 처리: UserOrderController로 이동
 import com.example.myFarm.command.ItemVO;
 import com.example.myFarm.command.ShopVO;
 import com.example.myFarm.shop.AdminShopService;
@@ -29,7 +29,7 @@ public class UserController {
 
     private final UserService userService;
     private final AdminShopService adminShopService;
-    private final CartService cartService; // ⭐ 추가: 주문 로직에서 장바구니 데이터를 가져오기 위해 필요
+    // private final CartService cartService; // ⭐ 주석 처리: 주문 로직 분리에 따라 주석 처리
     // private final DummyService dummyService; // ❌ DUMMY SERVICE 필드 주석 처리
 
     /* ❌ 삭제된 부분: SessionUtil로 로직 이동 및 통일
@@ -162,6 +162,7 @@ public class UserController {
     }
     */
 
+    /* ⭐ 주석 처리: 주문 로직 분리
     @GetMapping("/orderList")
     public String getOrderList(Model model, @RequestParam(required = false) String successMessage, @RequestParam(required = false) String errorMessage, HttpSession session) {
 
@@ -176,7 +177,9 @@ public class UserController {
         }
         return "user/orderList";
     }
+    */
 
+    /* ⭐ 주석 처리: 주문 로직 분리
     @GetMapping("/order")
     public String getOrderPage(
             @RequestParam(name = "selectedItems", required = false) List<Integer> selectedItems,
@@ -239,10 +242,12 @@ public class UserController {
 
         return "user/order";
     }
+    */
 
 
     // UserController.java (placeOrder 메서드만 수정)
 
+    /* ⭐ 주석 처리: 주문 로직 분리
     @PostMapping("/placeOrder")
     public String placeOrder(
             @ModelAttribute OrderVO order,
@@ -279,8 +284,10 @@ public class UserController {
             return "redirect:/user/orderList";
         }
     }
+    */
 
 
+    /* ⭐ 주석 처리: 주문 로직 분리
     @GetMapping("/order/{id}")
     public String getOrderDetail(@PathVariable("id") Long orderId, Model model, HttpSession session) {
 
@@ -296,7 +303,9 @@ public class UserController {
 
         return "user/orderDetail";
     }
+    */
 
+    /* ⭐ 주석 처리: 주문 로직 분리
     @PostMapping("/order/cancel/{id}")
     public String cancelOrder(@PathVariable("id") Long orderId, RedirectAttributes ra, HttpSession session) {
         try {
@@ -310,11 +319,14 @@ public class UserController {
 
         return "redirect:/user/orderList";
     }
+    */
 
+    /* ⭐ 주석 처리: 주소 관련 로직 분리
     @PostMapping("/address/delete/{id}")
     public String deleteAddress(@PathVariable("id") Long addressId, RedirectAttributes ra, HttpSession session) {
         userService.deleteAddress(addressId, SessionUtil.getCurrentUserId(session)); // ⭐ SessionUtil 사용
         ra.addFlashAttribute("successMessage", addressId + "번 배송지가 삭제되었습니다.");
         return "redirect:/user/orderList";
     }
+    */
 }
