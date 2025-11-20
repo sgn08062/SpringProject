@@ -16,4 +16,25 @@
             #{itemId}
         )
     </insert>
+
+    <delete id="deleteImagesByIds" parameterType="list">
+        DELETE FROM IMAGE
+        WHERE IMAGE_ID IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectImagesByItemId"
+            parameterType="long"
+            resultType="ImageVO">
+        SELECT
+            IMAGE_ID   AS imageId,
+            IMAGE_URL  AS imageUrl,
+            IMAGE_TYPE AS imageType,
+            ITEM_ID    AS itemId
+        FROM IMAGE
+        WHERE ITEM_ID = #{itemId}
+        ORDER BY IMAGE_ID
+    </select>
 </mapper>

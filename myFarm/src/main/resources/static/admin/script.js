@@ -5,6 +5,23 @@
 // ======================================
 const API_BASE_URL = '/admin/shop';
 
+// 상품 수정 모달 이미지 상태
+const editProductImages = {
+    existingMain: null,       // { imageId, imageUrl, imageType: 'MAIN' }
+    existingDetails: [],      // [{ imageId, imageUrl, imageType: 'DETAIL' }, ...]
+    deleteIds: new Set(),     // 삭제할 imageId 모음
+    newMainFile: null,        // 새로 선택한 대표 이미지
+    newDetailFiles: [],       // 새로 추가한 상세 이미지 File[]
+
+    reset() {
+        this.existingMain = null;
+        this.existingDetails = [];
+        this.deleteIds = new Set();
+        this.newMainFile = null;
+        this.newDetailFiles = [];
+    }
+};
+
 // 상품 더미 데이터 (API 실패 시 fallback용, DB 구조 맞춤)
 let products = [
     { itemId: 101, itemName: "유기농 방울토마토", price: 12000, status: 1, storId: 101 },
@@ -673,30 +690,217 @@ async function handleNewProduct(e) {
 // ======================================
 
 async function populateEditForm(modalId, itemId) {
-    if (modalId === 'edit-product-modal') {
-        try {
-            const response = await fetch(API_BASE_URL + '/item/' + itemId);
-            if (!response.ok) throw new Error('상세 상품 데이터를 찾을 수 없습니다.');
+    if (modalId !== 'edit-product-modal') return;
 
-            const item = await response.json();
+    try {
+        // 0) 상태 초기화
+        editProductImages.reset();
 
-            document.getElementById('edit-item-id').value = item.itemId;
-            document.getElementById('edit-product-id-display').textContent = item.itemId;
+        // 1) 상품 기본 정보 + 이미지 정보 병렬로 가져오기
+        const [itemRes, imgRes] = await Promise.all([
+            fetch(API_BASE_URL + '/item/' + itemId),
+            fetch(API_BASE_URL + '/item/' + itemId + '/images')
+        ]);
 
-            document.getElementById('edit-item-name').value = item.itemName || '';
-            document.getElementById('edit-item-price').value = item.price || 0;
-
-            const storIdEl = document.getElementById('edit-stor-id');
-            storIdEl.value = item.storId || '';
-            // 창고 매핑은 수정 불가
-            storIdEl.disabled = true;
-
-        } catch (error) {
-            console.error('데이터 로드 오류:', error);
-            alert('수정할 상품 데이터를 불러오는 데 실패했습니다.');
+        if (!itemRes.ok) {
+            throw new Error('상세 상품 데이터를 찾을 수 없습니다.');
         }
+
+        const item = await itemRes.json();
+
+        document.getElementById('edit-item-id').value = item.itemId;
+        document.getElementById('edit-product-id-display').textContent = item.itemId;
+        document.getElementById('edit-item-name').value = item.itemName || '';
+        document.getElementById('edit-item-price').value = item.price || 0;
+
+        const storIdEl = document.getElementById('edit-stor-id');
+        if (storIdEl) {
+            storIdEl.value = item.storId || '';
+            storIdEl.disabled = true;
+        }
+
+        // 2) 이미지 리스트 세팅
+        if (imgRes.ok) {
+            const images = await imgRes.json(); // [{imageId, imageUrl, imageType}, ...]
+
+            images.forEach(img => {
+                if (img.imageType === 'MAIN') {
+                    editProductImages.existingMain = img;
+                } else if (img.imageType === 'DETAIL') {
+                    editProductImages.existingDetails.push(img);
+                }
+            });
+        } else {
+            console.warn('이미지 목록을 불러오지 못했습니다.');
+        }
+
+        // 3) ✅ 실제 DOM에 그리기
+        renderEditProductImages();
+
+    } catch (error) {
+        console.error('데이터 로드 오류:', error);
+        alert('수정할 상품 데이터를 불러오는 데 실패했습니다.');
     }
 }
+
+
+function renderEditProductImages() {
+    const mainArea = document.getElementById('edit-main-image-area');
+    const detailArea = document.getElementById('edit-detail-image-area');
+    if (!mainArea || !detailArea) return;
+
+    // ===== 1) 대표 이미지 영역 =====
+    mainArea.innerHTML = '';
+
+    if (editProductImages.existingMain &&
+        !editProductImages.deleteIds.has(editProductImages.existingMain.imageId)) {
+
+        const wrap = document.createElement('div');
+        wrap.className = 'image-box';
+
+        const imgEl = document.createElement('img');
+        imgEl.src = `/files/${editProductImages.existingMain.imageUrl}`; // 실제 URL 매핑에 맞게 수정
+        imgEl.className = 'thumb';
+
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.textContent = '대표 이미지 삭제';
+        delBtn.onclick = () => {
+            editProductImages.deleteIds.add(editProductImages.existingMain.imageId);
+            editProductImages.existingMain = null;
+            renderEditProductImages();
+        };
+
+        const changeInput = document.createElement('input');
+        changeInput.type = 'file';
+        changeInput.accept = 'image/*';
+        changeInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // 기존 메인은 삭제 대상으로 표시
+            if (editProductImages.existingMain) {
+                editProductImages.deleteIds.add(editProductImages.existingMain.imageId);
+                editProductImages.existingMain = null;
+            }
+            editProductImages.newMainFile = file;
+            renderEditProductImages();
+        };
+
+        wrap.appendChild(imgEl);
+        wrap.appendChild(delBtn);
+        wrap.appendChild(changeInput);
+        mainArea.appendChild(wrap);
+
+    } else if (editProductImages.newMainFile) {
+        // 새로 선택한 대표 이미지 미리보기 (파일 이름만 표시)
+        const wrap = document.createElement('div');
+        wrap.className = 'image-box';
+
+        const p = document.createElement('p');
+        p.textContent = `새 대표 이미지: ${editProductImages.newMainFile.name}`;
+
+        const clearBtn = document.createElement('button');
+        clearBtn.type = 'button';
+        clearBtn.textContent = '선택 취소';
+        clearBtn.onclick = () => {
+            editProductImages.newMainFile = null;
+            renderEditProductImages();
+        };
+
+        wrap.appendChild(p);
+        wrap.appendChild(clearBtn);
+        mainArea.appendChild(wrap);
+
+    } else {
+        // 아무것도 없을 때: 새 대표 이미지 선택 input
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            editProductImages.newMainFile = file;
+            renderEditProductImages();
+        };
+        mainArea.appendChild(input);
+    }
+
+    // ===== 2) 상세 이미지 영역 =====
+    detailArea.innerHTML = '';
+
+    // 삭제되지 않은 기존 상세 이미지들만 필터링
+    const aliveDetails = editProductImages.existingDetails.filter(
+        (img) => !editProductImages.deleteIds.has(img.imageId)
+    );
+
+    // 기존 상세 이미지 렌더
+    aliveDetails.forEach((img) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'image-box';
+
+        const imgEl = document.createElement('img');
+        imgEl.src = `/files/${img.imageUrl}`; // 실제 URL 매핑에 맞게 수정
+        imgEl.className = 'thumb';
+
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.textContent = '삭제';
+        delBtn.onclick = () => {
+            editProductImages.deleteIds.add(img.imageId);
+            renderEditProductImages();
+        };
+
+        wrap.appendChild(imgEl);
+        wrap.appendChild(delBtn);
+        detailArea.appendChild(wrap);
+    });
+
+    // 새로 추가된 상세 이미지 리스트 렌더
+    editProductImages.newDetailFiles.forEach((file, idx) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'image-box';
+
+        const p = document.createElement('p');
+        p.textContent = `새 이미지: ${file.name}`;
+
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.textContent = '제거';
+        delBtn.onclick = () => {
+            editProductImages.newDetailFiles.splice(idx, 1);
+            renderEditProductImages();
+        };
+
+        wrap.appendChild(p);
+        wrap.appendChild(delBtn);
+        detailArea.appendChild(wrap);
+    });
+
+    // ===== 3) 새 상세 이미지 추가 input (최대 5장) =====
+    const currentDetailCount = aliveDetails.length + editProductImages.newDetailFiles.length;
+    if (currentDetailCount < 5) {
+        const addInput = document.createElement('input');
+        addInput.type = 'file';
+        addInput.accept = 'image/*';
+        addInput.multiple = true;
+        addInput.onchange = (e) => {
+            const files = Array.from(e.target.files || []);
+            const allowance = 5 - currentDetailCount;
+            const toAdd = files.slice(0, allowance);
+            editProductImages.newDetailFiles.push(...toAdd);
+            renderEditProductImages();
+        };
+        detailArea.appendChild(addInput);
+    }
+
+    // 디버그용 로그
+    console.log('[EDIT IMG] main =', editProductImages.existingMain,
+        'details =', aliveDetails,
+        'newDetails =', editProductImages.newDetailFiles);
+}
+
+
 
 function handleEditCrop(e) {
     e.preventDefault();
@@ -743,21 +947,29 @@ async function handleEditProduct(e) {
     e.preventDefault();
     const itemId = document.getElementById('edit-item-id').value;
 
-    const newName = document.getElementById('edit-item-name').value;
-    const newPrice = parseInt(document.getElementById('edit-item-price').value);
-    const newStorId = document.getElementById('edit-stor-id').value;
+    const formData = new FormData();
+    formData.append('itemName', document.getElementById('edit-item-name').value);
+    formData.append('price', document.getElementById('edit-item-price').value);
+    formData.append('storId', document.getElementById('edit-stor-id').value);
 
-    const itemVO = {
-        itemName: newName,
-        price: newPrice,
-        storId: newStorId
-    };
+    // ✅ 삭제할 이미지 id 리스트 (JSON 문자열로)
+    const deleteIdsArray = Array.from(editProductImages.deleteIds);
+    formData.append('deleteImageIds', JSON.stringify(deleteIdsArray));
+
+    // ✅ 새 대표 이미지
+    if (editProductImages.newMainFile) {
+        formData.append('newMainImage', editProductImages.newMainFile);
+    }
+
+    // ✅ 새 상세 이미지들
+    editProductImages.newDetailFiles.forEach(file => {
+        formData.append('newDetailImages', file);
+    });
 
     try {
         const response = await fetch(API_BASE_URL + '/item/' + itemId, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(itemVO)
+            method: 'POST', // 또는 PUT, 백엔드 정의에 맞춰서
+            body: formData   // ❗ Content-Type은 브라우저가 자동 설정
         });
 
         if (response.ok) {
@@ -772,6 +984,7 @@ async function handleEditProduct(e) {
         alert('상품 수정 중 통신 오류가 발생했습니다.');
     }
 }
+
 
 async function handleStatusToggle(itemId, isChecked) {
     const newStatus = isChecked ? 1 : 0;

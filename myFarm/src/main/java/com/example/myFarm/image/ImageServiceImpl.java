@@ -17,7 +17,7 @@ import java.util.UUID;
 @Service
 public class ImageServiceImpl implements ImageService {
 
-    @Value("C:/Image") // 예: C:/Image
+    @Value("${project.upload.path}") // 예: C:/Image
     private String uploadPath;
 
     @Autowired
@@ -25,9 +25,9 @@ public class ImageServiceImpl implements ImageService {
 
     @Override
     @Transactional
-    public int saveItemImages(long itemId,
-                              MultipartFile mainImage,
-                              List<MultipartFile> detailImages) {
+    public void saveItemImages(long itemId,
+                               MultipartFile mainImage,
+                               List<MultipartFile> detailImages) {
 
         System.out.println("이미지 삽입 디버그 메시지");
 
@@ -73,9 +73,69 @@ public class ImageServiceImpl implements ImageService {
                 }
             }
         }
-
-        return insertCount;
     }
+
+    @Override
+    public void deleteImagesByIds(List<Long> idsToDelete) {
+        if (idsToDelete == null || idsToDelete.isEmpty()) return;
+        imageMapper.deleteImagesByIds(idsToDelete);
+    }
+
+    @Override
+    @Transactional
+    public void appendNewImages(long itemId,
+                                MultipartFile mainImage,
+                                List<MultipartFile> detailImages) {
+
+        // 1) 새 대표 이미지가 있으면 추가
+        if (mainImage != null && !mainImage.isEmpty()) {
+            try {
+                String mainUrl = saveOneFileAndGetUrl(mainImage);
+
+                ImageVO mainVO = new ImageVO();
+                mainVO.setImageUrl(mainUrl);
+                mainVO.setImageType("MAIN");
+                mainVO.setItemId(itemId);
+
+                imageMapper.insertImage(mainVO);
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new RuntimeException("새 대표 이미지 저장 실패", e);
+            }
+        }
+
+        // 2) 새 상세 이미지들 추가
+        if (detailImages != null && !detailImages.isEmpty()) {
+            // 최대 5장 제한을 백엔드에서도 한 번 더 방어하고 싶다면:
+            List<MultipartFile> limited = detailImages.size() > 5
+                    ? detailImages.subList(0, 5)
+                    : detailImages;
+
+            for (MultipartFile file : limited) {
+                if (file == null || file.isEmpty()) continue;
+
+                try {
+                    String detailUrl = saveOneFileAndGetUrl(file);
+
+                    ImageVO detailVO = new ImageVO();
+                    detailVO.setImageUrl(detailUrl);
+                    detailVO.setImageType("DETAIL");
+                    detailVO.setItemId(itemId);
+
+                    imageMapper.insertImage(detailVO);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException("새 상세 이미지 저장 실패", e);
+                }
+            }
+        }
+    }
+
+    @Override
+    public List<ImageVO> getImagesByItemId(long itemId) {
+        return imageMapper.selectImagesByItemId(itemId);
+    }
+
 
     /**
      * 파일 1장을 디스크에 저장하고,

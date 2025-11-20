@@ -208,8 +208,35 @@
             <h3>상품 수정 (ID: <span id="edit-product-id-display"></span>)</h3>
             <form id="edit-product-form">
                 <input type="hidden" id="edit-item-id">
-                <label>상품명</label><input type="text" id="edit-item-name" placeholder="예: 유기농 토마토">
-                <label>가격</label><input type="number" id="edit-item-price" placeholder="예: 12000">
+                <!-- 상품명 -->
+                <div class="form-row">
+                    <label for="edit-item-name">상품명</label>
+                    <input type="text" id="edit-item-name" name="itemName">
+                </div>
+
+                <!-- ✅ 이미지 편집 영역 추가 -->
+                <div class="form-row">
+                    <label>대표 이미지</label>
+                    <div id="edit-main-image-area" class="image-edit-area">
+                        <!-- JS에서 채움 -->
+                        <!-- 예: <img src="..." class="thumb">
+                                 <button type="button" onclick="editProductImages.deleteExistingMain()">삭제</button>
+                                 <input type="file" id="edit-main-image-input" name="newMainImage" accept="image/*"> -->
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label>상세 이미지 (최대 5장)</label>
+                    <div id="edit-detail-image-area" class="image-edit-area">
+                        <!-- JS에서 상세 이미지 리스트 렌더 -->
+                    </div>
+                </div>
+
+                <!-- 가격 -->
+                <div class="form-row">
+                    <label for="edit-item-price">가격</label>
+                    <input type="number" id="edit-item-price" name="price">
+                </div>
                 <label>저장품목ID</label><input type="text" id="edit-stor-id" placeholder="예: 101">
                 <button type="submit" class="btn-primary">수정 완료</button>
             </form>
