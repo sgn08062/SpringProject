@@ -10,7 +10,7 @@ public interface AdminShopService {
 
     void updateItem(Long itemId, ShopVO itemVO);
 
-    void deleteItem(Long itemId);
+//    void deleteItem(Long itemId);
 
     ShopVO getItemDetail(Long itemId);
 

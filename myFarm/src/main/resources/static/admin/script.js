@@ -382,8 +382,26 @@ document.addEventListener('visibilitychange', () => {
 // ======================================
 
 // 주문 목록 조회 API
-async function fetchOrders() {
-    const res = await fetch('/admin/api/order/list', {
+// [수정] 인자로 keyword와 status를 받도록 변경
+async function fetchOrders(keyword = '', status = '') {
+    const params = new URLSearchParams();
+
+    // 고객명 검색어 (customerName) 추가
+    if (keyword) {
+        // [주의] Controller에서 어떤 이름으로 받을지 확인하고 key를 결정하세요.
+        // 여기서는 customerName으로 가정합니다.
+        params.append('customerName', keyword);
+    }
+
+    // 주문 상태 (status) 필터링 값 추가
+    if (status) {
+        params.append('status', status);
+    }
+
+    // 쿼리 파라미터를 URL에 추가
+    const url = `/admin/api/order/list?${params.toString()}`;
+
+    const res = await fetch(url, {
         headers: { 'Content-Type': 'application/json' }
     });
     if (!res.ok) throw new Error('주문 목록 로딩 실패');
@@ -439,14 +457,12 @@ async function renderProductList() {
       </td>
       <td>
         <button class="btn-small btn-edit" onclick="openModal('edit-product-modal', ${product.itemId})">수정</button>
-        <button class="btn-small btn-delete" onclick="handleDeleteProduct(${product.itemId})">삭제</button>
+       <!--  <button class="btn-small btn-delete" onclick="handleDeleteProduct(${product.itemId})">삭제</button> -->
       </td>
     </tr>
   `).join('');
 }
 
-// 주문 목록 렌더
-function renderOrderList() {
 // 주문 목록 렌더 (주문 번호, 고객명, 주문일, 금액, 상태, 관리)
 async function renderOrderList() {
     const list = document.getElementById('order-list');
@@ -454,8 +470,11 @@ async function renderOrderList() {
 
     list.innerHTML = '<tr><td colspan="6">주문 목록을 불러오는 중...</td></tr>';
 
+    const keyword = document.getElementById('order-search-keyword')?.value || '';
+    const status = document.getElementById('order-status-select')?.value || '';
+
     try {
-        const orders = await fetchOrders();
+        const orders = await fetchOrders(keyword, status);
 
         if (!Array.isArray(orders) || orders.length === 0) {
             list.innerHTML = '<tr><td colspan="6">등록된 주문이 없습니다.</td></tr>';
@@ -492,14 +511,40 @@ async function renderOrderList() {
     }
 }
 
-function renderStatistics() {
-    const totalSales = document.getElementById('summary-total-sales');
-    const totalOrders = document.getElementById('summary-total-orders');
-    const avgOrder = document.getElementById('summary-avg-order');
+// 주문/매출 통계 요약 카드 렌더링
+async function renderStatistics() {
+    const totalSalesEl  = document.getElementById('summary-total-sales');
+    const totalOrdersEl = document.getElementById('summary-total-orders');
+    const avgOrderEl    = document.getElementById('summary-avg-order');
 
-    if (totalSales) totalSales.textContent = '0원';
-    if (totalOrders) totalOrders.textContent = '0건';
-    if (avgOrder) avgOrder.textContent = '0원';
+    // 요소가 없으면 그냥 종료
+    if (!totalSalesEl || !totalOrdersEl || !avgOrderEl) return;
+
+    try {
+        const res = await fetch('/api/stats/total', {
+            method: 'GET',
+            headers: {
+                'Content-type': 'application/json'
+            }
+        });
+
+        if (!res.ok) {
+            console.error('통계 API 호출 실패:', res.status);
+            // 실패하면 HTML에 적혀 있던 기본값(0원/0건) 그대로 둔다.
+            return;
+        }
+
+        const data = await res.json();
+        // 기대 JSON 형식:
+        // { "totalSales": 170000, "totalOrders": 5, "totalAvg": 34000 }
+
+        totalSalesEl.textContent  = `${Number(data.totalSales ?? 0).toLocaleString()}원`;
+        totalOrdersEl.textContent = `${Number(data.totalOrders ?? 0).toLocaleString()}건`;
+        avgOrderEl.textContent    = `${Number(data.totalAvg ?? 0).toLocaleString()}원`;
+    } catch (err) {
+        console.error('통계 로딩 중 오류:', err);
+        // 에러가 나도 화면은 0원/0건 유지
+    }
 }
 
 function renderAllLists() {
@@ -741,27 +786,27 @@ async function handleStatusToggle(itemId, isChecked) {
     }
 }
 
-async function handleDeleteProduct(itemId) {
-    if (!confirm(`상품 ID: ${itemId}을(를) 정말 삭제하시겠습니까?`)) {
-        return;
-    }
-
-    try {
-        const response = await fetch(API_BASE_URL + '/item/' + itemId, {
-            method: 'DELETE'
-        });
-
-        if (response.status === 204) {
-            alert(`상품 ID: ${itemId} 삭제 완료.`);
-            renderProductList();
-        } else {
-            alert('상품 삭제에 실패했습니다. (서버 오류)');
-        }
-    } catch (error) {
-        console.error('삭제 통신 오류:', error);
-        alert('상품 삭제 중 통신 오류가 발생했습니다.');
-    }
-}
+// async function handleDeleteProduct(itemId) {
+//     if (!confirm(`상품 ID: ${itemId}을(를) 정말 삭제하시겠습니까?`)) {
+//         return;
+//     }
+//
+//     try {
+//         const response = await fetch(API_BASE_URL + '/item/' + itemId, {
+//             method: 'DELETE'
+//         });
+//
+//         if (response.status === 204) {
+//             alert(`상품 ID: ${itemId} 삭제 완료.`);
+//             renderProductList();
+//         } else {
+//             alert('상품 삭제에 실패했습니다. (서버 오류)');
+//         }
+//     } catch (error) {
+//         console.error('삭제 통신 오류:', error);
+//         alert('상품 삭제 중 통신 오류가 발생했습니다.');
+//     }
+// }
 
 async function handleDelete(type, id) {
     const label = (type === 'crop' ? '농작물' : '농가');
@@ -796,7 +841,7 @@ async function handleDelete(type, id) {
 }
 
 // ======================================
-// 9. 주문 상세 모달 / 배송 상태 변경
+// 9. 주문 상세 모달 / 상태 변경
 // ======================================
 
 // 주문 상태 → 라벨/클래스 매핑
@@ -950,12 +995,175 @@ async function handleOrderStatusChange() {
 }
 
 // ======================================
+// 11. 월별 매출 Chart.js 라인 그래프
+// ======================================
+
+// 전역 Chart 인스턴스 보관용
+let monthlySalesChart = null;
+
+// 월별 통계 데이터 불러와서 그래프 그리기
+async function loadMonthlySalesChart() {
+    const canvas = document.getElementById('monthly-sales-chart');
+    if (!canvas) {
+        console.warn('[stats] #monthly-sales-chart 캔버스를 찾을 수 없습니다.');
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/stats/monthly', {
+            headers: { 'Accept': 'application/json' }
+        });
+
+        if (!res.ok) {
+            throw new Error('월별 통계 API 호출 실패: ' + res.status);
+        }
+
+        // [{ monthlyOrder, monthlyCount, monthlyTotal, monthlyAvg }, ...]
+        const data = await res.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+            console.warn('[stats] 월별 통계 데이터가 없습니다.');
+            return;
+        }
+
+        const labels        = data.map(item => item.monthlyOrder);   // "2025-07" ...
+        const monthlyTotals = data.map(item => item.monthlyTotal);   // 총 매출액
+        const monthlyAvgs   = data.map(item => item.monthlyAvg);     // 평균 주문액
+        const monthlyCounts = data.map(item => item.monthlyCount);   // 주문 건수
+
+        // ✅ 라벨 개수 기반으로 캔버스 가로 길이 설정
+        const minWidthPerLabel = 80; // 한 달당 80px
+        canvas.width = Math.max(labels.length * minWidthPerLabel, 600);
+
+        const ctx = canvas.getContext('2d');
+
+        if (monthlySalesChart) {
+            monthlySalesChart.destroy();
+        }
+
+        monthlySalesChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: '월별 총 매출액',
+                        data: monthlyTotals,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        yAxisID: 'y'        // 왼쪽 축(금액)
+                    },
+                    {
+                        label: '월별 평균 주문액',
+                        data: monthlyAvgs,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.15)',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        yAxisID: 'y'        // 왼쪽 축(금액)
+                    },
+                    {
+                        label: '월별 주문 건수',
+                        type: 'bar',
+                        data: monthlyCounts,
+                        yAxisID: 'y2',
+
+                        // 막대 스타일
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        barThickness: 10,
+
+                        // 막대에선 필요 없는 옵션들 삭제/무효
+                        pointRadius: 0,
+                        pointHoverRadius: 0,
+                        tension: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: false,              // ✅ 캔버스 width 그대로 사용
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const value = context.parsed.y || 0;
+                                const label = context.dataset.label || '';
+                                if (label.includes('건수')) {
+                                    return `${label}: ${value.toLocaleString()}건`;
+                                }
+                                return `${label}: ${value.toLocaleString()}원`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: '월 (YYYY-MM)'
+                        }
+                    },
+                    y: { // 금액 축 (왼쪽)
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: '금액(원)'
+                        },
+                        ticks: {
+                            callback: function (value) {
+                                return value.toLocaleString() + '원';
+                            }
+                        }
+                    },
+                    y2: { // 주문 건수 축 (오른쪽)
+                        position: 'right',
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: '주문 건수(건)'
+                        },
+                        grid: {
+                            drawOnChartArea: false
+                        },
+                        ticks: {
+                            stepSize: 1,
+                            callback: function (value) {
+                                return value.toLocaleString() + '건';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+    } catch (e) {
+        console.error('[stats] 월별 매출 차트 로딩 실패:', e);
+    }
+}
+
+// ======================================
 // 10. 초기화 (DOMContentLoaded)
 // ======================================
 
 document.addEventListener('DOMContentLoaded', () => {
     initTabFunctionality();
     renderAllLists();
+    loadMonthlySalesChart();
 
     fetchAddress()
         .then(renderFarmAddressFromData)
@@ -986,4 +1194,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('edit-farm-form')?.addEventListener('submit', handleEditFarmAddress);
     document.getElementById('edit-crop-form')?.addEventListener('submit', handleEditCrop);
     document.getElementById('edit-product-form')?.addEventListener('submit', handleEditProduct);
-});}
+
+    // 검색 버튼에 이벤트 리스너 추가
+    document.querySelector('.filter-area .btn-secondary')?.addEventListener('click', () => {
+        renderOrderList();
+    });
+});

@@ -5,6 +5,7 @@ import com.example.myFarm.command.OrderVO;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface AdminOrderMapper {
@@ -12,4 +13,6 @@ public interface AdminOrderMapper {
     int updateStatus(long orderId, String status);
 
     String getStatus(long orderId);
+
+    List<OrderVO> getFilteredOrderList(Map<String, Object> conditions);
 }

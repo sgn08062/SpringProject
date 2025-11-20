@@ -92,8 +92,14 @@
         <div class="tab-content" id="order-manage">
             <h2>📦 전체 주문 목록</h2>
             <div class="filter-area">
-                <input type="text" placeholder="주문번호, 고객명 검색">
-                <select><option>전체 상태</option><option>입금 전</option></select>
+                <input type="text" id="order-search-keyword" placeholder="고객명 검색">
+                <select id="order-status-select">
+                    <option value="">전체 상태</option>
+                    <option value="주문 대기">주문 대기</option>
+                    <option value="배송 중">배송 중</option>
+                    <option value="결제 완료">결제 완료</option>
+                    <option value="주문 취소">주문 취소</option>
+                </select>
                 <button class="btn-secondary">검색</button>
             </div>
             <table class="data-table order-table">
@@ -102,15 +108,18 @@
             </table>
         </div>
 
-    <div class="tab-content" id="stats-settlement">
-        <h2>📊 통계 / 정산 내역</h2>
-        <div style="height: 300px; background-color: #f5f5f5; border: 1px solid #ddd; margin-bottom: 20px; line-height: 300px; text-align: center;">**[농작물 주문 통계 그래프 영역]**</div>
-        <table class="data-table">
-            <thead><tr><th>날짜</th><th>총 매출액</th><th>수수료</th><th>정산 예정액</th></tr></thead>
-        </table>
-    </div>
+        <div class="tab-content" id="stats-settlement">
+            <h2>📊 통계 / 정산 내역</h2>
 
-</div>
+            <!-- 월별 매출 그래프 카드 -->
+            <div class="card" style="margin-bottom: 20px;">
+                <h3 style="margin-bottom: 8px;">월별 매출/평균 주문액</h3>
+                <div class="chart-scroll-wrapper">
+                    <canvas id="monthly-sales-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div id="new-crop-modal" class="modal">
         <div class="modal-content">
@@ -250,7 +259,9 @@
             </div>
         </div>
     </div>
-<script src="/admin/script.js"></script>
-<!--<script src="/js/auth.js" defer></script>-->
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/admin/script.js"></script>
+    <script src="/js/auth.js" defer></script>
 </body>
 </html>
