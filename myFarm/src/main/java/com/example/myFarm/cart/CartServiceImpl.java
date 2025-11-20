@@ -1,4 +1,4 @@
-/*
+
 package com.example.myFarm.cart;
 
 import com.example.myFarm.command.CartVO;
@@ -44,4 +44,4 @@ public class CartServiceImpl implements CartService {
     public void clearCart(int userId) {
         cartMapper.clearCart(userId);
     }
-}*/
+}

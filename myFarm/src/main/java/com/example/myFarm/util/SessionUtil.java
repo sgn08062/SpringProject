@@ -1,4 +1,4 @@
-/*
+
 package com.example.myFarm.util; // util 패키지에 위치
 
 import jakarta.servlet.http.HttpSession;
@@ -20,4 +20,4 @@ public class SessionUtil {
         }
         return 1;
     }
-}*/
+}

@@ -1,4 +1,4 @@
-/*
+
 package com.example.myFarm.cart;
 
 import com.example.myFarm.command.CartVO;
@@ -11,4 +11,4 @@ public interface CartService {
     void updateCartItem(CartVO cart);
     void deleteCartItem(int userId, int itemId);
     void clearCart(int userId);
-}*/
+}

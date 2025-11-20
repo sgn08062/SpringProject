@@ -23,11 +23,13 @@ public interface UserService {
     void deleteAddress(long addressId, int userId);
 
     // --- Cart ---
+    /* ❌ 삭제: 장바구니 로직은 CartService로 분리
     List<CartVO> getCartList(int userId);
     void addCartItem(CartVO cart);
     void updateCartItem(CartVO cart);
     void deleteCartItem(int userId, int itemId);
     void clearCart(int userId);
+    */
 
     // --- Order ---
     Long placeOrder(OrderVO order, Map<String, String> itemAmounts);

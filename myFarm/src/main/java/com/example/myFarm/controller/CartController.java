@@ -1,4 +1,3 @@
-/*
 package com.example.myFarm.controller;
 
 import com.example.myFarm.cart.CartService;
@@ -86,4 +85,4 @@ public class CartController {
             return Map.of("success", false, "message", "장바구니 항목 삭제 실패: " + e.getMessage());
         }
     }
-}*/
+}

@@ -1,4 +1,4 @@
-/*
+
 package com.example.myFarm.cart;
 
 import com.example.myFarm.command.CartVO;
@@ -13,4 +13,4 @@ public interface CartMapper {
     int updateCart(CartVO cart);
     int deleteCart(@Param("userId") int userId, @Param("itemId") int itemId);
     int clearCart(@Param("userId") int userId);
-}*/
+}

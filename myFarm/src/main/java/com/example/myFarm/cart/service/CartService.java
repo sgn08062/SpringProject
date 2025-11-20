@@ -1,3 +1,4 @@
+/*
 package com.example.myFarm.cart.service;
 
 import com.example.myFarm.cart.dto.CartDTO;
@@ -16,10 +17,12 @@ public class CartService {
 
     private final CartMapper cartMapper;
 
-    /**
+    */
+/**
      * [중요] MemberMapper 없이 ID를 찾는 방법
      * CartMapper에 findUserIdByLoginId 라는 쿼리를 하나 추가해서 해결합니다.
-     */
+     *//*
+
     private Long getUserId(String loginId) {
         Long userId = cartMapper.findUserIdByLoginId(loginId);
         if (userId == null) {
@@ -61,4 +64,4 @@ public class CartService {
         Long userId = getUserId(loginId); // 여기서 변환
         cartMapper.deleteCartItem(userId, itemId);
     }
-}
+}*/

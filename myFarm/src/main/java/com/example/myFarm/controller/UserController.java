@@ -1,5 +1,6 @@
 package com.example.myFarm.controller;
 
+import com.example.myFarm.cart.CartService; // ⭐ 추가: CartService 주입을 위해 필요
 import com.example.myFarm.command.CartVO;
 import com.example.myFarm.command.OrderVO;
 import com.example.myFarm.command.AddressVO;
@@ -7,6 +8,7 @@ import com.example.myFarm.command.ItemVO;
 import com.example.myFarm.command.ShopVO;
 import com.example.myFarm.shop.AdminShopService;
 import com.example.myFarm.user.UserService;
+import com.example.myFarm.util.SessionUtil; // ⭐ 추가: SessionUtil 사용
 // import com.example.myFarm.user.DummyService; // ❌ DUMMY SERVICE 주석 처리
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +29,10 @@ public class UserController {
 
     private final UserService userService;
     private final AdminShopService adminShopService;
+    private final CartService cartService; // ⭐ 추가: 주문 로직에서 장바구니 데이터를 가져오기 위해 필요
     // private final DummyService dummyService; // ❌ DUMMY SERVICE 필드 주석 처리
 
-
+    /* ❌ 삭제된 부분: SessionUtil로 로직 이동 및 통일
     private int getCurrentUserId(HttpSession session) {
         // ⭐ 세션 키를 "userId"로 변경하여 로그인 로직과 일치시킵니다.
         final String USER_ID_SESSION_KEY = "userId";
@@ -49,6 +52,7 @@ public class UserController {
         // ⭐ 세션에 ID가 없을 경우 (미로그인 상태) 1번 사용자 ID 반환 (DB 외래 키 오류 방지)
         return 1;
     }
+    */
 
     @GetMapping("/list")
     public String productList(Model model) {
@@ -86,6 +90,7 @@ public class UserController {
         return "user/detail";
     }
 
+    /* ❌ 삭제: 장바구니 조회 로직은 CartController로 이동
     @GetMapping("/cart")
     public String getCart(Model model, HttpSession session, RedirectAttributes ra) {
         model.addAttribute("isLoggedIn", true);
@@ -100,7 +105,9 @@ public class UserController {
         model.addAttribute("cartList", cartList);
         return "user/cart";
     }
+    */
 
+    /* ❌ 삭제: 장바구니 추가 로직은 CartController로 이동
     @PostMapping("/pushCart")
     public String pushCart(@RequestParam Integer itemId, @RequestParam(defaultValue = "1") int amount, RedirectAttributes ra, HttpSession session) {
         int userId = getCurrentUserId(session);
@@ -118,7 +125,9 @@ public class UserController {
 
         return "redirect:/user/cart";
     }
+    */
 
+    /* ❌ 삭제: 장바구니 수량 변경 로직은 CartController로 이동
     @PostMapping("/cart/update")
     @ResponseBody
     public Map<String, Object> updateCartAmount(@RequestParam Integer itemId, @RequestParam int amount, HttpSession session) {
@@ -137,7 +146,9 @@ public class UserController {
             return Map.of("success", false, "message", "장바구니 수량 변경 실패: " + e.getMessage());
         }
     }
+    */
 
+    /* ❌ 삭제: 장바구니 항목 삭제 로직은 CartController로 이동
     @PostMapping("/cart/delete/{itemId}")
     @ResponseBody
     public Map<String, Object> deleteCart(@PathVariable("itemId") Integer itemId, HttpSession session) {
@@ -149,11 +160,12 @@ public class UserController {
             return Map.of("success", false, "message", "장바구니 항목 삭제 실패: " + e.getMessage());
         }
     }
+    */
 
     @GetMapping("/orderList")
     public String getOrderList(Model model, @RequestParam(required = false) String successMessage, @RequestParam(required = false) String errorMessage, HttpSession session) {
 
-        List<OrderVO> orderList = userService.getOrderList(getCurrentUserId(session));
+        List<OrderVO> orderList = userService.getOrderList(SessionUtil.getCurrentUserId(session)); // ⭐ SessionUtil 사용
 
         model.addAttribute("orderList", orderList);
         if (successMessage != null) {
@@ -173,14 +185,15 @@ public class UserController {
             RedirectAttributes ra,
             HttpSession session) {
 
-        int userId = getCurrentUserId(session);
+        int userId = SessionUtil.getCurrentUserId(session); // ⭐ SessionUtil 사용
 
         if (selectedItems == null || selectedItems.isEmpty()) {
             ra.addFlashAttribute("errorMessage", "주문할 상품이 없습니다.");
-            return "redirect:/user/cart";
+            return "redirect:/cart"; // ⭐ 장바구니 컨트롤러 경로로 변경
         }
 
-        List<CartVO> cartList = userService.getCartList(userId);
+        // List<CartVO> cartList = userService.getCartList(userId); // ❌ userService 대신
+        List<CartVO> cartList = cartService.getCartList(userId); // ✅ cartService 사용
 
         List<ItemVO> checkoutItems = cartList.stream()
                 .filter(cart -> selectedItems.contains(cart.getItemId()))
@@ -208,7 +221,7 @@ public class UserController {
 
         if (checkoutItems.isEmpty()) {
             ra.addFlashAttribute("errorMessage", "선택하신 상품을 찾을 수 없거나 이미 품절된 상품이 포함되어 주문할 수 없습니다.");
-            return "redirect:/user/cart";
+            return "redirect:/cart"; // ⭐ 장바구니 컨트롤러 경로로 변경
         }
 
         int totalPrice = checkoutItems.stream()
@@ -241,7 +254,7 @@ public class UserController {
             RedirectAttributes ra,
             HttpSession session) {
 
-        int userId = getCurrentUserId(session);
+        int userId = SessionUtil.getCurrentUserId(session); // ⭐ SessionUtil 사용
         order.setUserId(userId);
 
         order.setOrdRecipientName(finalRecipientName); // OrderVO의 수령인 필드에 설정
@@ -271,7 +284,7 @@ public class UserController {
     @GetMapping("/order/{id}")
     public String getOrderDetail(@PathVariable("id") Long orderId, Model model, HttpSession session) {
 
-        OrderVO orderData = userService.getOrderDetail(orderId, getCurrentUserId(session));
+        OrderVO orderData = userService.getOrderDetail(orderId, SessionUtil.getCurrentUserId(session)); // ⭐ SessionUtil 사용
 
         if (orderData == null) {
             return "redirect:/user/orderList";
@@ -287,7 +300,7 @@ public class UserController {
     @PostMapping("/order/cancel/{id}")
     public String cancelOrder(@PathVariable("id") Long orderId, RedirectAttributes ra, HttpSession session) {
         try {
-            userService.cancelOrder(orderId, getCurrentUserId(session));
+            userService.cancelOrder(orderId, SessionUtil.getCurrentUserId(session)); // ⭐ SessionUtil 사용
             ra.addFlashAttribute("successMessage", orderId + "번 주문이 취소되었으며, 재고가 복구되었습니다.");
         } catch (IllegalStateException e) {
             ra.addFlashAttribute("errorMessage", e.getMessage());
@@ -300,7 +313,7 @@ public class UserController {
 
     @PostMapping("/address/delete/{id}")
     public String deleteAddress(@PathVariable("id") Long addressId, RedirectAttributes ra, HttpSession session) {
-        userService.deleteAddress(addressId, getCurrentUserId(session));
+        userService.deleteAddress(addressId, SessionUtil.getCurrentUserId(session)); // ⭐ SessionUtil 사용
         ra.addFlashAttribute("successMessage", addressId + "번 배송지가 삭제되었습니다.");
         return "redirect:/user/orderList";
     }

@@ -1,5 +1,6 @@
 package com.example.myFarm.user;
 
+import com.example.myFarm.cart.CartService; // ⭐ 추가: 장바구니 로직 사용을 위해 필요
 import com.example.myFarm.command.AddressVO;
 import com.example.myFarm.command.CartVO;
 import com.example.myFarm.command.ItemVO;
@@ -18,12 +19,14 @@ public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
     private final OrderMapper orderMapper;
+    private final CartService cartService; // ✅ CartService 주입 완료
 
     @Override
     public String getUserName(int userId) {
         return userMapper.selectUserName(userId);
     }
 
+    /* ❌ 삭제: 장바구니 조회 및 수정 로직은 CartService로 분리
     @Override
     public List<CartVO> getCartList(int userId) {
         return userMapper.getCartList(userId);
@@ -52,6 +55,7 @@ public class UserServiceImpl implements UserService {
     public void clearCart(int userId) {
         userMapper.clearCart(userId);
     }
+    */
 
     @Override
     public List<AddressVO> getAddressList(int userId) {
@@ -167,17 +171,7 @@ public class UserServiceImpl implements UserService {
 
         }else if (selectedAddressId == 0) {
             // 신규 주소 등록 처리
-            //AddressVO newAddress = new AddressVO();
-            //newAddress.setUserId(userId);
-            //newAddress.setRecipientName(order.getOrdRecipientName());
-            //newAddress.setRecipientPhone(order.getPhone());
-            //newAddress.setAddress(order.getAddress());
-            // OrderVO에 addressName 필드가 있다면 설정
-            // newAddress.setAddressName(order.getAddressName());
-
             // 1. 새 주소를 Address 테이블에 저장 (addressId는 0으로 전송되었으므로 insert 처리)
-            //userMapper.insertAddress(newAddress);
-
             // 2. 주문 정보는 이미 OrderVO에 신규 주소 정보(Address, Phone, OrdRecipientName)가 담겨 있으므로 별도 설정 불필요
             ordRecipientName = order.getOrdRecipientName();
 
@@ -249,7 +243,8 @@ public class UserServiceImpl implements UserService {
                 orderMapper.updateItemStatusToSoldOut(item.getItemId());
             }
 
-            userMapper.deleteCart(userId, item.getItemId());
+            // userMapper.deleteCart(userId, item.getItemId()); // ❌ 기존 UserMapper 직접 호출 삭제
+            cartService.deleteCartItem(userId, item.getItemId()); // ✅ CartService를 통해 장바구니 삭제
 
             totalAmount += item.getPrice() * item.getOrderAmount();
 
