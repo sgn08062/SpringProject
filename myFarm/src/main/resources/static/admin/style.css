@@ -80,14 +80,13 @@ body {
     flex: 1; display: flex; flex-direction: column; justify-content: space-between;
     padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     transition: transform 0.2s; min-height: 100px;
+    border: 1px solid #e5e7eb; background-color: #FFFFFF;
 }
-.card:hover { transform: translateY(-3px); }
 .card .label { font-size: 14px; color: var(--text-secondary); margin-bottom: 5px; }
 .card .value { font-size: 24px; font-weight: bold; }
 .card .icon { font-style: normal; font-size: 28px; align-self: flex-end; opacity: 0.5; }
 .sale-card { background-color: #e6f7ff; border-left: 5px solid #007bff; }
 .order-card { background-color: #fff3e6; border-left: 5px solid #ff9900; }
-.item-card { background-color: #ffe6e6; border-left: 5px solid var(--text-error); }
 .avg-order-card { background-color: #e6ffe6; border-left: 5px solid var(--primary-color); }
 
 
@@ -233,6 +232,16 @@ input:checked + .slider:before {
 .order-info strong { color: var(--primary-color); }
 .product-list-in-modal { list-style: disc; padding-left: 20px; margin-bottom: 20px; }
 
+.chart-scroll-wrapper {
+    height: 300px;
+    overflow-x: auto;       /* 가로 스크롤 */
+    overflow-y: hidden;
+    /* 필요하면 최소 폭 지정 가능 */
+}
+.chart-scroll-wrapper canvas {
+    /* JS에서 width를 크게 잡으면 그만큼 스크롤됨 */
+}
+
 /* input[type="number"]의 올리기/내리기 버튼(스피너) 제거 */
 
 /* 1. Chrome, Safari, Edge, Opera 브라우저용 */
@@ -240,9 +249,4 @@ input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none; /* UI 기본 모양 제거 */
     margin: 0;              /* 마진 제거 */
-}
-
-/* 2. Firefox 브라우저용 */
-input[type="number"] {
-    -moz-appearance: textfield; /* 기본 number 필드 모양을 text 필드처럼 변경 */
 }

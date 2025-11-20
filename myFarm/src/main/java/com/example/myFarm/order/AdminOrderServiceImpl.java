@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class AdminOrderServiceImpl implements AdminOrderService {
@@ -71,5 +72,10 @@ public class AdminOrderServiceImpl implements AdminOrderService {
         }
 
         return updated;
+    }
+
+    @Override
+    public List<OrderVO> getFilteredOrderList(Map<String, Object> conditions) {
+        return adminOrderMapper.getFilteredOrderList(conditions);
     }
 }
