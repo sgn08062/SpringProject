@@ -1,0 +1,127 @@
+/* ----------------------------------
+ * 1. 기본 레이아웃 및 제목 (농장 컨셉)
+ * ---------------------------------- */
+body {
+    font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+    color: #343a40; /* 짙은 회색 */
+    background-color: #f8f9f8; /* 아주 연한 초록빛 배경 */
+    padding: 20px;
+}
+
+h1 {
+    border-bottom: 2px solid #38a745; /* 메인 초록색 */
+    padding-bottom: 10px;
+    color: #1e7e34; /* 짙은 초록색 제목 */
+    margin-bottom: 30px;
+}
+
+/* ----------------------------------
+ * 2. 주문 요약 컨테이너 (.order-summary)
+ * ---------------------------------- */
+.order-summary {
+    border: 1px solid #a8dba8; /* 연한 초록색 테두리 */
+    padding: 20px;
+    margin-bottom: 30px;
+    background-color: #f3fcf3; /* 아주 연한 초록 배경 */
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(56,167,69,0.1); /* 초록빛 그림자 */
+}
+.order-summary h2 {
+    color: #38a745; /* 섹션 제목도 초록색 */
+    margin-top: 0;
+    margin-bottom: 15px;
+    border-bottom: 1px dashed #c8e6c9;
+    padding-bottom: 5px;
+}
+.order-summary p {
+    margin: 10px 0;
+    font-size: 1.05em;
+    line-height: 1.5;
+}
+.order-summary strong {
+    display: inline-block;
+    width: 140px; /* 라벨 너비 약간 확장 */
+    color: #495057; /* 짙은 회색 라벨 */
+    font-weight: 600;
+}
+.order-summary hr {
+    border: 0;
+    border-top: 1px solid #c8e6c9; /* hr 색상도 연한 초록색 계열로 */
+    margin: 15px 0;
+}
+/* 총 결제 금액 강조 스타일 */
+.order-summary p:last-child span {
+    font-size: 1.3em;
+    color: #dc3545; /* 취소/위험은 빨간색으로 유지 (강조) */
+    font-weight: bold;
+}
+
+
+/* ----------------------------------
+ * 3. 주문 상품 테이블 (목록 스타일 재사용)
+ * ---------------------------------- */
+table {
+    width: 100%;
+    border-collapse: collapse; /* 상세 페이지에서는 행 간격 대신 일반 Collapse 사용 */
+    margin-bottom: 20px;
+    text-align: center;
+    border-radius: 8px; /* 테이블 전체 둥근 모서리 */
+    overflow: hidden; /* 모서리 적용을 위해 */
+}
+table h2 {
+    color: #38a745;
+}
+
+th, td {
+    border: 1px solid #e0e0e0; /* 옅은 경계선 */
+    padding: 12px 10px;
+    font-size: 14px;
+    background-color: white;
+}
+
+thead th {
+    background-color: #e6f5e6; /* 연한 초록색 헤더 배경 */
+    color: #1e7e34; /* 짙은 초록색 헤더 텍스트 */
+    font-weight: bold;
+    border-bottom: 2px solid #a8dba8;
+    border-top: none; /* 위쪽 경계선 제거 */
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f9fdf9; /* 짝수 행에 미세한 배경색 */
+}
+tbody tr:hover td {
+    background-color: #f0fff0; /* 호버 시 밝은 초록색 */
+}
+
+/* ----------------------------------
+ * 4. 버튼 및 링크 스타일
+ * ---------------------------------- */
+
+/* 주문 취소 버튼 */
+.btn-cancel {
+    background-color: #dc3545; /* 취소는 빨간색 유지 */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 6px;
+    margin-top: 15px;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+.btn-cancel:hover {
+    background-color: #c82333;
+}
+
+/* 목록 돌아가기 링크 */
+p a {
+    color: #38a745; /* 링크도 메인 초록색 */
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+p a:hover {
+    color: #1e7e34; /* 짙은 초록색 호버 */
+    text-decoration: underline;
+}

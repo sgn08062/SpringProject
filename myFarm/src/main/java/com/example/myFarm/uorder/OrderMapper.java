@@ -4,6 +4,8 @@ import com.example.myFarm.command.ItemVO;
 import com.example.myFarm.command.OrderVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import com.example.myFarm.util.Criteria;
+
 
 import java.util.List;
 
@@ -49,4 +51,16 @@ public interface OrderMapper {
 
     // **[추가] 재고 복구**
     void returnInventoryStock(@Param("orderId") Long orderId);
+
+    List<OrderVO> selectOrderListWithPaging(
+            @Param("userId") int userId,
+            @Param("cri") Criteria cri
+    );
+
+    // ⭐ [추가]: 검색 조건에 맞는 전체 주문 건수 조회
+    int getTotalOrderCount(
+            @Param("userId") int userId,
+            @Param("cri") Criteria cri
+    );
+
 }

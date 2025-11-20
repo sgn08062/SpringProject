@@ -1,0 +1,215 @@
+/* ----------------------------------
+ * 1. 기본 레이아웃 및 제목 (농장 컨셉)
+ * ---------------------------------- */
+body {
+    font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+    color: #343a40; /* 짙은 회색으로 가독성 개선 */
+    background-color: #f8f9f8; /* 아주 연한 초록빛 배경 */
+    padding: 10px;
+}
+
+h1 {
+    border-bottom: 2px solid #38a745; /* 메인 초록색 */
+    padding-bottom: 10px;
+    color: #1e7e34; /* 짙은 초록색 제목 */
+    margin-bottom: 15px;
+}
+
+/* ----------------------------------
+ * 2. 날짜 검색 컨테이너 (초록색 테마 박스)
+ * ---------------------------------- */
+.date-search-container {
+    border: 1px solid #c8e6c9; /* 연한 초록색 경계선 */
+    padding: 20px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 5px rgba(56,167,69,0.1); /* 초록색이 살짝 도는 그림자 */
+}
+
+/* 날짜 탭을 오른쪽으로 정렬하는 컨테이너 */
+.date-filter-group {
+    display: flex;
+    justify-content: flex-end; /* 오른쪽 끝으로 정렬 */
+    margin-bottom: 15px;
+}
+
+/* 탭 자체의 스타일 */
+.date-tabs {
+    display: flex;
+    border-bottom: 2px solid #e9ecef;
+}
+.date-tabs button {
+    border: 1px solid #ced4da;
+    border-bottom: none;
+    padding: 10px 18px;
+    font-size: 14px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    margin-right: 5px;
+    transition: all 0.2s;
+    background-color: #f3fcf3; /* 아주 연한 초록 배경 */
+    cursor: pointer;
+    outline: none;
+}
+.date-tabs button.active {
+    background-color: #38a745; /* 메인 초록색 */
+    color: white;
+    border-color: #38a745;
+    font-weight: bold;
+    transform: translateY(1px);
+}
+
+/* 날짜 입력 필드 그룹 */
+.date-input-group {
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+}
+.date-input-group input[type="date"] {
+    padding: 10px;
+    border: 1px solid #c8e6c9; /* 연한 초록색 테두리 */
+    border-radius: 6px;
+    margin: 0 10px;
+    font-size: 14px;
+}
+
+/* 검색 및 초기화 버튼 */
+.search-action-buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+}
+.search-button, .reset-button {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    transition: background-color 0.2s;
+    cursor: pointer;
+    border: none;
+}
+.search-button {
+    background-color: #38a745; /* 메인 초록색 */
+    color: white;
+    margin-right: 10px;
+}
+.search-button:hover { background-color: #1e7e34; } /* 짙은 초록색 */
+.reset-button {
+    background-color: #6c757d;
+    color: white;
+}
+.reset-button:hover { background-color: #5a6268; }
+
+/* ----------------------------------
+ * 3. 주문 내역 테이블 (Card List Style)
+ * ---------------------------------- */
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px; /* 행 간격 확장 */
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+th, td {
+    padding: 10px 5px;
+    border: none;
+    background-color: white;
+}
+
+thead th {
+    background-color: #e6f5e6; /* 연한 초록색 헤더 배경 */
+    color: #1e7e34; /* 짙은 초록색 헤더 텍스트 */
+    font-weight: bold;
+    border-bottom: 2px solid #a8dba8;
+}
+
+/* 테이블 본문 행 스타일 (카드 효과) */
+tbody tr {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 8px;
+}
+tbody tr:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+
+/* 행의 모서리 둥글게 처리 */
+tbody tr td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+tbody tr td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+
+/* ----------------------------------
+ * 4. 상태 및 버튼 디자인 (초록색 강조)
+ * ---------------------------------- */
+td:nth-child(5) { font-weight: bold; } /* 상태 컬럼 */
+
+/* 주문 상태별 색상 */
+.status-배송_준비중 { color: #ffc107; }
+.status-배송_중 { color: #007bff; }
+.status-배송완료 { color: #1e7e34; } /* 짙은 초록색 (성공/완료) */
+.status-주문_취소 { color: #6c757d; text-decoration: line-through; }
+
+/* 버튼 공통 스타일 및 주문 취소 버튼 */
+.cancel-button {
+    padding: 8px 15px;
+    background-color: #dc3545; /* 빨간색 (취소/위험) */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 14px;
+}
+.cancel-button:not(:disabled):hover { background-color: #c82333; }
+.cancel-button:disabled {
+    background-color: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* 상세보기 버튼 (메인 초록색) */
+.detail-button {
+    padding: 8px 15px;
+    background-color: #38a745; /* 메인 초록색 */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.2s;
+    font-size: 14px;
+}
+.detail-button:hover {
+    background-color: #1e7e34; /* 짙은 초록색 호버 */
+}
+
+/* ----------------------------------
+ * 5. 페이지네이션 디자인 (초록색 원형)
+ * ---------------------------------- */
+.pagination {
+    margin-top: 30px;
+    padding: 15px 0;
+    text-align: center;
+}
+.pagination a, .pagination strong {
+    padding: 8px 14px;
+    margin: 0 4px;
+    border: 1px solid #ced4da;
+    text-decoration: none;
+    color: #333;
+    border-radius: 50%; /* 원형 버튼 */
+    min-width: 40px;
+    display: inline-block;
+    transition: background-color 0.2s, color 0.2s;
+}
+.pagination strong {
+    background-color: #38a745; /* 메인 초록색 */
+    color: white;
+    border-color: #38a745;
+    font-weight: bold;
+}
+.pagination a:hover {
+    background-color: #e6f5e6; /* 연한 초록색 호버 배경 */
+    color: #38a745;
+}

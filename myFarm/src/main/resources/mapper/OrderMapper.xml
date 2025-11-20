@@ -3,7 +3,7 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/schema/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.example.myFarm.user.OrderMapper">
+<mapper namespace="com.example.myFarm.uorder.OrderMapper">
 
     <resultMap id="OrderWithItems" type="OrderVO">
         <id property="orderId" column="ORDER_ID" />
@@ -137,5 +137,44 @@
         SET i.AMOUNT = i.AMOUNT + oa.AMOUNT
         WHERE oa.ORDER_ID = #{orderId}
     </update>
+
+
+
+    <select id="getTotalOrderCount" resultType="int">
+        SELECT
+        COUNT(ORDER_ID)
+        FROM ORDERS
+        WHERE USER_ID = #{userId}
+        <if test="cri.startDate != null and cri.startDate != ''">
+            AND ORDER_DATE <![CDATA[ >= ]]> DATE(#{cri.startDate})
+        </if>
+        <if test="cri.endDate != null and cri.endDate != ''">
+            AND ORDER_DATE <![CDATA[ <= ]]> DATE_ADD(DATE(#{cri.endDate}), INTERVAL 1 DAY)
+        </if>
+    </select>
+
+    <select id="selectOrderListWithPaging" resultMap="OrderWithItems">
+        SELECT
+        o.ORDER_ID,
+        o.STATUS,
+        o.ADDRESS,
+        o.PHONE,
+        o.USER_ID,
+        o.ORDER_DATE,
+        o.TOTAL_AMOUNT,
+        o.REP_ITEM_NAME,
+        o.ORD_RECIPIENT_NAME
+        FROM ORDERS o
+        WHERE o.USER_ID = #{userId}
+        <if test="cri.startDate != null and cri.startDate != ''">
+            AND o.ORDER_DATE <![CDATA[ >= ]]> DATE(#{cri.startDate})
+        </if>
+        <if test="cri.endDate != null and cri.endDate != ''">
+            AND o.ORDER_DATE <![CDATA[ <= ]]> DATE_ADD(DATE(#{cri.endDate}), INTERVAL 1 DAY)
+        </if>
+        ORDER BY o.ORDER_ID DESC
+        LIMIT #{cri.amount} OFFSET #{cri.offset}
+    </select>
+
 
 </mapper>

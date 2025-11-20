@@ -6,6 +6,8 @@ import com.example.myFarm.command.ItemVO;
 import com.example.myFarm.command.OrderVO;
 import com.example.myFarm.uorder.OrderMapper;
 import com.example.myFarm.user.UserMapper;
+import com.example.myFarm.util.PageVO;
+import com.example.myFarm.util.Criteria;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -217,4 +219,23 @@ public class OrderServiceImpl implements OrderService {
 
         return order.getOrderId();
     }
+    //  [추가]: 페이징 정보까지 포함하여 주문 목록을 조회하는 메서드 구현
+    @Override
+    public Map<String, Object> getOrderListWithPaging(int userId, Criteria cri) {
+        // 1. 전체 데이터 개수 조회
+        int total = orderMapper.getTotalOrderCount(userId, cri);
+
+        // 2. 페이징 정보 생성
+        PageVO pageVO = new PageVO(cri, total);
+
+        // 3. 페이징된 주문 목록 조회
+        List<OrderVO> orderList = orderMapper.selectOrderListWithPaging(userId, cri);
+
+        // 4. 결과 Map에 담아 리턴
+        return Map.of(
+                "orderList", orderList,
+                "pageVO", pageVO
+        );
+    }
+
 }

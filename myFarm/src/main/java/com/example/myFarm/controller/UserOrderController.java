@@ -4,8 +4,10 @@ import com.example.myFarm.command.AddressVO;
 import com.example.myFarm.command.OrderVO;
 import com.example.myFarm.command.ItemVO;
 import com.example.myFarm.command.CartVO;
+import com.example.myFarm.util.PageVO;
 import com.example.myFarm.uorder.OrderService;
 import com.example.myFarm.cart.CartService;
+import com.example.myFarm.util.Criteria;
 import com.example.myFarm.util.SessionUtil;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -117,10 +119,38 @@ public class UserOrderController {
     }
 
     @GetMapping("/list")
-    public String getOrderList(HttpSession session, Model model) {
+    public String getOrderList(
+            HttpSession session,
+            Model model,
+            @RequestParam(defaultValue = "1", name = "page") int pageNum, // 현재 페이지 번호 (page)
+            @RequestParam(defaultValue = "10", name = "size") int amount, // 페이지당 항목 수 (size)
+            @RequestParam(required = false) String startDate, // 조회 시작일
+            @RequestParam(required = false) String endDate // 조회 종료일
+    ) {
+
         int userId = SessionUtil.getCurrentUserId(session);
-        List<OrderVO> orderList = orderService.getOrderList(userId);
-        model.addAttribute("orderList", orderList);
+
+        // 🌟 [추가된 부분] userName을 조회하여 Model에 담기
+        String userName = orderService.getUserName(userId);
+        model.addAttribute("userName", userName);
+        // ------------------------------------
+
+        // 1. Criteria 객체 생성 및 검색 파라미터 설정
+        Criteria cri = new Criteria(pageNum, amount);
+        cri.setStartDate(startDate);
+        cri.setEndDate(endDate);
+
+        // 2. Service에서 페이징 정보를 포함한 Map을 받음
+        Map<String, Object> resultMap = orderService.getOrderListWithPaging(userId, cri);
+
+        // 3. 모델에 데이터 추가 (View에서 ${userName} 사용 가능)
+        model.addAttribute("orderList", resultMap.get("orderList"));
+        model.addAttribute("pageVO", resultMap.get("pageVO"));
+
+        // 4. 검색 폼 유지를 위해 검색 조건도 모델에 추가
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+
         return "uorder/orderList";
     }
 

@@ -19,9 +19,9 @@
         </a>
         <div class="header-top">
             <a th:href="@{/user/list}">상품</a>
-            <a th:href="@{/user/order}">마이페이지</a>
+            <a th:href="@{/uorder/order}">마이페이지</a>
 
-            <a th:href="@{/user/cart}">장바구니</a>
+            <a th:href="@{/cart/cart}">장바구니</a>
 
             <th:block th:if="${!isLoggedIn}">
                 <a href="#" id="loginModalBtn">로그인</a>
@@ -77,7 +77,7 @@
 
             <div class="btn-wrapper">
                 <th:block th:if="${item.inventoryAmount != null and item.inventoryAmount > 0}">
-                    <form th:action="@{/user/pushCart}" method="post" class="cart-form-inline">
+                    <form th:action="@{/cart/pushCart}" method="post" class="cart-form-inline">
                         <input type="hidden" name="itemId" th:value="${item.itemId}">
                         <input type="hidden" name="amount" value="1">
                         <button type="submit" class="btn cart">주문하기</button> </form>

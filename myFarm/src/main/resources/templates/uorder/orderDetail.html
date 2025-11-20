@@ -3,45 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title th:text="|주문 상세 - ${order.orderId}번|">주문 상세</title>
-    <link rel="stylesheet" href="../main/main.css">
+    <link rel="stylesheet" th:href="@{/main/main.css}">
+    <link rel="stylesheet" th:href="@{/uorder/orderdetail.css}">
+    <link rel="stylesheet" href="../uorder/orderdetail.css">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <style>
-        .order-summary {
-            border: 1px solid #ccc;
-            padding: 20px;
-            margin-bottom: 30px;
-            background-color: #f9f9f9;
-            border-radius: 6px;
-        }
-        .order-summary p {
-            margin: 8px 0;
-            font-size: 1.1em;
-        }
-        .order-summary strong {
-            display: inline-block;
-            width: 120px;
-            color: #555;
-        }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; text-align: center; }
-        th, td { border: 1px solid #ddd; padding: 12px; }
-        th { background-color: #e9e9e9; }
 
-        .btn-cancel {
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            cursor: pointer;
-            border-radius: 4px;
-            margin-top: 15px;
-        }
-        .btn-cancel:hover {
-            background-color: #c82333;
-        }
-    </style>
 </head>
 <body>
-<h1 th:text="|주문 상세 정보 (ID: ${order.orderId})|">주문 상세 정보</h1>
+<h1 th:text="|주문 상세 정보 (주문 ID: ${order.orderId})|">주문 상세 정보</h1>
 
 <div class="order-summary">
     <h2>주문 요약</h2>
@@ -94,46 +63,6 @@
     <a th:href="@{/uorder/list}">← 주문 목록으로 돌아가기</a>
 </p>
 
-<script th:inline="javascript">
-    // ⭐ 수정됨: 주문 취소 URL을 /uorder/cancel 로 통일합니다.
-    const cancelUrl = /*[[@{/uorder/cancel}]]*/ '/uorder/cancel';
-
-    /**
-     * 주문 취소 처리 함수
-     * @param {number} orderId
-     */
-    function cancelOrder(orderId) {
-        if (!confirm(`${orderId}번 주문을 정말로 취소하시겠습니까?`)) {
-            return;
-        }
-
-        $.ajax({
-            // Controller의 POST /uorder/cancel/{orderId} 경로 사용
-            url: `${cancelUrl}/${orderId}`,
-            type: 'POST',
-            success: function(response) {
-                // 서버 응답 메시지를 표시하거나 기본 성공 메시지를 사용
-                alert(response.message || "주문이 성공적으로 취소되었습니다.");
-                // 취소 후 페이지 새로고침하여 상태 업데이트
-                location.reload();
-            },
-            error: function(xhr) {
-                let errorMessage = "주문 취소 중 오류가 발생했습니다.";
-                try {
-                    // 서버에서 JSON 응답으로 에러 메시지를 보낼 경우
-                    const responseJson = JSON.parse(xhr.responseText);
-                    errorMessage = responseJson.message || responseJson;
-                } catch (e) {
-                    // JSON 형식이 아니거나 파싱 실패 시
-                    if (xhr.responseText) {
-                        // HTTP 상태 코드에 따른 일반적인 에러 메시지
-                        errorMessage = xhr.responseText;
-                    }
-                }
-                alert(errorMessage);
-            }
-        });
-    }
-</script>
+    <script th:src="@{/uorder/orderdetail.js}"></script>
 </body>
 </html>

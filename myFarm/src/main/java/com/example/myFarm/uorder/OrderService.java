@@ -3,6 +3,7 @@ package com.example.myFarm.uorder; // uorder 패키지로 가정
 import com.example.myFarm.command.AddressVO;
 import com.example.myFarm.command.OrderVO;
 import com.example.myFarm.command.ItemVO;
+import com.example.myFarm.util.Criteria;
 
 import java.util.List;
 import java.util.Map;
@@ -27,4 +28,7 @@ public interface OrderService {
     OrderVO getOrderDetail(Long orderId, int userId);
     List<ItemVO> getOrderItems(Long orderId);
     void cancelOrder(Long orderId, int userId);
+
+    // --- page ---
+    Map<String, Object> getOrderListWithPaging(int userId, Criteria cri);
 }
