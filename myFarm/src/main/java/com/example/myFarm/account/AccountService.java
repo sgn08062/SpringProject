@@ -13,6 +13,9 @@ public interface AccountService {
     // 세션용 유저 아이디 찾기
     int findUserIdForSession(String loginId);
 
+    // 세션용 유저 권한 찾기
+    String findAuthForSession(String loginId);
+
     // 아이디가 존재하는 지 확인
     int isLoginIdExist(String loginId);
 }

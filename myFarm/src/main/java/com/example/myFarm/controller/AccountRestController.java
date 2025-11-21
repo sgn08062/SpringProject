@@ -54,7 +54,9 @@ public class AccountRestController {
 
         if (result == 1) {
             int userId = accountService.findUserIdForSession(uservo.getLoginId());
-            session.setAttribute("userId", userId); // 세션에 오직 USER_ID만 저장
+            String auth = accountService.findAuthForSession(uservo.getLoginId());
+            session.setAttribute("userId", userId); // 세션에 USER_ID 저장
+            session.setAttribute("auth", auth); // 세션에 AUTH 저장
             System.out.println("로그인 세션 생성 완료 : " + session.getId() + ", userId=" + userId);
             return "success";
         }
