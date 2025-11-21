@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.myFarm.image.ImageMapper">
+
+    <insert id="insertImage" parameterType="ImageVO">
+        INSERT INTO IMAGE (
+            IMAGE_URL,
+            IMAGE_TYPE,
+            ITEM_ID
+        )
+        VALUES (
+            #{imageUrl},
+            #{imageType},
+            #{itemId}
+        )
+    </insert>
+
+    <delete id="deleteImagesByIds" parameterType="list">
+        DELETE FROM IMAGE
+        WHERE IMAGE_ID IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectImagesByItemId"
+            parameterType="long"
+            resultType="ImageVO">
+        SELECT
+            IMAGE_ID   AS imageId,
+            IMAGE_URL  AS imageUrl,
+            IMAGE_TYPE AS imageType,
+            ITEM_ID    AS itemId
+        FROM IMAGE
+        WHERE ITEM_ID = #{itemId}
+        ORDER BY IMAGE_ID
+    </select>
+</mapper>

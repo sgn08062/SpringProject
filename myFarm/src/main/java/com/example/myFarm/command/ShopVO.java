@@ -1,10 +1,10 @@
 package com.example.myFarm.command;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-@Getter
-@Setter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ShopVO {
     private Long itemId;
     private String itemName;
