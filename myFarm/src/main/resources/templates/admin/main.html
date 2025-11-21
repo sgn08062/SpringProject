@@ -154,44 +154,39 @@
 
     <div id="new-product-modal" class="modal">
         <div class="modal-content">
+            <span class="close-button" onclick="closeModal('new-product-modal')">&times;</span>
             <h2>새 상품 등록</h2>
 
-            <!-- ✅ form은 하나만 사용 -->
-            <form id="new-product-form" enctype="multipart/form-data">
-                <!-- 1) 창고(농작물) 선택 -->
+            <form id="new-product-form">
                 <div class="form-group">
                     <label for="new-stor-select">창고 품목 선택</label>
-                    <!-- JS에서 loadInventoryOptions()가 옵션 채움 -->
                     <select id="new-stor-select" name="storId" required>
                         <option value="" disabled selected>창고 품목을 선택하세요</option>
                     </select>
                 </div>
 
-                <!-- ✅ 2) ✨ 이미지를 여기 끼워 넣기 (순서 유지) -->
                 <div class="form-group">
-                    <label for="main-image">대표 이미지 (MAIN)</label>
-                    <input type="file" id="main-image" name="mainImage" accept="image/*">
+                    <label>대표 이미지</label>
+                    <div id="new-main-image-area" class="image-edit-area">
+                    </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="detail-images">상세 이미지 (DETAIL)</label>
-                    <input type="file" id="detail-images" name="detailImages" accept="image/*" multiple>
-                    <span class="hint">상세 이미지는 최대 5장까지 업로드 가능합니다.</span>
+                    <label>상세 이미지 (최대 5장)</label>
+                    <div id="new-detail-image-area" class="image-edit-area detail-list">
+                    </div>
                 </div>
 
-                <!-- 3) 상품명 -->
                 <div class="form-group">
                     <label for="new-item-name">상품명</label>
                     <input type="text" id="new-item-name" name="itemName" required>
                 </div>
 
-                <!-- 4) 가격 -->
                 <div class="form-group">
                     <label for="new-item-price">가격</label>
                     <input type="number" id="new-item-price" name="price" min="0" required>
                 </div>
 
-                <!-- 5) 버튼 영역 (취소 버튼 제거, 등록만) -->
                 <div class="modal-actions">
                     <button type="submit" class="btn-primary">
                         등록하기
@@ -218,16 +213,12 @@
                 <div class="form-row">
                     <label>대표 이미지</label>
                     <div id="edit-main-image-area" class="image-edit-area">
-                        <!-- JS에서 채움 -->
-                        <!-- 예: <img src="..." class="thumb">
-                                 <button type="button" onclick="editProductImages.deleteExistingMain()">삭제</button>
-                                 <input type="file" id="edit-main-image-input" name="newMainImage" accept="image/*"> -->
                     </div>
                 </div>
 
                 <div class="form-row">
                     <label>상세 이미지 (최대 5장)</label>
-                    <div id="edit-detail-image-area" class="image-edit-area">
+                    <div id="edit-detail-image-area" class="image-edit-area detail-list">
                         <!-- JS에서 상세 이미지 리스트 렌더 -->
                     </div>
                 </div>

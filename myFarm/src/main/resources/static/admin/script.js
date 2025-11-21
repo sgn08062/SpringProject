@@ -5,6 +5,14 @@
 // ======================================
 const API_BASE_URL = '/admin/shop';
 
+// 새 상품 등록 모달을 위한 이미지 관리 객체 (전역 선언)
+const newProductImages = {
+    mainFile: null,      // 대표 이미지 파일 (File 객체)
+    detailFiles: []      // 상세 이미지 파일 목록 (File 객체 배열)
+};
+
+const MAX_DETAIL = 5;
+
 // 상품 수정 모달 이미지 상태
 const editProductImages = {
     existingMain: null,       // { imageId, imageUrl, imageType: 'MAIN' }
@@ -91,37 +99,57 @@ async function loadInventoryOptions() {
 
 // 모달 열기
 function openModal(modalId, itemId = null) {
+    // 1. 모든 모달 숨기기
     document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
     const modal = document.getElementById(modalId);
     if (!modal) return;
 
+    // 2. ID 표시
     const idDisplay = document.getElementById(modalId.replace('modal', 'id-display'));
     if (idDisplay) idDisplay.textContent = itemId ?? '';
 
-    // 주문 상세 모달
+    // 3. 모달별 데이터 로딩 및 초기화
     if (modalId === 'order-detail-modal' && itemId) {
         modal.dataset.orderId = itemId;
         populateOrderDetailModal(itemId);
     }
 
-    // 작물 수정 모달 (단건 조회)
     if (modalId === 'edit-crop-modal' && itemId != null) {
         loadCropIntoEditForm(itemId).catch(() => {
             alert('농작물 정보를 불러오지 못했습니다.');
         });
     }
 
-    // 상품 수정 모달 (단건 조회)
     if (modalId === 'edit-product-modal' && itemId != null) {
         populateEditForm(modalId, itemId);
     }
 
-    // 새 상품 등록 모달: 창고 SelectBox 옵션 로드
     if (modalId === 'new-product-modal') {
         loadInventoryOptions();
+
+        if (typeof newProductImages !== 'undefined' && typeof renderNewProductImages === 'function') {
+            newProductImages.mainFile = null;
+            newProductImages.detailFiles = [];
+            renderNewProductImages();
+        }
     }
 
+    // 4. 모달 표시
     modal.style.display = 'block';
+
+    // 5. ✅ [핵심 수정] 애니메이션 강제 재실행 및 투명도 복구
+    const modalContent = modal.querySelector('.modal-content');
+    if (modalContent) {
+        // 이전에 적용되었던 .fadeIn 클래스를 제거합니다.
+        modalContent.classList.remove('fadeIn');
+
+        // 브라우저 리플로우(Reflow)를 강제하여 애니메이션을 재시작할 준비를 합니다.
+        // 이 라인 없이는 애니메이션이 제대로 재실행되지 않을 수 있습니다.
+        void modalContent.offsetWidth;
+
+        // .fadeIn 클래스를 다시 추가하여 애니메이션을 처음부터 실행합니다.
+        modalContent.classList.add('fadeIn');
+    }
 }
 
 // 모달 닫기
@@ -641,7 +669,10 @@ async function handleNewCrop(e) {
 async function handleNewProduct(e) {
     e.preventDefault();
 
-    const form = document.getElementById("new-product-form");
+    const form = document.getElementById('new-product-form');
+    if (!form) return;
+
+    // 1. 텍스트 데이터 수집
     const formData = new FormData(form);
 
     const storId   = formData.get("storId");
@@ -649,7 +680,11 @@ async function handleNewProduct(e) {
     const priceRaw = formData.get("price");
     const price    = parseInt(priceRaw || "0", 10);
 
-    // 필수값 체크
+    // 2. ✅ 이미지 데이터 수집 (전역 객체 사용)
+    const mainFile = newProductImages.mainFile;
+    const detailFiles = newProductImages.detailFiles;
+
+    // 3. ✅ 필수값 체크 및 이미지 유효성 검사
     if (!storId) {
         alert("농작물을 선택해주세요.");
         return;
@@ -662,26 +697,230 @@ async function handleNewProduct(e) {
         alert("가격을 올바르게 입력해주세요.");
         return;
     }
+
+    // ⭐ 대표 이미지 필수 체크
+    if (!mainFile) {
+        alert("대표 이미지를 반드시 추가해야 합니다.");
+        return;
+    }
+
     // 숫자로 정제해서 다시 넣어주고 싶으면
     formData.set("price", String(price));
 
+    // 4. ✅ 이미지 파일을 FormData에 추가 (서버의 요구 필드명에 맞게)
+    // 서버가 멀티파트 요청으로 파일과 텍스트를 함께 받습니다.
+
+    // 4-A. 대표 이미지 추가 (단일 파일)
+    // 서버에서 mainImageFile 이라는 필드명으로 받는다고 가정
+    formData.append("mainImageFile", mainFile);
+
+    // 4-B. 상세 이미지 추가 (다중 파일)
+    // 서버에서 detailImageFiles 이라는 배열 필드명으로 받는다고 가정
+    detailFiles.forEach(file => {
+        formData.append("detailImageFiles", file);
+    });
+
+    // 5. 서버 통신 (API_BASE_URL + "/additem")
     try {
         const response = await fetch(API_BASE_URL + "/additem", {
             method: "POST",
+            // 멀티파트 폼 데이터는 Content-Type 헤더를 명시적으로 설정하지 않습니다.
+            // 브라우저가 자동으로 'multipart/form-data'와 경계를 설정해 줍니다.
             body: formData
         });
 
         if (response.status === 201 || response.ok) {
             alert(`상품 '${itemName}' 등록 완료!`);
             closeModal("new-product-modal");
-            form.reset();
-            renderProductList();
+            document.getElementById('new-product-form')?.reset();
+
+            newProductImages.mainFile = null;
+            newProductImages.detailFiles = [];
+
+            renderNewProductImages();
+            renderProductList(); // 상품 목록 갱신
+
         } else {
-            alert("상품 등록 실패! 서버 응답을 확인하세요.");
+            // 서버에서 에러 메시지를 JSON으로 보낼 경우 처리
+            const errorText = await response.text();
+            console.error("서버 응답 오류:", errorText);
+            alert(`상품 등록 실패! 서버 오류: ${response.status} ${errorText.substring(0, 50)}...`);
         }
     } catch (error) {
         console.error("등록 통신 오류:", error);
-        alert("상품 등록 중 오류가 발생했습니다.");
+        alert("상품 등록 중 네트워크 오류가 발생했습니다.");
+    }
+}
+
+function renderNewProductImages() {
+    const mainArea = document.getElementById('new-main-image-area');
+    const detailArea = document.getElementById('new-detail-image-area');
+    if (!mainArea || !detailArea) {
+        console.error("Image areas for new product modal not found.");
+        return;
+    }
+
+    // 대표 이미지 영역 초기화 및 컨테이너 설정
+    mainArea.innerHTML = '';
+    const mainContentContainer = document.createElement('div');
+    mainContentContainer.style.display = 'flex';
+    mainContentContainer.style.gap = '30px';
+    mainContentContainer.style.alignItems = 'flex-start';
+    mainArea.appendChild(mainContentContainer);
+
+    // ===== 1) 대표 이미지 영역 =====
+    if (newProductImages.mainFile) {
+        // A) 파일이 선택된 경우 (미리보기)
+        const wrap = document.createElement('div');
+        wrap.className = 'current-main-image-container';
+        wrap.style.position = 'relative';
+
+        const file = newProductImages.mainFile;
+
+        // 이미지 아래 버튼 영역 (미리 정의)
+        const btnArea = document.createElement('div');
+        btnArea.className = 'action-buttons';
+
+        const clearBtn = document.createElement('button');
+        clearBtn.type = 'button';
+        clearBtn.textContent = '선택 취소';
+        clearBtn.className = 'btn-delete btn-small';
+        clearBtn.onclick = () => {
+            newProductImages.mainFile = null;
+            renderNewProductImages();
+        };
+
+        btnArea.appendChild(clearBtn);
+
+        // ⭐ 수정: FileReader 로직을 수정하여 썸네일을 정확히 삽입합니다.
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            const thumbContainer = document.createElement('div');
+            thumbContainer.className = 'thumb';
+
+            // 🚀 [최종 해결] btnArea 노드 앞에 thumbContainer를 삽입합니다.
+            // 786번째 줄의 `wrap.prepend(thumbContainer);`를 이 코드로 대체하세요.
+            wrap.insertBefore(thumbContainer, btnArea);
+
+            thumbContainer.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+
+        // btnArea는 이미 정의되어 있으므로, wrap에 추가합니다.
+        wrap.appendChild(btnArea); // 버튼 영역 추가
+
+        mainContentContainer.appendChild(wrap);
+
+    } else {
+        // B) 파일이 없는 경우 (추가 버튼)
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.style.display = 'none';
+
+        const label = document.createElement('label');
+        label.className = 'image-upload-placeholder';
+        label.innerHTML = `<i class="fa fa-camera"></i><br>대표 이미지 추가`;
+        label.onclick = () => { input.click(); };
+        label.style.width = '100%';
+        label.style.height = '100%';
+        label.style.border = '1px dashed #adb5bd';
+        label.style.backgroundColor = 'transparent';
+        label.style.color = 'var(--text-secondary)';
+        label.style.fontSize = '12px';
+
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            newProductImages.mainFile = file;
+            renderNewProductImages();
+        };
+
+        mainContentContainer.appendChild(label);
+        mainContentContainer.appendChild(input);
+    }
+
+    // ===== 2) 상세 이미지 영역 =====
+    detailArea.innerHTML = '';
+    detailArea.style.display = 'flex';
+    detailArea.style.flexWrap = 'wrap';
+
+    // 새로 추가된 상세 이미지 리스트 렌더
+    newProductImages.detailFiles.forEach((file, idx) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'image-box';
+        wrap.style.position = 'relative';
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            const thumbContainer = document.createElement('div');
+            thumbContainer.className = 'thumb';
+            wrap.appendChild(thumbContainer); // 썸네일을 바로 추가 (이전 수정 반영)
+            thumbContainer.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+
+        // 삭제 오버레이 사용
+        const delOverlay = document.createElement('div');
+        delOverlay.className = 'delete-button-overlay';
+
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.textContent = 'X';
+        delBtn.onclick = () => {
+            newProductImages.detailFiles.splice(idx, 1);
+            renderNewProductImages();
+        };
+        delOverlay.appendChild(delBtn);
+
+        wrap.appendChild(delOverlay);
+        detailArea.appendChild(wrap);
+    });
+
+    // ===== 3) 새 상세 이미지 추가 input (최대 5장) =====
+    const currentDetailCount = newProductImages.detailFiles.length;
+
+    if (currentDetailCount < MAX_DETAIL) { // MAX_DETAIL이 전역에 선언되었다고 가정합니다.
+
+        const wrap = document.createElement('div');
+        wrap.className = 'image-box';
+        wrap.style.marginRight = '15px';
+        wrap.style.marginBottom = '15px';
+        wrap.style.padding = '0';
+
+        const addInput = document.createElement('input');
+        addInput.type = 'file';
+        addInput.accept = 'image/*';
+        addInput.multiple = true;
+        addInput.style.display = 'none';
+
+        const label = document.createElement('label');
+        label.className = 'image-upload-placeholder';
+        label.innerHTML = `<i class="fa fa-plus"></i><br>파일 추가 (${currentDetailCount}/${MAX_DETAIL})`;
+        label.onclick = () => { addInput.click(); };
+
+        label.style.width = '100%';
+        label.style.height = '100%';
+        label.style.border = 'none';
+        label.style.backgroundColor = 'transparent';
+        label.style.color = 'var(--text-secondary)';
+        label.style.fontSize = '12px';
+
+        addInput.onchange = (e) => {
+            const files = Array.from(e.target.files || []);
+            const allowance = MAX_DETAIL - currentDetailCount;
+            const toAdd = files.slice(0, allowance);
+            newProductImages.detailFiles.push(...toAdd);
+            renderNewProductImages();
+        };
+
+        wrap.appendChild(label);
+        wrap.appendChild(addInput);
+        detailArea.appendChild(wrap);
     }
 }
 
@@ -752,33 +991,62 @@ function renderEditProductImages() {
     // ===== 1) 대표 이미지 영역 =====
     mainArea.innerHTML = '';
 
+    // 메인 영역 전체를 담는 컨테이너 생성 (이것이 이전에 mainImageWrapper 역할을 대체함)
+    const mainContentContainer = document.createElement('div');
+    mainContentContainer.style.display = 'flex';
+    mainContentContainer.style.gap = '30px';
+    mainContentContainer.style.alignItems = 'flex-start'; // 상단 정렬
+    mainArea.appendChild(mainContentContainer);
+
+
+    // 1-A) 기존 대표 이미지가 있고 삭제되지 않은 경우 (URL 사용)
     if (editProductImages.existingMain &&
         !editProductImages.deleteIds.has(editProductImages.existingMain.imageId)) {
 
+        const img = editProductImages.existingMain;
+
         const wrap = document.createElement('div');
-        wrap.className = 'image-box';
+        wrap.className = 'current-main-image-container'; // CSS 3번 항목에서 추가했던 클래스 사용
 
         const imgEl = document.createElement('img');
-        imgEl.src = `/files/${editProductImages.existingMain.imageUrl}`; // 실제 URL 매핑에 맞게 수정
-        imgEl.className = 'thumb';
+        const cleanedUrl = img.imageUrl.replace(/^\/|\/$/g, '');
+        imgEl.src = `/files/${cleanedUrl}`;
+
+        const thumbContainer = document.createElement('div');
+        thumbContainer.className = 'thumb';
+        thumbContainer.appendChild(imgEl);
+
+        // 이미지 아래 버튼 영역
+        const btnArea = document.createElement('div');
+        btnArea.className = 'action-buttons'; // CSS에서 정의된 버튼 영역 클래스
 
         const delBtn = document.createElement('button');
         delBtn.type = 'button';
-        delBtn.textContent = '대표 이미지 삭제';
+        delBtn.textContent = '삭제';
+        delBtn.className = 'btn-delete btn-small';
         delBtn.onclick = () => {
             editProductImages.deleteIds.add(editProductImages.existingMain.imageId);
             editProductImages.existingMain = null;
             renderEditProductImages();
         };
+        btnArea.appendChild(delBtn);
 
         const changeInput = document.createElement('input');
         changeInput.type = 'file';
         changeInput.accept = 'image/*';
+        changeInput.style.display = 'none'; // 숨김
+
+        const changeBtn = document.createElement('button');
+        changeBtn.type = 'button';
+        changeBtn.textContent = '수정';
+        changeBtn.className = 'btn-secondary btn-small';
+        changeBtn.onclick = () => { changeInput.click(); };
+        btnArea.appendChild(changeBtn); // 버튼 영역에 추가
+
         changeInput.onchange = (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
-            // 기존 메인은 삭제 대상으로 표시
             if (editProductImages.existingMain) {
                 editProductImages.deleteIds.add(editProductImages.existingMain.imageId);
                 editProductImages.existingMain = null;
@@ -787,103 +1055,189 @@ function renderEditProductImages() {
             renderEditProductImages();
         };
 
-        wrap.appendChild(imgEl);
-        wrap.appendChild(delBtn);
-        wrap.appendChild(changeInput);
-        mainArea.appendChild(wrap);
+        // 최종 DOM 추가
+        wrap.appendChild(thumbContainer);
+        wrap.appendChild(btnArea);
+        wrap.appendChild(changeInput); // input 태그는 숨겨져 있으므로 DOM에 추가합니다.
+        mainContentContainer.appendChild(wrap); // ✅ 수정: mainImageWrapper 대신 mainContentContainer 사용
 
     } else if (editProductImages.newMainFile) {
-        // 새로 선택한 대표 이미지 미리보기 (파일 이름만 표시)
-        const wrap = document.createElement('div');
-        wrap.className = 'image-box';
+        // 1-B) 새로 업로드할 파일이 선택된 경우 (미리보기)
 
-        const p = document.createElement('p');
-        p.textContent = `새 대표 이미지: ${editProductImages.newMainFile.name}`;
+        const wrap = document.createElement('div');
+        wrap.className = 'current-main-image-container'; // 동일 클래스 사용
+        wrap.style.position = 'relative';
+
+        const file = editProductImages.newMainFile;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            const thumbContainer = document.createElement('div');
+            thumbContainer.className = 'thumb';
+            thumbContainer.appendChild(img);
+            wrap.insertBefore(thumbContainer, wrap.firstChild); // 썸네일 추가
+        };
+        reader.readAsDataURL(file);
+
+        // 이미지 아래 버튼 영역
+        const btnArea = document.createElement('div');
+        btnArea.className = 'action-buttons';
 
         const clearBtn = document.createElement('button');
         clearBtn.type = 'button';
         clearBtn.textContent = '선택 취소';
+        clearBtn.className = 'btn-delete btn-small';
         clearBtn.onclick = () => {
             editProductImages.newMainFile = null;
             renderEditProductImages();
         };
 
-        wrap.appendChild(p);
-        wrap.appendChild(clearBtn);
-        mainArea.appendChild(wrap);
+        btnArea.appendChild(clearBtn);
+
+        wrap.appendChild(btnArea); // 버튼 영역 추가
+        mainContentContainer.appendChild(wrap); // ✅ 수정: mainImageWrapper 대신 mainContentContainer 사용
 
     } else {
-        // 아무것도 없을 때: 새 대표 이미지 선택 input
+        // 1-C) 대표 이미지가 없는 경우 (추가 버튼)
+
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'image/*';
+        input.style.display = 'none';
+
+        const label = document.createElement('label');
+        label.className = 'image-upload-placeholder';
+        label.innerHTML = `<i class="fa fa-camera"></i><br>대표 이미지 추가`;
+        label.onclick = () => { input.click(); }
+
+        label.style.width = '100%';
+        label.style.height = '100%';
+        label.style.border = '1px dashed #adb5bd'; // 🛠️ [핵심 수정 2] dashed border를 다시 적용
+        label.style.backgroundColor = 'transparent';
+        label.style.color = 'var(--text-secondary)';
+        label.style.fontSize = '12px'; // 🛠️ [핵심 수정 2] 폰트 사이즈 재확인
+
         input.onchange = (e) => {
             const file = e.target.files[0];
             if (!file) return;
             editProductImages.newMainFile = file;
             renderEditProductImages();
         };
-        mainArea.appendChild(input);
+
+        mainContentContainer.appendChild(label); // ✅ 수정: mainImageWrapper 대신 mainContentContainer 사용
+        mainContentContainer.appendChild(input);
     }
 
-    // ===== 2) 상세 이미지 영역 =====
-    detailArea.innerHTML = '';
-
-    // 삭제되지 않은 기존 상세 이미지들만 필터링
+    // ... (2) 상세 이미지 렌더링 로직은 이전과 동일하게 유지)
     const aliveDetails = editProductImages.existingDetails.filter(
         (img) => !editProductImages.deleteIds.has(img.imageId)
     );
 
-    // 기존 상세 이미지 렌더
-    aliveDetails.forEach((img) => {
-        const wrap = document.createElement('div');
-        wrap.className = 'image-box';
+    const currentDetailCount = aliveDetails.length + editProductImages.newDetailFiles.length;
 
-        const imgEl = document.createElement('img');
-        imgEl.src = `/files/${img.imageUrl}`; // 실제 URL 매핑에 맞게 수정
-        imgEl.className = 'thumb';
+    // ===== 2) 상세 이미지 영역 =====
+    detailArea.innerHTML = '';
+    detailArea.style.display = 'flex';
+    detailArea.style.flexWrap = 'wrap';
 
-        const delBtn = document.createElement('button');
-        delBtn.type = 'button';
-        delBtn.textContent = '삭제';
-        delBtn.onclick = () => {
-            editProductImages.deleteIds.add(img.imageId);
-            renderEditProductImages();
-        };
+    // 2-A) 기존 상세 이미지 렌더 (삭제되지 않은 것만)
+    editProductImages.existingDetails
+        .filter(img => !editProductImages.deleteIds.has(img.imageId))
+        .forEach(img => {
+            const wrap = document.createElement('div');
+            wrap.className = 'image-box';
+            wrap.style.position = 'relative';
 
-        wrap.appendChild(imgEl);
-        wrap.appendChild(delBtn);
-        detailArea.appendChild(wrap);
-    });
+            const imgEl = document.createElement('img');
+            const cleanedUrl = img.imageUrl.replace(/^\/|\/$/g, '');
+            imgEl.src = `/files/${cleanedUrl}`;
 
-    // 새로 추가된 상세 이미지 리스트 렌더
+            const thumbContainer = document.createElement('div');
+            thumbContainer.className = 'thumb';
+            thumbContainer.appendChild(imgEl);
+
+            // 삭제 오버레이
+            const delOverlay = document.createElement('div');
+            delOverlay.className = 'delete-button-overlay';
+
+            const delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.textContent = 'X';
+            delBtn.onclick = () => {
+                editProductImages.deleteIds.add(img.imageId);
+                renderEditProductImages();
+            };
+            delOverlay.appendChild(delBtn);
+
+            wrap.appendChild(thumbContainer);
+            wrap.appendChild(delOverlay);
+            detailArea.appendChild(wrap);
+        });
+
+    // 2-B) 새로 추가된 상세 이미지 리스트 렌더
     editProductImages.newDetailFiles.forEach((file, idx) => {
         const wrap = document.createElement('div');
         wrap.className = 'image-box';
+        wrap.style.position = 'relative';
 
-        const p = document.createElement('p');
-        p.textContent = `새 이미지: ${file.name}`;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            const thumbContainer = document.createElement('div');
+            thumbContainer.className = 'thumb';
+
+            wrap.appendChild(thumbContainer);
+            thumbContainer.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+
+        // 삭제 오버레이
+        const delOverlay = document.createElement('div');
+        delOverlay.className = 'delete-button-overlay';
 
         const delBtn = document.createElement('button');
         delBtn.type = 'button';
-        delBtn.textContent = '제거';
+        delBtn.textContent = 'X';
         delBtn.onclick = () => {
             editProductImages.newDetailFiles.splice(idx, 1);
             renderEditProductImages();
         };
+        delOverlay.appendChild(delBtn);
 
-        wrap.appendChild(p);
-        wrap.appendChild(delBtn);
+        wrap.appendChild(delOverlay);
         detailArea.appendChild(wrap);
     });
 
     // ===== 3) 새 상세 이미지 추가 input (최대 5장) =====
-    const currentDetailCount = aliveDetails.length + editProductImages.newDetailFiles.length;
     if (currentDetailCount < 5) {
+
+        const wrap = document.createElement('div');
+        wrap.className = 'image-box';
+        wrap.style.marginRight = '15px';
+        wrap.style.marginBottom = '15px';
+        wrap.style.padding = '0';
+
         const addInput = document.createElement('input');
         addInput.type = 'file';
         addInput.accept = 'image/*';
         addInput.multiple = true;
+        addInput.style.display = 'none';
+
+        const label = document.createElement('label');
+        label.className = 'image-upload-placeholder';
+        label.innerHTML = `<i class="fa fa-plus"></i><br>파일 추가 (${currentDetailCount}/5)`;
+        label.onclick = () => { addInput.click(); };
+
+        label.style.width = '100%';
+        label.style.height = '100%';
+        label.style.border = 'none';
+        label.style.backgroundColor = 'transparent';
+        label.style.color = 'var(--text-secondary)';
+        label.style.fontSize = '12px';
+
         addInput.onchange = (e) => {
             const files = Array.from(e.target.files || []);
             const allowance = 5 - currentDetailCount;
@@ -891,7 +1245,10 @@ function renderEditProductImages() {
             editProductImages.newDetailFiles.push(...toAdd);
             renderEditProductImages();
         };
-        detailArea.appendChild(addInput);
+
+        wrap.appendChild(label);
+        wrap.appendChild(addInput);
+        detailArea.appendChild(wrap);
     }
 
     // 디버그용 로그
@@ -1059,6 +1416,42 @@ async function handleDelete(type, id) {
         alert('농가가 삭제되었습니다. (DB DELETE 필요)');
         return;
     }
+}
+
+// 이미지 미리보기 유틸리티 함수
+function showImagePreview(inputElement, previewContainerId) {
+    const previewContainer = document.getElementById(previewContainerId);
+    if (!previewContainer) return;
+
+    // 상세 이미지(multiple=true)는 기존 목록에 추가될 수 있지만,
+    // 새 상품 등록 시에는 파일 선택할 때마다 기존 파일을 초기화합니다.
+    previewContainer.innerHTML = '';
+
+    const files = inputElement.files;
+    if (files.length === 0) return;
+
+    // 파일 목록을 순회하며 미리보기를 생성
+    Array.from(files).forEach(file => {
+        if (!file.type.startsWith('image/')) return;
+
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            const wrap = document.createElement('div');
+            // CSS에서 정의된 스타일 클래스 사용
+            wrap.className = 'image-box preview-box';
+
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'thumb preview-thumb';
+
+            wrap.appendChild(img);
+
+            previewContainer.appendChild(wrap);
+        };
+
+        reader.readAsDataURL(file);
+    });
 }
 
 // ======================================
@@ -1425,6 +1818,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const newMainImageInput = document.getElementById('main-image');
+    if (newMainImageInput) {
+        newMainImageInput.addEventListener('change', (e) => {
+            // HTML에 추가된 <div id="new-main-preview-area"> 에 미리보기 표시
+            showImagePreview(e.target, 'new-main-preview-area');
+        });
+    }
+
+    const newDetailImagesInput = document.getElementById('detail-images');
+    if (newDetailImagesInput) {
+        newDetailImagesInput.addEventListener('change', (e) => {
+            // HTML에 추가된 <div id="new-detail-preview-area"> 에 미리보기 표시
+            showImagePreview(e.target, 'new-detail-preview-area');
+        });
+    }
+
     document.getElementById('new-farm-form')?.addEventListener('submit', handleNewFarm);
     document.getElementById('new-crop-form')?.addEventListener('submit', handleNewCrop);
     document.getElementById('new-product-form')?.addEventListener('submit', handleNewProduct);
@@ -1436,5 +1845,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // 검색 버튼에 이벤트 리스너 추가
     document.querySelector('.filter-area .btn-secondary')?.addEventListener('click', () => {
         renderOrderList();
+    });
+});
+
+document.querySelectorAll('.close-button').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const modal = e.target.closest('.modal');
+        if (modal) {
+            closeModal(modal.id);
+        }
     });
 });

@@ -114,14 +114,42 @@ h2 { color: var(--primary-color); font-size: 22px; margin-bottom: 15px; }
 .btn-primary:hover { background-color: var(--brand-primary-dark); }
 .btn-secondary { background-color: var(--text-secondary); color: white; }
 .btn-secondary:hover { background-color: #5a6268; }
-.btn-small { padding: 5px 10px; border-radius: 4px; font-size: 12px; margin-left: 5px; background-color: #e9ecef; color: var(--text-primary); border: 1px solid var(--brand-border); }
-.btn-small:hover { background-color: #5f5f5f; }
+.btn-small { padding: 5px 10px; border-radius: 10px; font-size: 12px; margin-left: 5px; background-color: #f1f3f5; color: var(--text-primary); border: none; font-weight: 500; transition: background-color 0.2s; }
+.btn-small:hover { background-color: #e9ecef; }
 .btn-edit { background-color: #868686; color: white; } /* 수정 버튼 색상 변경 */
 .btn-delete { background-color: var(--text-error); color: white; border: none; }
 .btn-delete:hover { background-color: #c82333; }
 .filter-area { margin-bottom: 15px; display: flex; gap: 10px; }
 .filter-area input, .filter-area select { padding: 8px; border: 1px solid var(--brand-border); border-radius: 8px; }
+.btn-file-select {
+    /* 완료/등록 버튼의 주색상과 유사하게 설정 */
+    background-color: var(--primary-color);
+    color: white;
 
+    /* 완료 버튼과 유사한 큰 패딩과 폰트 크기 적용 */
+    padding: 12px 25px;
+    font-size: 16px; /* ✅ 완료 버튼과 동일하거나 유사하게 키움 */
+    border-radius: 25px;
+    cursor: pointer;
+    border: none;
+    font-weight: 600; /* 굵게 */
+    transition: background-color 0.2s;
+
+    display: inline-block; /* 버튼 크기를 내용에 맞게 */
+}
+.btn-file-select:hover {
+    background-color: var(--brand-primary-dark);
+}
+
+.modal-content label.btn-file-select {
+    margin-top: 10px; /* 위쪽 여백 */
+    margin-bottom: 20px; /* 아래쪽 여백 */
+    display: block; /* 한 줄 전체를 차지하여 깔끔하게 정렬 */
+    text-align: center;
+    max-width: 250px; /* ✅ 최대 너비 제한으로 버튼이 너무 커지는 것을 방지 */
+    margin-left: auto;
+    margin-right: auto; /* ✅ 중앙 정렬 */
+}
 
 /* 5. 데이터 테이블 */
 .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; table-layout: fixed; }
@@ -210,19 +238,47 @@ input:checked + .slider:before {
 
 
 /* 7. 모달 (팝업) 스타일 */
-.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
-.modal-content {
-    background-color: var(--brand-surface); margin: 8% auto; padding: 30px; border-radius: 12px; /* 둥근 모서리 적용 */
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3); width: 90%; max-width: 550px; position: relative; animation: fadeIn 0.3s;
+.modal {
+    /* 모달 배경: 전체 화면을 덮고 스크롤바가 생기지 않도록 fixed로 설정 */
+    display: none; /* JS로 'block' 또는 'flex'로 변경됩니다. */
+    position: fixed;
+    z-index: 1000; /* 다른 모든 요소 위에 표시 */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* 내용이 길어지면 스크롤 가능 */
+    background-color: rgba(0, 0, 0, 0.4); /* 반투명 검은색 배경 */
 }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(-20px);} to { opacity: 1; transform: translateY(0);} }
+
+.modal-content {
+    background-color: var(--brand-surface);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    max-height: 90vh; /* 뷰포트 높이의 90%를 최대 높이로 설정 */
+    overflow-y: auto;  /* 내용이 넘칠 경우에만 수직 스크롤 적용 */
+    width: 90%;
+    max-width: 680px;
+    opacity: 0;
+}
+
+.modal-content.fadeIn {
+    animation: fadeIn 0.3s forwards;
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translate(-50%, -60%);} to { opacity: 1; transform: translate(-50%, -50%);} }
 .close-button { color: #aaa; float: right; font-size: 30px; font-weight: bold; cursor: pointer; line-height: 1; }
 .close-button:hover, .close-button:focus { color: #333; text-decoration: none; }
 .modal-content h3 {
     margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px;
-    margin-bottom: 20px; color: var(--text-primary);
+    margin-bottom: 25px; color: var(--text-primary);
 }
-.modal-content label { display: block; margin-top: 15px; font-weight: 500; }
+.modal-content label { display: block; margin-top: 20px; margin-bottom: 8px; font-weight: 700; }
 .modal-content input[type="text"], .modal-content input[type="number"], .modal-content input[type="date"], .modal-content select {
     width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px;
     border: 1px solid var(--brand-border); border-radius: 8px; /* 둥근 모서리 적용 */
@@ -249,4 +305,461 @@ input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none; /* UI 기본 모양 제거 */
     margin: 0;              /* 마진 제거 */
+}
+
+/* 새 상세 이미지 추가 Input 스타일 */
+.image-edit-area input[type="file"],
+.preview-area.detail-list input[type="file"] {
+    flex-grow: 0 !important; /* ✅ 핵심 수정: 절대로 늘어나지 않도록 강제 */
+    flex-shrink: 0 !important; /* ✅ 축소 방지 */
+    flex-basis: 19%; /* 이미지 박스와 동일하게 19%로 고정 */
+    min-width: 90px;
+
+    /* 높이 관련 속성 제거 */
+    height: auto;
+    padding-top: 5px; /* 상하 패딩 유지 */
+    padding-bottom: 5px;
+
+    position: relative; /* 가상 요소 부모 역할 */
+
+    /* 텍스트 정렬을 위한 Flex 설정은 유지 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* 나머지 스타일 */
+    border: 1px dashed var(--brand-border);
+    border-radius: 8px;
+    background-color: #f0f0f0;
+    font-size: 10px;
+    text-align: center;
+    cursor: pointer;
+    margin: 5px 0;
+}
+
+/* 이미지 편집 영역의 레이아웃 */
+.image-edit-area,
+.preview-area.detail-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    margin-bottom: 20px; /* 아래 여백 증가 */
+    margin-right: -15px;
+    padding: 0;
+}
+
+.image-edit-area > div:last-child {
+    /* JS에서 .image-edit-area의 마지막 요소가 파일 선택 버튼 컨테이너일 경우 */
+    flex-basis: 100%; /* ✅ 한 줄 전체 사용 */
+    margin-top: 15px;
+    text-align: left; /* ✅ 왼쪽 정렬 */
+}
+.image-edit-area > div:last-child label.btn-file-select {
+    margin: 0; /* 중앙 정렬 해제 */
+}
+
+/* 새 상세 이미지 추가 Input 스타일 */
+.image-edit-area input[type="file"],
+.preview-area.detail-list input[type="file"] {
+    /* .image-box와 동일한 flex-basis를 따릅니다. */
+    flex-basis: calc(20% - 6.4px);
+    flex-grow: 1;
+    min-width: 80px; /* 이미지 박스와 동일하게 80px */
+    height: auto;
+    padding: 5px;
+    position: relative; /* 가상 요소의 기준점 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px dashed var(--brand-border);
+    border-radius: 8px;
+    background-color: #f0f0f0;
+    font-size: 10px;
+    text-align: center;
+    cursor: pointer;
+    margin: 5px 0;
+}
+
+/* 파일 입력 필드 내부에 가상 요소를 사용하여 1:1 비율 강제 */
+.image-edit-area input[type="file"]::before,
+.preview-area.detail-list input[type="file"]::before {
+    content: "";
+    display: block;
+    padding-top: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* 클릭을 허용 */
+}
+
+/* 파일 입력 필드 내부 텍스트(예: "파일 선택" 버튼)가 보이도록 */
+.image-edit-area input[type="file"] > *,
+.preview-area.detail-list input[type="file"] > * {
+    position: relative;
+    z-index: 10;
+}
+
+/* 이미지 박스 (썸네일 + 버튼 묶음) */
+.image-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid var(--brand-border);
+    border-radius: 12px; /* ✅ 이미지 박스 모서리를 둥글게 */
+    background-color: var(--brand-surface); /* 배경색 통일 */
+    box-sizing: border-box;
+
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: 19%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+
+    /* ✅ 마진을 사용하여 간격 구현 */
+    margin-right: 15px;
+    margin-bottom: 15px; /* 아래쪽 마진도 추가하여 줄 간격 확보 */
+
+    /* min-width: 90px; 은 제거된 상태를 유지합니다. */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* 이미지 박스 재사용 (적당한 사이즈) */
+.image-box.preview-box {
+    width: 90px;
+    height: auto;
+    padding: 5px;
+    margin-bottom: 0;
+    position: relative;
+    padding-top: 5px;
+}
+
+/* 썸네일 스타일 */
+.thumb, .new-preview-thumb {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 가상 요소를 이용한 1:1 비율 강제 */
+.thumb::before, .new-preview-thumb::before {
+    content: "";
+    display: block;
+    padding-top: 100%; /* 너비에 비례하여 높이 100% 확보 (정사각형) */
+}
+
+/* 썸네일 이미지 파일 (IMG 태그) 스타일 */
+.thumb img, .new-preview-thumb img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+/* 파일명 표시 텍스트 */
+.image-box p {
+    display: none;
+}
+
+/* 이미지 박스 내 버튼 스타일 */
+.image-box button {
+    max-width: 90%; /* ✅ 버튼이 이미지 박스의 90%를 넘지 않도록 강제 */
+    white-space: nowrap; /* 버튼 텍스트가 줄바꿈되는 것을 방지 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 0px;
+    border-radius: 12px;
+}
+
+.modal-content input[type="file"] {
+    display: block;
+    width: 100%;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    /* 일반 input과 비슷한 여백을 유지하도록 padding 조정 */
+    padding: 8px 0;
+    border: none; /* 파일 입력 필드는 border를 제거하여 기본 UI를 유지 */
+    box-sizing: border-box;
+    font-size: 14px;
+}
+
+/* 폼 그룹 간격 추가 (HTML에 form-group이 있다면 더 좋음) */
+#new-product-modal .form-group, #edit-product-modal .form-row {
+    margin-bottom: 30px; /* ✅ 그룹별 간격 확보 */
+}
+
+/* 모달 하단 버튼 영역 스타일 추가 */
+.modal-content .modal-actions {
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    margin-top: 30px;
+    display: flex;
+    justify-content: flex-end; /* 오른쪽 정렬 */
+    gap: 10px;
+    position: relative;
+    z-index: 50;
+}
+
+.modal-content .modal-actions button {
+    width: auto; /* 버튼 너비 자동 설정 */
+    min-width: 120px;
+    margin: 0; /* 기존 100% 마진 제거 */
+}
+
+/* 상품명 등 다른 입력 필드의 margin-bottom과 충돌하지 않도록 조절 */
+.modal-content input[type="text"],
+.modal-content input[type="number"],
+.modal-content input[type="date"],
+.modal-content select {
+    width: 100%;
+    padding: 12px; /* ✅ 패딩 키움 */
+    margin-top: 0; /* 라벨에서 마진 처리했으므로 제거 */
+    margin-bottom: 15px;
+    border: 1px solid #ced4da; /* ✅ 테두리 색상 조정 */
+    border-radius: 8px;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+/* 8. 수정/등록 모달 레이아웃 */
+
+/* 대표 이미지를 담는 컨테이너의 최대 크기 제한 */
+.modal-main-image-wrapper {
+    max-width: 70%; /* ✅ 모달 너비의 약 70%로 키웁니다. */
+    width: 100%;
+    margin: 20px auto; /* 중앙 정렬 및 상하 여백 증가 */
+    padding: 15px;
+    border: 1px solid var(--brand-border);
+    border-radius: 12px;
+    background-color: #fcfcfc;
+    text-align: center;
+}
+
+.modal-main-image-wrapper .image-box {
+    /* 이 안에서는 flex-basis를 무시하고 꽉 채움 */
+    flex-basis: 100%;
+    min-width: 100%;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+}
+
+/* 대표 이미지의 썸네일 자체의 크기를 조정 */
+.modal-main-image-wrapper .thumb {
+    width: 100%; /* 부모(image-box) 크기에 맞춰 꽉 채움 */
+    height: auto;
+    max-height: 400px; /* ✅ 너무 길어지는 것 방지 */
+}
+
+/* ⚡ 상품 등록 모달 - 대표 이미지 레이아웃 개선 */
+#new-product-modal .main-image-group {
+    display: flex;
+    gap: 25px;
+    align-items: flex-start; /* 상단 정렬 */
+    margin-top: 10px;
+}
+
+/* 대표 이미지 미리보기/업로드 컨테이너 */
+#new-main-preview-area {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+    margin-top: 10px;
+}
+
+/* ⚡ 시안의 '드래그 앤 드롭' 영역 스타일 (HTML에 해당 요소를 추가해야 함) */
+.image-upload-placeholder {
+    width: 150px;
+    height: 150px;
+    border: 2px dashed #adb5bd;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.image-upload-placeholder i { /* 아이콘 크기도 약간 조정 */
+    font-size: 24px;
+    margin-bottom: 3px;
+    color: #adb5bd;
+}
+.image-upload-placeholder:hover {
+    border-color: var(--primary-color);
+    background-color: #f8f9fa;
+}
+.image-upload-placeholder i { /* 아이콘을 추가할 경우 (예: 📷) */
+    font-size: 30px;
+    margin-bottom: 5px;
+    color: #adb5bd;
+}
+
+/* 등록 모달의 대표 이미지 썸네일 크기 */
+#new-main-preview-area .image-box.preview-box {
+    width: 150px;
+    height: 150px;
+    padding: 5px;
+    border: 1px solid var(--brand-border);
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+
+/* ⚡ 상품 등록 모달 - 상세 이미지 목록 (5개씩 한 줄) */
+#new-detail-preview-area.preview-area.detail-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px; /* ✅ 썸네일 간의 간격 조정 */
+    padding: 10px;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    background-color: #f7f7f7;
+}
+
+/* 상세 이미지 썸네일 박스 */
+#new-detail-preview-area .image-box,
+#edit-detail-image-area .image-box {
+    /* 5개씩 한 줄, 간격 15px 고려: (100% - 15px*4) / 5 = 약 19% */
+    flex-basis: calc(20% - 12px);
+    width: auto;
+    height: auto;
+    margin: 0; /* 기존 마진 제거 */
+    padding: 5px;
+    border: 1px solid var(--brand-border);
+    border-radius: 8px;
+    box-shadow: none;
+    position: relative;
+}
+
+/* ⚡ 상품 수정 모달 - 대표 이미지 편집 영역 */
+#edit-main-image-area {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+    margin-top: 15px;
+}
+
+/* 현재 이미지 컨테이너 (JS로 생성될 요소) */
+.current-main-image-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 150px; /* 크기 고정 */
+}
+
+.current-main-image-container .thumb {
+    width: 150px;
+    height: 150px;
+    margin-bottom: 10px;
+    border: 1px solid var(--brand-border);
+    border-radius: 12px;
+}
+
+.current-main-image-container .action-buttons {
+    display: flex;
+    gap: 5px;
+}
+.current-main-image-container .action-buttons button {
+    width: auto;
+    padding: 5px 10px;
+    font-size: 12px;
+    margin: 0;
+    border-radius: 4px;
+}
+
+/* 새 이미지 선택 영역을 위한 placeholder 스타일 */
+#edit-main-image-area .new-image-select-area {
+    /* 등록 모달의 드래그 앤 드롭 영역과 유사한 스타일 */
+    width: 150px;
+    height: 150px;
+    border: 2px dashed #adb5bd;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+}
+
+/* ⚡ 상품 수정 모달 - 상세 이미지 편집 영역 (삭제 오버레이) */
+#edit-detail-image-area {
+    /* 등록 모달의 상세 이미지 목록과 동일한 레이아웃 적용 */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 10px;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    background-color: #f7f7f7;
+    margin-top: 15px;
+}
+
+/* ⚡ 삭제 버튼 오버레이 추가 (시안처럼 X 버튼이 이미지 위에 올라오도록) */
+.delete-button-overlay {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 10;
+}
+.delete-button-overlay:hover {
+    background-color: var(--text-error);
+}
+.delete-button-overlay button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#edit-product-modal .btn-primary {
+    position: relative;
+    z-index: 50;
+    width: 100%;
+}
+
+/* 파일 입력 필드를 숨기되, 라벨을 통해 클릭 가능하도록 처리 */
+#new-product-modal input[type="file"]#main-image,
+#new-product-modal input[type="file"]#detail-images {
+    /* ✅ display: none 대신 opacity: 0과 position: absolute;를 사용해 영역만 남깁니다. */
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    z-index: 100; /* ✅ 가장 높게 설정하여 클릭이 되도록 합니다. */
+}
+
+/* 이미지 업로드 영역 (placeholder)에 상대 위치를 줘야 합니다. */
+.image-upload-placeholder {
+    /* ... 기존 스타일 유지 ... */
+    position: relative; /* ✅ 이 요소 안에 파일 입력 필드가 오버랩되도록 설정 */
+    overflow: hidden;
 }
