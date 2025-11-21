@@ -28,8 +28,16 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+
+        //main file path 추가
+        String resourceLocation = "file:///" + uploadPath.replace('\\', '/') + "/";
+
         registry.addResourceHandler("/files/**")
                 .addResourceLocations("file:///" + uploadPath + "/");
+
+        //main file path 추가
+        registry.addResourceHandler("/upload/**")
+                .addResourceLocations(resourceLocation);
 
     }
 }
