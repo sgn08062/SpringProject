@@ -16,6 +16,9 @@ public interface AccountMapper {
     // 세션에 저장할 사용자 ID값 찾기
     int findUserIdForSessionDB(@Param("loginId") String loginId);
 
+    // 세션에 저장할 사용자 AUTH 값 찾기
+    String findAuthForSessionDB(@Param("loginId") String loginId);
+
     // 아이디가 존재하는 지 확인
     int isLoginIdExistDB(String loginId);
 

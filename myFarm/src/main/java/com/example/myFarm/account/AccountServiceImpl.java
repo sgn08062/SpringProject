@@ -28,6 +28,12 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public int findUserIdForSession(String userId) { return accountMapper.findUserIdForSessionDB(userId); }
 
+    // 세션 저장용 유저AUTH 조회
+    @Override
+    public String findAuthForSession(String userId) {
+        return accountMapper.findAuthForSessionDB(userId);
+    }
+
     // 아이디 중복 체크
     @Override
     public int isLoginIdExist(String loginId) {
