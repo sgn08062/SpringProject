@@ -66,9 +66,11 @@
                 <td th:text="${order.address}">배송 주소</td>
                 <td th:text="${order.status}">상태</td>
                 <td th:text="${order.orderDate != null ? #temporals.format(order.orderDate, 'yyyy-MM-dd HH:mm:ss') : '날짜 없음'}">일자</td>
+
                 <td>
-                    <a th:href="@{/uorder/detail/{id}(id=${order.orderId})}" class="detail-button">상세보기</a>
+                    <a href="#" class="detail-button" th:data-order-id="${order.orderId}">상세보기</a>
                 </td>
+
                 <td>
                     <button
                             class="cancel-button"
@@ -135,6 +137,16 @@
                endDate=${endDate})}"
                class="page-link">&gt;&gt;</a>
         </span>
+    </div>
+</div>
+
+<div id="orderDetailModal" class="modal">
+    <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2>주문 상세 정보</h2>
+        <div id="modalBodyContent">
+            <p>상세 내용을 불러오는 중입니다...</p>
+        </div>
     </div>
 </div>
 

@@ -28,7 +28,6 @@
                 <a th:href="@{/register}">회원가입</a>
             </th:block>
 
-<!--            <a th:href="@{/logout}" th:if="${isLoggedIn}">로그아웃</a>-->
             <a th:id="logoutBtn" th:if="${isLoggedIn}">로그아웃</a>
         </div>
     </div>
@@ -77,7 +76,7 @@
 
             <div class="btn-wrapper">
                 <th:block th:if="${item.inventoryAmount != null and item.inventoryAmount > 0}">
-                    <form th:action="@{/cart/pushCart}" method="post" class="cart-form-inline">
+                    <form th:action="@{/cart/pushCart}" method="post" class="cart-form-inline" onsubmit="return handleCartSubmit(this, event)">
                         <input type="hidden" name="itemId" th:value="${item.itemId}">
                         <input type="hidden" name="amount" value="1">
                         <button type="submit" class="btn cart">주문하기</button> </form>
@@ -140,10 +139,21 @@
     </div>
 </div>
 
+<div id="cartSuccessModal" class="modal">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+        <span class="close cart-success-close">&times;</span>
+        <h2 style="color: var(--primary);"><span id="cartSuccessItemCount"></span> 상품이 장바구니에 추가되었습니다.</h2>
+        <p style="margin: 20px 0;">장바구니로 이동하시겠습니까?</p>
+        <div style="display: flex; justify-content: space-around;">
+            <button class="btn" onclick="document.getElementById('cartSuccessModal').style.display='none'">계속 쇼핑하기</button>
+            <a th:href="@{/cart/cart}" class="btn" style="background-color: var(--primary);">장바구니로 이동</a>
+        </div>
+    </div>
+</div>
+
 
 <script th:inline="javascript">
 
-    // 로그인 모달 스크립트 (기존 유지)
     const loginModal = document.getElementById("loginModal");
     const loginBtn = document.getElementById("loginModalBtn");
     const loginClose = document.querySelector("#loginModal .close");
@@ -160,17 +170,24 @@
         }
     }
 
-    // 💡 상세 모달 스크립트 추가
     const detailModal = document.getElementById("detailModal");
     const detailClose = document.querySelector("#detailModal .close");
     const detailContentContainer = document.getElementById("detailContentContainer");
 
-    // 모달 닫기 이벤트 리스너
     if (detailClose) {
         detailClose.onclick = function() {
             detailModal.style.display = "none";
-            // 모달 닫을 때 내용 초기화
             detailContentContainer.innerHTML = '<p style="text-align: center;">Loading...</p>';
+        }
+    }
+
+    const cartSuccessModal = document.getElementById("cartSuccessModal");
+    const cartSuccessClose = document.querySelector("#cartSuccessModal .close");
+    const cartSuccessItemCount = document.getElementById("cartSuccessItemCount");
+
+    if (cartSuccessClose) {
+        cartSuccessClose.onclick = function() {
+            cartSuccessModal.style.display = "none";
         }
     }
 
@@ -182,24 +199,49 @@
             detailModal.style.display = "none";
             detailContentContainer.innerHTML = '<p style="text-align: center;">Loading...</p>';
         }
+        if (event.target == cartSuccessModal) {
+            cartSuccessModal.style.display = "none";
+        }
     }
 
-    /**
-     * 상품 상세 모달을 열고 AJAX로 데이터를 불러오는 함수
-     * @param {number} itemId
-     */
+    function handleCartSubmit(formElement, event) {
+        event.preventDefault();
+
+        const formData = $(formElement).serialize();
+
+        $.ajax({
+            url: formElement.action,
+            type: formElement.method,
+            data: formData,
+            success: function(response) {
+
+                const itemId = $(formElement).find('input[name="itemId"]').val();
+
+                cartSuccessItemCount.textContent = '1개';
+
+                cartSuccessModal.style.display = 'block';
+
+                console.log("장바구니 추가 성공:", response);
+            },
+            error: function(xhr, status, error) {
+                alert("장바구니 추가에 실패했습니다. " + (xhr.responseJSON ? xhr.responseJSON.message : xhr.responseText));
+                console.error("장바구니 추가 에러:", xhr, status, error);
+            }
+        });
+
+        return false;
+    }
+
     function openDetailModal(itemId) {
         detailModal.style.display = "block";
         detailContentContainer.innerHTML = '<p style="text-align: center;">상품 정보를 불러오는 중...</p>';
 
         $.ajax({
-            url: /*[[@{/user/detail}]]*/ '/user/detail', // 컨트롤러의 /user/detail 엔드포인트 사용
+            url: /*[[@{/user/detail}]]*/ '/user/detail',
             type: 'GET',
             data: { itemId: itemId },
             success: function(response) {
-                // 💡 응답 데이터(ShopVO - JSON)를 받아서 모달 내용을 동적으로 구성
 
-                // 임시 이미지 URL (기존 유지)
                 let itemImage = '';
                 switch(itemId) {
                     case 1: itemImage = 'https://images.unsplash.com/photo-1745791562822-7ac21012bbb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080'; break;
@@ -208,7 +250,6 @@
                     default: itemImage = 'https://images.unsplash.com/photo-1745791562822-7ac21012bbb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080';
                 }
 
-                // ⭐ 재고 필드: response.inventoryAmount 사용
                 const stock = response.inventoryAmount || 0;
                 const isSoldOut = stock <= 0;
 
@@ -222,7 +263,7 @@
                     <p><strong>상품 설명:</strong> 싱싱하고 맛있는 제철 농산물입니다. 지금 바로 만나보세요!</p>
                     <div class="btn-wrapper" style="margin-top: 20px;">
                         ${!isSoldOut
-                    ? `<form action="/*[[@{/user/pushCart}]]*/" method="post" class="cart-form-inline">
+                    ? `<form action="/*[[@{/cart/pushCart}]]*/" method="post" class="cart-form-inline" onsubmit="return handleCartSubmit(this, event)">
                                     <input type="hidden" name="itemId" value="${response.itemId}">
                                     <input type="number" name="amount" value="1" min="1" max="${stock}" style="width: 60px; margin-right: 5px;">
                                     <button type="submit" class="btn cart">주문하기</button> </form>`
