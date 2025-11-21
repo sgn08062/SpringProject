@@ -6,6 +6,7 @@ import com.example.myFarm.command.CartVO;
 // import com.example.myFarm.command.AddressVO; // ⭐ 주석 처리: UserOrderController로 이동
 import com.example.myFarm.command.ItemVO;
 import com.example.myFarm.command.ShopVO;
+import com.example.myFarm.command.UserVO;
 import com.example.myFarm.shop.AdminShopService;
 import com.example.myFarm.user.UserService;
 import com.example.myFarm.util.SessionUtil; // ⭐ 추가: SessionUtil 사용
@@ -55,17 +56,28 @@ public class UserController {
     */
 
     @GetMapping("/list")
-    public String productList(Model model) {
+    public String productList(Model model, HttpSession session) {
         // List<ItemVO> itemList = dummyService.getAllShopItems(); // ❌ DUMMY METHOD 주석 처리
         // model.addAttribute("isLoggedIn", true);
         // model.addAttribute("itemList", itemList);
         // return "user/list";
 
-        List<ShopVO> itemList = adminShopService.getAllItems();
+        // 1. SessionUtil을 사용하여 현재 사용자 ID를 가져옵니다.
+        int userId = SessionUtil.getCurrentUserId(session);
 
-        // ⭐ 더미 사용 부분 주석 처리 및 임시 처리
-        //model.addAttribute("isLoggedIn", true);
-        //model.addAttribute("itemList", List.of()); // 빈 리스트로 임시 대체
+        // 2. UserService를 통해 UserVO 전체 정보를 조회합니다.
+        UserVO user = userService.getUserInfo(userId); // ⭐ 추가된 메서드 호출
+
+        // 3. UserVO에서 userName을 꺼내 Model에 담습니다.
+        if (user != null && user.getUserName() != null) {
+            // userName이 존재하면 해당 이름을 전달
+            model.addAttribute("userName", user.getUserName());
+        } else {
+            // 미로그인(userId=1) 또는 정보 조회 실패 시 기본값 설정
+            model.addAttribute("userName", "게스트");
+        }
+
+        List<ShopVO> itemList = adminShopService.getAllItems();
 
         model.addAttribute("isLoggedIn", true);
         model.addAttribute("itemList", itemList); // <-- List.of() 대신 itemList 변수 사용

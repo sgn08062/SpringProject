@@ -1,10 +1,8 @@
 package com.example.myFarm.user;
-
-// import com.example.myFarm.cart.CartService; // ❌ 주문/주소 로직 분리로 제거
-// import com.example.myFarm.command.AddressVO; // ❌ 주소 로직 제거
 import com.example.myFarm.command.CartVO;
 // import com.example.myFarm.command.ItemVO; // ❌ 주문 로직 제거
 // import com.example.myFarm.command.OrderVO; // ❌ 주문 로직 제거
+import com.example.myFarm.command.UserVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,13 +16,22 @@ import java.util.Map;
 public class UserServiceImpl implements UserService {
 
     private final UserMapper userMapper;
-    // private final OrderMapper orderMapper; // ❌ 주문 로직 분리로 제거
-    // private final CartService cartService; // ❌ 주문 로직 분리로 제거
+
 
     @Override
     public String getUserName(int userId) {
         return userMapper.selectUserName(userId);
     }
+
+    @Override
+    // ⭐ 반환 타입을 String에서 UserVO로 변경
+    public UserVO getUserInfo(int userId) {
+        // ⭐ UserMapper의 메서드도 UserVO를 반환하도록 변경해야 합니다.
+        // userMapper.selectUserName(userId) 대신 userMapper.selectUserInfo(userId)를 사용합니다.
+        return userMapper.selectUserInfo(userId);
+    }
+
+
 
     /* ❌ 삭제: 장바구니 조회 및 수정 로직은 CartService로 분리
     @Override

@@ -6,6 +6,7 @@
     <title>상품 목록 - 농장직송</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/main/main.css}">
+    <link rel="stylesheet" th:href="@{/main/index.css}">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="/js/auth.js" defer></script>
 
@@ -18,13 +19,16 @@
             <div class="logo"> <img th:src="@{/images/farm-logo.png}" alt="농장직송 로고"> <span>농장직송</span> </div>
         </a>
         <div class="header-top">
-            <a th:href="@{/user/list}">상품</a>
-            <a th:href="@{/uorder/order}">마이페이지</a>
+            <h2 th:text="${userName} != null ? ${userName} + '님 안녕하세요' : '게스트님 안녕하세요'"></h2>
 
-            <a th:href="@{/cart/cart}">장바구니</a>
+            <th:block th:if="${isLoggedIn}">
+                <a href="/user/address/">배송지관리</a>
+                <a th:href="@{/uorder/list}">구매목록</a>
+                <a th:href="@{/cart}">장바구니</a>
+            </th:block>
 
             <th:block th:if="${!isLoggedIn}">
-                <a href="#" id="loginModalBtn">로그인</a>
+                <a th:href="@{/account/login}" id="loginModalBtn">로그인</a>
                 <a th:href="@{/register}">회원가입</a>
             </th:block>
 
@@ -39,9 +43,9 @@
 </div>
 
 <div class="search-container">
-    <form id="searchForm" th:action="@{/user/list}" method="get" class="search-form">
-        <input type="text" name="searchKeyword" placeholder="🔍 상품 검색..." th:value="${searchKeyword}">
-        <select name="sortField" onchange="document.getElementById('searchForm').submit();">
+    <form id="searchForm" class="search-form">
+        <input type="text" id="searchKeywordInput" name="searchKeyword" placeholder="🔍 상품 검색..." th:value="${searchKeyword}">
+        <select id="sortFieldSelect" name="sortField">
             <option value="regDate" th:selected="${sortField == 'regDate' or sortField == null}">전체</option>
             <option value="priceAsc" th:selected="${sortField == 'priceAsc'}">가격 낮은순</option>
         </select>
@@ -76,7 +80,7 @@
 
             <div class="btn-wrapper">
                 <th:block th:if="${item.inventoryAmount != null and item.inventoryAmount > 0}">
-                    <form th:action="@{/cart/pushCart}" method="post" class="cart-form-inline" onsubmit="return handleCartSubmit(this, event)">
+                    <form th:action="@{/cart/pushCart}" method="post" class="cart-form-inline">
                         <input type="hidden" name="itemId" th:value="${item.itemId}">
                         <input type="hidden" name="amount" value="1">
                         <button type="submit" class="btn cart">주문하기</button> </form>
@@ -139,18 +143,6 @@
     </div>
 </div>
 
-<div id="cartSuccessModal" class="modal">
-    <div class="modal-content" style="max-width: 400px; text-align: center;">
-        <span class="close cart-success-close">&times;</span>
-        <h2 style="color: var(--primary);"><span id="cartSuccessItemCount"></span> 상품이 장바구니에 추가되었습니다.</h2>
-        <p style="margin: 20px 0;">장바구니로 이동하시겠습니까?</p>
-        <div style="display: flex; justify-content: space-around;">
-            <button class="btn" onclick="document.getElementById('cartSuccessModal').style.display='none'">계속 쇼핑하기</button>
-            <a th:href="@{/cart/cart}" class="btn" style="background-color: var(--primary);">장바구니로 이동</a>
-        </div>
-    </div>
-</div>
-
 
 <script th:inline="javascript">
 
@@ -181,16 +173,6 @@
         }
     }
 
-    const cartSuccessModal = document.getElementById("cartSuccessModal");
-    const cartSuccessClose = document.querySelector("#cartSuccessModal .close");
-    const cartSuccessItemCount = document.getElementById("cartSuccessItemCount");
-
-    if (cartSuccessClose) {
-        cartSuccessClose.onclick = function() {
-            cartSuccessModal.style.display = "none";
-        }
-    }
-
     window.onclick = function(event) {
         if (event.target == loginModal) {
             loginModal.style.display = "none";
@@ -199,37 +181,6 @@
             detailModal.style.display = "none";
             detailContentContainer.innerHTML = '<p style="text-align: center;">Loading...</p>';
         }
-        if (event.target == cartSuccessModal) {
-            cartSuccessModal.style.display = "none";
-        }
-    }
-
-    function handleCartSubmit(formElement, event) {
-        event.preventDefault();
-
-        const formData = $(formElement).serialize();
-
-        $.ajax({
-            url: formElement.action,
-            type: formElement.method,
-            data: formData,
-            success: function(response) {
-
-                const itemId = $(formElement).find('input[name="itemId"]').val();
-
-                cartSuccessItemCount.textContent = '1개';
-
-                cartSuccessModal.style.display = 'block';
-
-                console.log("장바구니 추가 성공:", response);
-            },
-            error: function(xhr, status, error) {
-                alert("장바구니 추가에 실패했습니다. " + (xhr.responseJSON ? xhr.responseJSON.message : xhr.responseText));
-                console.error("장바구니 추가 에러:", xhr, status, error);
-            }
-        });
-
-        return false;
     }
 
     function openDetailModal(itemId) {
@@ -241,7 +192,6 @@
             type: 'GET',
             data: { itemId: itemId },
             success: function(response) {
-
                 let itemImage = '';
                 switch(itemId) {
                     case 1: itemImage = 'https://images.unsplash.com/photo-1745791562822-7ac21012bbb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080'; break;
@@ -263,7 +213,7 @@
                     <p><strong>상품 설명:</strong> 싱싱하고 맛있는 제철 농산물입니다. 지금 바로 만나보세요!</p>
                     <div class="btn-wrapper" style="margin-top: 20px;">
                         ${!isSoldOut
-                    ? `<form action="/*[[@{/cart/pushCart}]]*/" method="post" class="cart-form-inline" onsubmit="return handleCartSubmit(this, event)">
+                    ? `<form action="/*[[@{/cart/pushCart}]]*/" method="post" class="cart-form-inline">
                                     <input type="hidden" name="itemId" value="${response.itemId}">
                                     <input type="number" name="amount" value="1" min="1" max="${stock}" style="width: 60px; margin-right: 5px;">
                                     <button type="submit" class="btn cart">주문하기</button> </form>`
@@ -277,6 +227,99 @@
             }
         });
     }
+
+
+    const itemApiUrl = /*[[@{/user/list}]]*/ '/user/list';
+    const searchInput = document.getElementById('searchKeywordInput');
+    const sortSelect = document.getElementById('sortFieldSelect');
+    const productListContainer = document.getElementById('productList');
+
+    function executeSearch() {
+        const keyword = searchInput.value.trim();
+        const sortField = sortSelect.value;
+
+        const queryParams = new URLSearchParams({
+            searchKeyword: keyword,
+            sortField: sortField,
+            isAjax: true
+        });
+
+        fetch(`${itemApiUrl}?${queryParams.toString()}`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('검색 요청 실패: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(items => {
+                updateProductList(items);
+            })
+            .catch(error => {
+                productListContainer.innerHTML = '<p class="error-message">상품 목록을 불러오는 중 오류가 발생했습니다.</p>';
+            });
+    }
+
+    function updateProductList(items) {
+        let htmlContent = '';
+
+        if (items.length === 0) {
+            productListContainer.innerHTML = '<p class="no-results">검색 결과가 없습니다.</p>';
+            return;
+        }
+
+        items.forEach(item => {
+            const isSoldOut = item.inventoryAmount == null || item.inventoryAmount <= 0;
+            const priceFormatted = new Intl.NumberFormat('ko-KR').format(item.price || 0);
+
+            let itemImage = 'https://images.unsplash.com/photo-1745791562822-7ac21012bbb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080';
+            switch(item.itemId) {
+                case 2: itemImage = 'https://images.unsplash.com/photo-1657411658279-e32af8636eb1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080'; break;
+                case 3: itemImage = 'https://images.unsplash.com/photo-1717959159782-98c42b1d4f37?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080'; break;
+                case 4: itemImage = 'https://images.unsplash.com/photo-1710528184650-fc75ae862c13?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080'; break;
+                case 5: itemImage = 'https://images.unsplash.com/photo-1730202252661-bd76bd26378f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080'; break;
+            }
+
+            htmlContent += `
+                <div class="crop-item">
+                    <a href="javascript:void(0)" onclick="openDetailModal(${item.itemId})" class="item-image-link">
+                        <div class="item-image">
+                            <img src="${itemImage}" alt="${item.itemName} 이미지">
+                            ${!isSoldOut ? '' : '<div class="sold-out-overlay">SOLD OUT</div>'}
+                        </div>
+                    </a>
+
+                    <div class="item-info">
+                        <div class="flex-item-header">
+                            <h2>${item.itemName || '상품명'}</h2>
+                            <span class="badge">수확시기</span>
+                        </div>
+                        <p class="farmer-name">판매자 정보</p>
+                        <p class="price">${priceFormatted}원 / 개</p>
+
+                        <div class="btn-wrapper">
+                            ${!isSoldOut
+                ? `<form action="/*[[@{/cart/pushCart}]]*/" method="post" class="cart-form-inline">
+                                    <input type="hidden" name="itemId" value="${item.itemId}">
+                                    <input type="hidden" name="amount" value="1">
+                                    <button type="submit" class="btn cart">주문하기</button>
+                                </form>`
+                : `<span class="btn" style="background-color: var(--muted); color: var(--muted-foreground); cursor: default; width: 100%;">품절</span>`}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        productListContainer.innerHTML = htmlContent;
+    }
+
+    searchInput.addEventListener('keyup', executeSearch);
+    sortSelect.addEventListener('change', executeSearch);
 
 </script>
 

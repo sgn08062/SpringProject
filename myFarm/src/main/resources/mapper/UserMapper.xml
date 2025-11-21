@@ -117,4 +117,21 @@
         FROM USERS
         WHERE USER_ID = #{userId}
     </select>
+
+    <select id="selectUserInfo" resultType="com.example.myFarm.command.UserVO">
+        SELECT
+        USER_ID AS userId,
+        LOGIN_ID AS loginId,
+        USER_PW AS userPw,
+        USER_NAME AS userName,
+        PHONE,
+        EMAIL,
+        AUTH
+        FROM
+        USERS
+        WHERE
+        USER_ID = #{userId}
+    </select>
+    
+
 </mapper>

@@ -2,6 +2,7 @@ package com.example.myFarm.user;
 
 import com.example.myFarm.command.AddressVO;
 import com.example.myFarm.command.CartVO; // CartVO는 AddressVO와 OrderVO에서 여전히 사용될 수 있으므로 import는 유지합니다.
+import com.example.myFarm.command.UserVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import java.util.List;
@@ -31,4 +32,5 @@ public interface UserMapper {
     int insertAddress(AddressVO address);
     int updateAddress(AddressVO address);
     int deleteAddress(@Param("addressId") long addressId, @Param("userId") int userId);
+    public UserVO selectUserInfo(int userId);
 }

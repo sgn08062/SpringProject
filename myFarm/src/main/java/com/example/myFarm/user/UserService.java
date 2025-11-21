@@ -2,6 +2,7 @@ package com.example.myFarm.user;
 
 // import com.example.myFarm.command.AddressVO; // ❌ Address 로직 분리로 제거
 import com.example.myFarm.command.CartVO;
+import com.example.myFarm.command.UserVO;
 // import com.example.myFarm.command.OrderVO; // ❌ Order 로직 분리로 제거
 // import com.example.myFarm.command.ItemVO; // ❌ Order 로직 분리로 제거
 
@@ -12,6 +13,7 @@ public interface UserService {
 
     // ⭐ [남아있는 메서드] 사용자 이름 조회 (OrderService에서도 UserMapper를 통해 직접 조회 가능)
     String getUserName(int userId);
+    UserVO getUserInfo(int userId);
 
     // --- 주소록 관련 ---
     /* ❌ 삭제: OrderService로 분리
