@@ -132,6 +132,31 @@
         WHERE
         USER_ID = #{userId}
     </select>
-    
+
+    <select id="selectItemDetail" resultType="com.example.myFarm.command.ShopVO">
+        SELECT
+        ITEM_ID AS itemId,
+        ITEM_NAME AS itemName,
+        PRICE,
+        STATUS,
+        STOR_ID AS storId,
+        INVENTORY_AMOUNT AS inventoryAmount
+        FROM SHOP
+        WHERE ITEM_ID = #{itemId}
+    </select>
+
+    <select id="selectShopItemList" resultType="com.example.myFarm.command.ShopVO">
+        SELECT
+        T1.ITEM_ID AS itemId,
+        T1.ITEM_NAME AS itemName,
+        T1.PRICE,
+        T1.STATUS,
+        T1.STOR_ID AS storId,
+        T2.AMOUNT AS inventoryAmount  FROM SHOP T1
+        JOIN INVENTORY T2 ON T1.STOR_ID = T2.STOR_ID  WHERE T1.STATUS = 1
+        <if test="searchKeyword != null and searchKeyword != ''">
+            AND T1.ITEM_NAME LIKE CONCAT('%', #{searchKeyword}, '%')
+        </if>
+    </select>
 
 </mapper>

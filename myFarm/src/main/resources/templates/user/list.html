@@ -183,6 +183,8 @@
         }
     }
 
+    let cartPushUrl = /*[[@{/cart/pushCart}]]*/ '/cart/pushCart';
+
     function openDetailModal(itemId) {
         detailModal.style.display = "block";
         detailContentContainer.innerHTML = '<p style="text-align: center;">상품 정보를 불러오는 중...</p>';
@@ -213,7 +215,7 @@
                     <p><strong>상품 설명:</strong> 싱싱하고 맛있는 제철 농산물입니다. 지금 바로 만나보세요!</p>
                     <div class="btn-wrapper" style="margin-top: 20px;">
                         ${!isSoldOut
-                    ? `<form action="/*[[@{/cart/pushCart}]]*/" method="post" class="cart-form-inline">
+                    ? `<form action="${cartPushUrl}" method="post" class="cart-form-inline">
                                     <input type="hidden" name="itemId" value="${response.itemId}">
                                     <input type="number" name="amount" value="1" min="1" max="${stock}" style="width: 60px; margin-right: 5px;">
                                     <button type="submit" class="btn cart">주문하기</button> </form>`
@@ -229,19 +231,16 @@
     }
 
 
-    const itemApiUrl = /*[[@{/user/list}]]*/ '/user/list';
+    const itemApiUrl = /*[[@{/user/list/search-ajax}]]*/ '/user/list/search-ajax';
     const searchInput = document.getElementById('searchKeywordInput');
-    const sortSelect = document.getElementById('sortFieldSelect');
     const productListContainer = document.getElementById('productList');
 
     function executeSearch() {
         const keyword = searchInput.value.trim();
-        const sortField = sortSelect.value;
+
 
         const queryParams = new URLSearchParams({
             searchKeyword: keyword,
-            sortField: sortField,
-            isAjax: true
         });
 
         fetch(`${itemApiUrl}?${queryParams.toString()}`, {
@@ -260,7 +259,8 @@
                 updateProductList(items);
             })
             .catch(error => {
-                productListContainer.innerHTML = '<p class="error-message">상품 목록을 불러오는 중 오류가 발생했습니다.</p>';
+                console.error("AJAX 처리 중 최종 오류:", error);
+                productListContainer.innerHTML = '<p class="error-message">상품 목록을 불러오는 중 오류가 발생했습니다. (JSON 응답 문제일 수 있음)</p>';
             });
     }
 
@@ -303,7 +303,7 @@
 
                         <div class="btn-wrapper">
                             ${!isSoldOut
-                ? `<form action="/*[[@{/cart/pushCart}]]*/" method="post" class="cart-form-inline">
+                ? `<form action="${cartPushUrl}" method="post" class="cart-form-inline">
                                     <input type="hidden" name="itemId" value="${item.itemId}">
                                     <input type="hidden" name="amount" value="1">
                                     <button type="submit" class="btn cart">주문하기</button>
@@ -318,8 +318,20 @@
         productListContainer.innerHTML = htmlContent;
     }
 
-    searchInput.addEventListener('keyup', executeSearch);
-    sortSelect.addEventListener('change', executeSearch);
+    const searchForm = document.getElementById('searchForm');
+
+    if (searchForm) {
+        searchForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            executeSearch();
+        });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function(event) {
+            executeSearch();
+        });
+    }
 
 </script>
 
