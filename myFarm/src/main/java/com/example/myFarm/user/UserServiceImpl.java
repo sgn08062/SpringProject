@@ -34,4 +34,9 @@ public class UserServiceImpl implements UserService {
     public List<ShopVO> getShopItemList(String searchKeyword) { // ⭐️ 파라미터 수정
         return userMapper.selectShopItemList(searchKeyword);
     }
+
+    @Override
+    public ShopVO selectItemDetail(Long itemId) {
+        return userMapper.selectItemDetail(itemId);
+    }
 }

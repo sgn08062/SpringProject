@@ -16,7 +16,7 @@
 <header>
     <div class="header-container">
         <a th:href="@{/user/list}" class="logo-link">
-            <div class="logo"> <img th:src="@{/images/farm-logo.png}" alt="농장직송 로고"> <span>농장직송</span> </div>
+            <div class="logo"> <img th:src="@{/img/main_icon.png}" alt="농장직송 로고"> <span>농장직송</span> </div>
         </a>
         <div class="header-top">
             <h2 th:text="${userName} != null ? ${userName} + '님 안녕하세요' : '게스트님 안녕하세요'"></h2>
@@ -74,7 +74,8 @@
             <div class="item-image">
                 <th:block th:with="filteredImages=${item.images.?[imageType == 'MAIN']}">
                     <th:block th:with="mainImage=${#lists.isEmpty(filteredImages) ? null : filteredImages[0]}">
-                        <img th:src="@{/upload/{imageUrl}(imageUrl=${mainImage?.imageUrl})}"
+                        <!--<img th:src="@{/upload/{imageUrl}(imageUrl=${mainImage?.imageUrl})}"-->
+                        <img th:src="${mainImage?.imageUrl != null ? '/upload/' + mainImage.imageUrl : '/img/defaultimg.png'}"
                              th:alt="${item.itemName} + ' 대표 이미지'"
                              onerror="this.src='/images/farm-logo.png'">
                     </th:block>
@@ -157,12 +158,11 @@
     </div>
 </div>
 
-<!--
 <script th:inline="javascript">
 
-    const loginModal = document.getElementById("loginModal");
-    const loginBtn = document.getElementById("loginModalBtn");
-    const loginClose = document.querySelector("#loginModal .close");
+    let loginModal = document.getElementById("loginModal");
+    let loginBtn = document.getElementById("loginModalBtn");
+    let loginClose = document.querySelector("#loginModal .close");
 
     if(loginBtn) {
         loginBtn.onclick = function(event) {
@@ -176,201 +176,9 @@
         }
     }
 
-    const detailModal = document.getElementById("detailModal");
-    const detailClose = document.querySelector("#detailModal .close");
-    const detailContentContainer = document.getElementById("detailContentContainer");
-
-    if (detailClose) {
-        detailClose.onclick = function() {
-            detailModal.style.display = "none";
-            detailContentContainer.innerHTML = '<p style="text-align: center;">Loading...</p>';
-        }
-    }
-
-    window.onclick = function(event) {
-        if (event.target == loginModal) {
-            loginModal.style.display = "none";
-        }
-        if (event.target == detailModal) {
-            detailModal.style.display = "none";
-            detailContentContainer.innerHTML = '<p style="text-align: center;">Loading...</p>';
-        }
-    }
-
-    let cartPushUrl = /*[[@{/cart/pushCart}]]*/ '/cart/pushCart';
-
-    function openDetailModal(itemId) {
-        detailModal.style.display = "block";
-        detailContentContainer.innerHTML = '<p style="text-align: center;">상품 정보를 불러오는 중...</p>';
-
-        $.ajax({
-            url: /*[[@{/user/detail}]]*/ '/user/detail',
-            type: 'GET',
-            data: { itemId: itemId },
-            success: function(response) {
-                let itemImage = '';
-                switch(itemId) {
-                    case 1: itemImage = 'https://images.unsplash.com/photo-1745791562822-7ac21012bbb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080'; break;
-                    case 2: itemImage = 'https://images.unsplash.com/photo-1657411658279-e32af8636eb1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080'; break;
-                    case 3: itemImage = 'https://images.unsplash.com/photo-1717959159782-98c42b1d4f37?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080'; break;
-                    default: itemImage = 'https://images.unsplash.com/photo-1745791562822-7ac21012bbb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080';
-                }
-
-                const stock = response.inventoryAmount || 0;
-                const isSoldOut = stock <= 0;
-
-                let content = `
-                    <img src="${itemImage}" alt="${response.itemName} 이미지" class="detail-item-image">
-                    <h2>${response.itemName}</h2>
-                    <p class="detail-price">${new Intl.NumberFormat('ko-KR').format(response.price)}원 / 개</p>
-                    <p>재고: ${stock > 0 ? stock + '개' : '품절'}</p>
-                    <p>판매자: 농부 김씨</p>
-                    <hr>
-                    <p><strong>상품 설명:</strong> 싱싱하고 맛있는 제철 농산물입니다. 지금 바로 만나보세요!</p>
-                    <div class="btn-wrapper" style="margin-top: 20px;">
-                        ${!isSoldOut
-                    ? `<form action="${cartPushUrl}" method="post" class="cart-form-inline">
-                                    <input type="hidden" name="itemId" value="${response.itemId}">
-                                    <input type="number" name="amount" value="1" min="1" max="${stock}" style="width: 60px; margin-right: 5px;">
-                                    <button type="submit" class="btn cart">주문하기</button> </form>`
-                    : `<span class="btn" style="background-color: var(--muted); cursor: default; width: 100%;">품절</span>`}
-                    </div>
-                `;
-                detailContentContainer.innerHTML = content;
-            },
-            error: function(xhr, status, error) {
-                detailContentContainer.innerHTML = '<p style="text-align: center; color: red;">상품 정보를 불러오지 못했습니다. (' + xhr.status + ')</p>';
-            }
-        });
-    }
-
-
-    const itemApiUrl = /*[[@{/user/list/search-ajax}]]*/ '/user/list/search-ajax';
-    const searchInput = document.getElementById('searchKeywordInput');
-    const productListContainer = document.getElementById('productList');
-
-    function executeSearch() {
-        const keyword = searchInput.value.trim();
-
-
-        const queryParams = new URLSearchParams({
-            searchKeyword: keyword,
-        });
-
-        fetch(`${itemApiUrl}?${queryParams.toString()}`, {
-            method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('검색 요청 실패: ' + response.statusText);
-                }
-                return response.json();
-            })
-            .then(items => {
-                updateProductList(items);
-            })
-            .catch(error => {
-                console.error("AJAX 처리 중 최종 오류:", error);
-                productListContainer.innerHTML = '<p class="error-message">상품 목록을 불러오는 중 오류가 발생했습니다. (JSON 응답 문제일 수 있음)</p>';
-            });
-    }
-
-    function updateProductList(items) {
-        let htmlContent = '';
-
-        if (items.length === 0) {
-            productListContainer.innerHTML = '<p class="no-results">검색 결과가 없습니다.</p>';
-            return;
-        }
-
-        items.forEach(item => {
-            const isSoldOut = item.inventoryAmount == null || item.inventoryAmount <= 0;
-            const priceFormatted = new Intl.NumberFormat('ko-KR').format(item.price || 0);
-
-            let itemImage = 'https://images.unsplash.com/photo-1745791562822-7ac21012bbb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080';
-            switch(item.itemId) {
-                case 2: itemImage = 'https://images.unsplash.com/photo-1657411658279-e32af8636eb1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080'; break;
-                case 3: itemImage = 'https://images.unsplash.com/photo-1717959159782-98c42b1d4f37?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080'; break;
-                case 4: itemImage = 'https://images.unsplash.com/photo-1710528184650-fc75ae862c13?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080'; break;
-                case 5: itemImage = 'https://images.unsplash.com/photo-1730202252661-bd76bd26378f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080'; break;
-            }
-
-            htmlContent += `
-                <div class="crop-item">
-                    <a href="javascript:void(0)" onclick="openDetailModal(${item.itemId})" class="item-image-link">
-                        <div class="item-image">
-                            <img src="${itemImage}" alt="${item.itemName} 이미지">
-                            ${!isSoldOut ? '' : '<div class="sold-out-overlay">SOLD OUT</div>'}
-                        </div>
-                    </a>
-
-                    <div class="item-info">
-                        <div class="flex-item-header">
-                            <h2>${item.itemName || '상품명'}</h2>
-                            <span class="badge">수확시기</span>
-                        </div>
-                        <p class="farmer-name">판매자 정보</p>
-                        <p class="price">${priceFormatted}원 / 개</p>
-
-                        <div class="btn-wrapper">
-                            ${!isSoldOut
-                ? `<form action="${cartPushUrl}" method="post" class="cart-form-inline">
-                                    <input type="hidden" name="itemId" value="${item.itemId}">
-                                    <input type="hidden" name="amount" value="1">
-                                    <button type="submit" class="btn cart">주문하기</button>
-                                </form>`
-                : `<span class="btn" style="background-color: var(--muted); color: var(--muted-foreground); cursor: default; width: 100%;">품절</span>`}
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-
-        productListContainer.innerHTML = htmlContent;
-    }
-
-    const searchForm = document.getElementById('searchForm');
-
-    if (searchForm) {
-        searchForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-            executeSearch();
-        });
-    }
-
-    if (searchInput) {
-        searchInput.addEventListener('keyup', function(event) {
-            executeSearch();
-        });
-    }
-
-</script>
--->
-
-<script th:inline="javascript">
-
-    const loginModal = document.getElementById("loginModal");
-    const loginBtn = document.getElementById("loginModalBtn");
-    const loginClose = document.querySelector("#loginModal .close");
-
-    if(loginBtn) {
-        loginBtn.onclick = function(event) {
-            event.preventDefault();
-            loginModal.style.display = "block";
-        }
-    }
-    if(loginClose) {
-        loginClose.onclick = function() {
-            loginModal.style.display = "none";
-        }
-    }
-
-    const detailModal = document.getElementById("detailModal");
-    const detailClose = document.querySelector("#detailModal .close");
-    const detailContentContainer = document.getElementById("detailContentContainer");
+    let detailModal = document.getElementById("detailModal");
+    let detailClose = document.querySelector("#detailModal .close");
+    let detailContentContainer = document.getElementById("detailContentContainer");
 
     if (detailClose) {
         detailClose.onclick = function() {
@@ -392,9 +200,10 @@
     let cartPushUrl = /*[[@{/cart/pushCart}]]*/ '/cart/pushCart';
 
     // DB 정보 로드를 위한 API 경로 설정
-    const adminDetailApiUrl = /*[[@{/admin/shop/item/}]]*/ '/admin/shop/item/';
-    const adminImagesApiUrl = /*[[@{/admin/shop/item/}]]*/ '/admin/shop/item/';
-    const uploadBaseUrl = "/upload/";
+    //let adminDetailApiUrl = /*[[@{/admin/shop/item/}]]*/ '/user/item-detail-json/';
+    let adminDetailApiUrl = /*[[@{/user/select-item-detail-json/}]]*/ '/user/select-item-detail-json/';
+    let adminImagesApiUrl = /*[[@{/admin/shop/item/}]]*/ '/admin/shop/item/';
+    let uploadBaseUrl = "/upload/";
 
     function openDetailModal(itemId) {
         detailModal.style.display = "block";
@@ -419,11 +228,12 @@
                 let mainImage = images.find(img => img.imageType === 'MAIN');
                 let itemImageUrl = mainImage ? uploadBaseUrl + mainImage.imageUrl : '/images/farm-logo.png';
 
-                const stock = item.inventoryAmount || 0;
-                const isSoldOut = stock <= 0;
+                let stock = parseInt(item.inventoryAmount) || 0;
+                let isSoldOut = stock <= 0;
+                console.log('재고값: '+stock);
 
                 // 상세 이미지 (DETAIL) 목록 HTML 생성
-                const detailImagesHtml = images.filter(img => img.imageType === 'DETAIL').map(detailImg => `
+                let detailImagesHtml = images.filter(img => img.imageType === 'DETAIL').map(detailImg => `
                 <img src="${uploadBaseUrl + detailImg.imageUrl}" alt="상세 이미지" style="width: 100%; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             `).join('');
 
@@ -440,25 +250,26 @@
 
                 // 최종 모달 콘텐츠 HTML
                 let content = `
-                <img src="${itemImageUrl}" alt="${item.itemName} 이미지" class="detail-item-image">
-                <h2>${item.itemName}</h2>
-                <p class="detail-price">${new Intl.NumberFormat('ko-KR').format(item.price)}원 / 개</p>
-                <p>재고: ${stock > 0 ? stock + '개' : '품절'}</p>
-                <p>판매자: 농부 김씨</p>
-                <hr>
-                <p><strong>상품 설명:</strong> ${item.itemContent || '싱싱하고 맛있는 제철 농산물입니다. 지금 바로 만나보세요!'}</p>
+<img src="${itemImageUrl}" alt="${item.itemName} 이미지" class="detail-item-image" onerror="this.onerror=null; this.src='/img/defaultimg.png';">
+<h2>${item.itemName}</h2>
+<p class="detail-price">${new Intl.NumberFormat('ko-KR').format(item.price)}원 / 개</p>
 
-                ${detailSectionHtml}
+<p>재고: ${stock > 0 ? stock + '개' : '품절'}</p>
+
+<p>판매자: 농부 김씨</p>
+<hr>
+<p><strong>상품 설명:</strong> ${item.itemContent || '싱싱하고 맛있는 제철 농산물입니다. 지금 바로 만나보세요!'}</p>
+
+${detailSectionHtml}
 
                 <div class="btn-wrapper" style="margin-top: 20px;">
-                    ${!isSoldOut
-                    ? `<form action="${cartPushUrl}" method="post" class="cart-form-inline">
-                                <input type="hidden" name="itemId" value="${item.itemId}">
-                                <input type="number" name="amount" value="1" min="1" max="${stock}" style="width: 60px; margin-right: 5px;">
-                                <button type="submit" class="btn cart">주문하기</button> </form>`
+                ${!isSoldOut ? `<form action="${cartPushUrl}" method="post" class="cart-form-inline">
+                <input type="hidden" name="itemId" value="${item.itemId}">
+                <input type="number" name="amount" value="1" min="1" max="${stock}" style="width: 60px; margin-right: 5px;">
+                <button type="submit" class="btn cart">주문하기</button> </form>`
                     : `<span class="btn" style="background-color: var(--muted); cursor: default; width: 100%;">품절</span>`}
                 </div>
-            `;
+                `;
                 detailContentContainer.innerHTML = content;
             })
             .catch(error => {
@@ -468,15 +279,15 @@
     }
 
 
-    const itemApiUrl = /*[[@{/user/list/search-ajax}]]*/ '/user/list/search-ajax';
-    const searchInput = document.getElementById('searchKeywordInput');
-    const productListContainer = document.getElementById('productList');
+    let itemApiUrl = /*[[@{/user/list/search-ajax}]]*/ '/user/list/search-ajax';
+    let searchInput = document.getElementById('searchKeywordInput'); 
+    let productListContainer = document.getElementById('productList'); 
 
     function executeSearch() {
-        const keyword = searchInput.value.trim();
+        let keyword = searchInput.value.trim(); 
 
 
-        const queryParams = new URLSearchParams({
+        let queryParams = new URLSearchParams({ 
             searchKeyword: keyword,
         });
 
@@ -510,13 +321,13 @@
         }
 
         items.forEach(item => {
-            const isSoldOut = item.inventoryAmount == null || item.inventoryAmount <= 0;
-            const priceFormatted = new Intl.NumberFormat('ko-KR').format(item.price || 0);
+            let isSoldOut = item.stockAmount == null || item.stockAmount <= 0;
+            let priceFormatted = new Intl.NumberFormat('ko-KR').format(item.price || 0); 
 
             // ⭐️ [DB 이미지 적용] item.images 리스트에서 'MAIN' 타입 이미지를 찾습니다.
             let mainImage = item.images.find(img => img.imageType === 'MAIN');
             // 대표 이미지가 있으면 uploadBaseUrl과 결합하고, 없으면 기본 이미지 경로를 사용합니다.
-            const itemImageUrl = mainImage ? uploadBaseUrl + mainImage.imageUrl : '/images/farm-logo.png';
+            let itemImageUrl = mainImage ? uploadBaseUrl + mainImage.imageUrl : '/images/farm-logo.png';
 
             // ❌ 기존 하드코딩된 이미지 할당 로직 (switch/case)은 제거되었습니다.
 
@@ -555,7 +366,7 @@
         productListContainer.innerHTML = htmlContent;
     }
 
-    const searchForm = document.getElementById('searchForm');
+    let searchForm = document.getElementById('searchForm'); 
 
     if (searchForm) {
         searchForm.addEventListener('submit', function(event) {

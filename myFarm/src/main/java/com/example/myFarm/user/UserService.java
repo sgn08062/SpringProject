@@ -13,6 +13,5 @@ public interface UserService {
     // 아이템 이름 조회
     ShopVO getItemDetail(Long itemId);
     List<ShopVO> getShopItemList(String searchKeyword);
-
-
+    ShopVO selectItemDetail(Long itemId);
 }
