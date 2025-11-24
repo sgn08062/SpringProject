@@ -1,10 +1,8 @@
-package com.example.myFarm.admin;
+package com.example.myFarm.crop;
 
 import com.example.myFarm.command.CropVO;
-import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
-import java.util.Map;
 
 public interface AdminCropService {
     int addCrop(CropVO vo);

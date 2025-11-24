@@ -1,6 +1,6 @@
 package com.example.myFarm.controller;
 
-import com.example.myFarm.admin.AdminCropService;
+import com.example.myFarm.crop.AdminCropService;
 import com.example.myFarm.command.CropVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

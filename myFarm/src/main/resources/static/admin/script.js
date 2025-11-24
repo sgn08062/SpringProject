@@ -865,10 +865,12 @@ function renderNewProductImages() {
 
     // ===== 2) 상세 이미지 영역 =====
     detailArea.innerHTML = '';
+
+    // 컨테이너는 CSS에서 flex, border 등을 처리
     detailArea.style.display = 'flex';
     detailArea.style.flexWrap = 'wrap';
 
-    // 새로 추가된 상세 이미지 리스트 렌더
+    // 🔹 2-1. 현재 상세 이미지 썸네일들 렌더
     newProductImages.detailFiles.forEach((file, idx) => {
         const wrap = document.createElement('div');
         wrap.className = 'image-box';
@@ -880,12 +882,12 @@ function renderNewProductImages() {
             img.src = e.target.result;
             const thumbContainer = document.createElement('div');
             thumbContainer.className = 'thumb';
-            wrap.appendChild(thumbContainer); // 썸네일을 바로 추가 (이전 수정 반영)
+            wrap.appendChild(thumbContainer);
             thumbContainer.appendChild(img);
         };
         reader.readAsDataURL(file);
 
-        // 삭제 오버레이 사용
+        // 삭제 오버레이
         const delOverlay = document.createElement('div');
         delOverlay.className = 'delete-button-overlay';
 
@@ -902,16 +904,13 @@ function renderNewProductImages() {
         detailArea.appendChild(wrap);
     });
 
-    // ===== 3) 새 상세 이미지 추가 input (최대 5장) =====
+    // 🔹 2-2. 파일 추가 버튼 (남은 자리가 있을 때만)
     const currentDetailCount = newProductImages.detailFiles.length;
-
-    if (currentDetailCount < MAX_DETAIL) { // MAX_DETAIL이 전역에 선언되었다고 가정합니다.
+    if (currentDetailCount < MAX_DETAIL) {
 
         const wrap = document.createElement('div');
-        wrap.className = 'image-box';
-        wrap.style.marginRight = '15px';
-        wrap.style.marginBottom = '15px';
-        wrap.style.padding = '0';
+        wrap.className = 'image-box add-box';   // ✅ add-box 클래스 추가
+        wrap.style.position = 'relative';
 
         const addInput = document.createElement('input');
         addInput.type = 'file';
@@ -924,6 +923,7 @@ function renderNewProductImages() {
         label.innerHTML = `<i class="fa fa-plus"></i><br>파일 추가 (${currentDetailCount}/${MAX_DETAIL})`;
         label.onclick = () => { addInput.click(); };
 
+        // 내부 스타일 - 외곽 테두리는 컨테이너(#new-detail-image-area)가 담당
         label.style.width = '100%';
         label.style.height = '100%';
         label.style.border = 'none';
@@ -933,7 +933,7 @@ function renderNewProductImages() {
 
         addInput.onchange = (e) => {
             const files = Array.from(e.target.files || []);
-            const allowance = MAX_DETAIL - currentDetailCount;
+            const allowance = MAX_DETAIL - newProductImages.detailFiles.length;
             const toAdd = files.slice(0, allowance);
             newProductImages.detailFiles.push(...toAdd);
             renderNewProductImages();
@@ -943,6 +943,7 @@ function renderNewProductImages() {
         wrap.appendChild(addInput);
         detailArea.appendChild(wrap);
     }
+
 }
 
 // ======================================
@@ -1251,7 +1252,7 @@ function renderEditProductImages() {
     if (currentDetailCount < 5) {
 
         const wrap = document.createElement('div');
-        wrap.className = 'image-box';
+        wrap.className = 'image-box add-box';
         wrap.style.marginRight = '15px';
         wrap.style.marginBottom = '15px';
         wrap.style.padding = '0';

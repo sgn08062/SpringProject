@@ -1,4 +1,4 @@
-package com.example.myFarm.admin;
+package com.example.myFarm.crop;
 
 
 import com.example.myFarm.command.CropVO;
@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class AdminCropServiceImpl implements AdminCropService {

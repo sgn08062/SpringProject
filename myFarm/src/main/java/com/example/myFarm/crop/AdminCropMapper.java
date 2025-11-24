@@ -1,4 +1,4 @@
-package com.example.myFarm.admin;
+package com.example.myFarm.crop;
 
 import com.example.myFarm.command.CropVO;
 import org.apache.ibatis.annotations.Mapper;
