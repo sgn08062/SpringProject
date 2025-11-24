@@ -28,8 +28,8 @@
             </th:block>
 
             <th:block th:if="${!isLoggedIn}">
-                <a th:href="@{/account/login}" id="loginModalBtn">로그인</a>
-                <a th:href="@{/register}">회원가입</a>
+                <a th:href="@{/account/login}">로그인</a>
+                <a th:href="@{/account/register}">회원가입</a>
             </th:block>
 
             <a th:id="logoutBtn" th:if="${isLoggedIn}">로그아웃</a>
@@ -55,21 +55,6 @@
 <div id="productList" th:if="${itemList != null}">
     <div class="crop-item" th:each="item : ${itemList}">
 
-        <!--
-        <a href="javascript:void(0)" th:onclick="|openDetailModal(${item.itemId})|" class="item-image-link">
-            <div class="item-image">
-                <th:block th:switch="${item.itemId}">
-                    <img th:case="1" th:src="@{https://images.unsplash.com/photo-1745791562822-7ac21012bbb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080}" th:alt="${item.itemName} + ' 이미지'">
-                    <img th:case="2" th:src="@{https://images.unsplash.com/photo-1657411658279-e32af8636eb1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080}" th:alt="${item.itemName} + ' 이미지'">
-                    <img th:case="3" th:src="@{https://images.unsplash.com/photo-1717959159782-98c42b1d4f37?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080}" th:alt="${item.itemName} + ' 이미지'">
-                    <img th:case="4" th:src="@{https://images.unsplash.com/photo-1710528184650-fc75ae862c13?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080}" th:alt="${item.itemName} + ' 이미지'">
-                    <img th:case="5" th:src="@{https://images.unsplash.com/photo-1730202252661-bd76bd26378f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080}" th:alt="${item.itemName} + ' 이미지'">
-                    <img th:case="*" th:src="@{https://images.unsplash.com/photo-1745791562822-7ac21012bbb2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=1080}" th:alt="${item.itemName} + ' 이미지'">
-                </th:block>
-
-                <div th:unless="${item.inventoryAmount != null and item.inventoryAmount > 0}" class="sold-out-overlay">SOLD OUT</div>
-            </div>
-        </a>-->
         <a href="javascript:void(0)" th:onclick="|openDetailModal(${item.itemId})|" class="item-image-link">
             <div class="item-image">
                 <th:block th:with="filteredImages=${item.images.?[imageType == 'MAIN']}">
@@ -160,6 +145,7 @@
 
 <script th:inline="javascript">
 
+    /*
     let loginModal = document.getElementById("loginModal");
     let loginBtn = document.getElementById("loginModalBtn");
     let loginClose = document.querySelector("#loginModal .close");
@@ -175,6 +161,7 @@
             loginModal.style.display = "none";
         }
     }
+     */
 
     let detailModal = document.getElementById("detailModal");
     let detailClose = document.querySelector("#detailModal .close");
@@ -188,9 +175,11 @@
     }
 
     window.onclick = function(event) {
+        /*
         if (event.target == loginModal) {
             loginModal.style.display = "none";
         }
+         */
         if (event.target == detailModal) {
             detailModal.style.display = "none";
             detailContentContainer.innerHTML = '<p style="text-align: center;">Loading...</p>';
@@ -280,14 +269,14 @@ ${detailSectionHtml}
 
 
     let itemApiUrl = /*[[@{/user/list/search-ajax}]]*/ '/user/list/search-ajax';
-    let searchInput = document.getElementById('searchKeywordInput'); 
-    let productListContainer = document.getElementById('productList'); 
+    let searchInput = document.getElementById('searchKeywordInput');
+    let productListContainer = document.getElementById('productList');
 
     function executeSearch() {
-        let keyword = searchInput.value.trim(); 
+        let keyword = searchInput.value.trim();
 
 
-        let queryParams = new URLSearchParams({ 
+        let queryParams = new URLSearchParams({
             searchKeyword: keyword,
         });
 
@@ -321,23 +310,27 @@ ${detailSectionHtml}
         }
 
         items.forEach(item => {
-            let isSoldOut = item.stockAmount == null || item.stockAmount <= 0;
-            let priceFormatted = new Intl.NumberFormat('ko-KR').format(item.price || 0); 
+            //let isSoldOut = item.stockAmount == null || item.stockAmount <= 0;
+            let isSoldOut = item.inventoryAmount == null || item.inventoryAmount <= 0;
+            let priceFormatted = new Intl.NumberFormat('ko-KR').format(item.price || 0);
 
+
+            // 좆버그 수정
             // ⭐️ [DB 이미지 적용] item.images 리스트에서 'MAIN' 타입 이미지를 찾습니다.
             let mainImage = item.images.find(img => img.imageType === 'MAIN');
             // 대표 이미지가 있으면 uploadBaseUrl과 결합하고, 없으면 기본 이미지 경로를 사용합니다.
-            let itemImageUrl = mainImage ? uploadBaseUrl + mainImage.imageUrl : '/images/farm-logo.png';
+            //let itemImageUrl = mainImage ? uploadBaseUrl + mainImage.imageUrl : '/images/farm-logo.png';
+            let itemImageUrl = mainImage ? uploadBaseUrl + mainImage.imageUrl : '/img/defaultimg.png';
 
             // ❌ 기존 하드코딩된 이미지 할당 로직 (switch/case)은 제거되었습니다.
 
-
+            // 좆버그 수정
             htmlContent += `
                 <div class="crop-item">
                     <a href="javascript:void(0)" onclick="openDetailModal(${item.itemId})" class="item-image-link">
                         <div class="item-image">
-                            <img src="${itemImageUrl}" alt="${item.itemName} 이미지" onerror="this.src='/images/farm-logo.png'">
-                            ${!isSoldOut ? '' : '<div class="sold-out-overlay">SOLD OUT</div>'}
+                            <img src="${itemImageUrl}" alt="${item.itemName} 이미지" onerror="this.src='/img/defaultimg.png'">
+                        ${!isSoldOut ? '' : '<div class="sold-out-overlay">SOLD OUT</div>'}
                         </div>
                     </a>
 
@@ -366,7 +359,7 @@ ${detailSectionHtml}
         productListContainer.innerHTML = htmlContent;
     }
 
-    let searchForm = document.getElementById('searchForm'); 
+    let searchForm = document.getElementById('searchForm');
 
     if (searchForm) {
         searchForm.addEventListener('submit', function(event) {

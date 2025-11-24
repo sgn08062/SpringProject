@@ -8,6 +8,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
+
 <h1>📦 주문 내역 관리</h1>
 
 <div th:if="${successMessage}" class="message success" th:text="${successMessage}"></div>
@@ -44,6 +45,7 @@
             </div>
         </div>
     </form>
+
 
     <div th:if="${orderList != null and not #lists.isEmpty(orderList)}">
         <table>
@@ -149,6 +151,7 @@
         </div>
     </div>
 </div>
+
 
 <form id="cancelForm" method="post" action="" style="display:none;"></form>
 

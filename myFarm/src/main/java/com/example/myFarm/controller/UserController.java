@@ -30,8 +30,12 @@ public class UserController {
             HttpSession session
     ) {
         // 1. 사용자 인증 및 정보 조회
-        int userId = SessionUtil.getCurrentUserId(session);
-        boolean isLoggedIn = userId != 0;
+        //int userId = SessionUtil.getCurrentUserId(session);
+        //boolean isLoggedIn = userId != 0;
+
+        boolean isLoggedIn = session.getAttribute(SessionUtil.USER_ID_SESSION_KEY) != null;
+        int userId = isLoggedIn ? SessionUtil.getCurrentUserId(session) : 0;
+
 
         String userName = "게스트";
         if (isLoggedIn) {

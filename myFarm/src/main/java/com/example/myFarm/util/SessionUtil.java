@@ -15,9 +15,9 @@ public class SessionUtil {
                 return (Integer) userIdObject;
             } catch (ClassCastException e) {
                 System.err.println("세션에 저장된 사용자 ID가 정수형이 아닙니다: " + userIdObject.getClass().getName());
-                return 1;
+                return 0;
             }
         }
-        return 1;
+        return 0;
     }
 }
