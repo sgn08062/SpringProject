@@ -708,12 +708,12 @@ async function handleNewProduct(e) {
 
     // 4-A. 대표 이미지 추가 (단일 파일)
     // 서버에서 mainImageFile 이라는 필드명으로 받는다고 가정
-    formData.append("mainImageFile", mainFile);
+    formData.append("mainImage", mainFile);
 
     // 4-B. 상세 이미지 추가 (다중 파일)
     // 서버에서 detailImageFiles 이라는 배열 필드명으로 받는다고 가정
     detailFiles.forEach(file => {
-        formData.append("detailImageFiles", file);
+        formData.append("detailImages", file);
     });
 
     // 5. 서버 통신 (API_BASE_URL + "/additem")
