@@ -35,7 +35,7 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
             res.setStatus(HttpServletResponse.SC_FORBIDDEN);
             res.setContentType("application/json;charset=UTF-8");
             res.getWriter().write("""
-                {"code":"FORBIDDEN","message":"접근 권한이 없습니다."}
+                {"code":" FORBIDDEN","message":"접근 권한이 없습니다."}
             """);
         } else {
             // 원하는 페이지로 보내면 됨 (403 페이지 or 메인 등)
