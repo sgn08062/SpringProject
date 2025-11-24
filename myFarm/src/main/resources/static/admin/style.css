@@ -656,20 +656,6 @@ input[type="number"]::-webkit-inner-spin-button {
     background-color: #f7f7f7;
 }
 
-/* 상세 이미지 썸네일 박스 */
-#new-detail-preview-area .image-box,
-#edit-detail-image-area .image-box {
-    /* 5개씩 한 줄, 간격 15px 고려: (100% - 15px*4) / 5 = 약 19% */
-    flex-basis: calc(20% - 12px);
-    width: auto;
-    height: auto;
-    margin: 0; /* 기존 마진 제거 */
-    padding: 5px;
-    border: 1px solid var(--brand-border);
-    border-radius: 8px;
-    box-shadow: none;
-    position: relative;
-}
 
 /* ⚡ 상품 수정 모달 - 대표 이미지 편집 영역 */
 #edit-main-image-area {
@@ -790,4 +776,81 @@ input[type="number"]::-webkit-inner-spin-button {
     /* ... 기존 스타일 유지 ... */
     position: relative; /* ✅ 이 요소 안에 파일 입력 필드가 오버랩되도록 설정 */
     overflow: hidden;
+}
+
+/* 🔹 새 상품 등록 + 수정 모달 공통 상세 이미지 컨테이너 */
+#new-detail-image-area,
+#edit-detail-image-area {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 15px;
+    border: 1px dashed #adb5bd;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+/* 썸네일 박스 공통 */
+#new-detail-image-area .image-box,
+#edit-detail-image-area .image-box {
+    flex: none;          /* 줄어들거나 늘어나지 않게 */
+    width: 80px;
+    height: 80px;
+    margin: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    position: relative;
+}
+
+/* 썸네일 컨테이너 */
+#new-detail-image-area .thumb,
+#edit-detail-image-area .thumb {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* 예전 1:1 비율용 before 제거 (겹침 방지) */
+#new-detail-image-area .thumb::before,
+#edit-detail-image-area .thumb::before {
+    content: none;
+}
+
+/* 썸네일 이미지 */
+#new-detail-image-area .thumb img,
+#edit-detail-image-area .thumb img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+/* "파일 추가 (n/5)" 타일 공통 */
+#new-detail-image-area .image-box.add-box,
+#edit-detail-image-area .image-box.add-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed #adb5bd;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+}
+
+/* add-box 안 placeholder 공통 */
+#new-detail-image-area .image-box.add-box .image-upload-placeholder,
+#edit-detail-image-area .image-box.add-box .image-upload-placeholder {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--text-secondary);
 }

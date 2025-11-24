@@ -1,7 +1,6 @@
 package com.example.myFarm.scheduler;
 
-import com.example.myFarm.admin.AdminCropMapper;
-import com.example.myFarm.inventory.InventoryMapper;
+import com.example.myFarm.crop.AdminCropMapper;
 import com.example.myFarm.inventory.InventoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
