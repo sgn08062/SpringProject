@@ -14,6 +14,5 @@ public class CropVO {
     private int status;
     private int growthTime;
     private int quantity;
-    private String unitName;
     private int elapsedTick;
 }

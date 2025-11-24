@@ -10,9 +10,9 @@
             keyProperty="cropId"
             keyColumn="CROP_ID">
         INSERT INTO CROP (
-            CROP_NAME, REG_DATE, STATUS, GROWTH_TIME, QUANTITY, UNIT_NAME, ELAPSED_TICK
+            CROP_NAME, REG_DATE, STATUS, GROWTH_TIME, QUANTITY,  ELAPSED_TICK
         ) VALUES (
-            #{cropName}, COALESCE(#{regDate}, CURRENT_DATE), #{status}, #{growthTime}, #{quantity}, #{unitName}, #{elapsedTick}
+            #{cropName}, COALESCE(#{regDate}, CURRENT_DATE), #{status}, #{growthTime}, #{quantity}, #{elapsedTick}
         )
     </insert>
 
@@ -36,7 +36,6 @@
             STATUS,
             GROWTH_TIME,
             QUANTITY,
-            UNIT_NAME,
             ELAPSED_TICK
         FROM CROP
         ORDER BY CROP_ID DESC
@@ -69,7 +68,6 @@
             REG_DATE     = COALESCE(#{regDate}, REG_DATE),
             GROWTH_TIME  = #{growthTime},
             QUANTITY     = #{quantity},
-            UNIT_NAME    = #{unitName},
             ELAPSED_TICK = 0 <!-- 농작물 정보 변경시 성장률은 0으로 초기화 -->
         WHERE CROP_ID  = #{cropId}
     </update>
