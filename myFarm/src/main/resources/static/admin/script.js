@@ -11,6 +11,28 @@ const newProductImages = {
     detailFiles: []      // 상세 이미지 파일 목록 (File 객체 배열)
 };
 
+// 새 상품 등록 시 글자 수 실시간 표시
+const descInput  = document.getElementById('new-item-description');
+const descCount  = document.getElementById('desc-count');
+const DESC_MAX   = 255;
+
+if (descInput && descCount) {
+    descInput.addEventListener('input', () => {
+        const len = descInput.value.length;
+        descCount.textContent = len;
+    });
+}
+
+const editDescInput = document.getElementById('edit-item-description');
+const editDescCount = document.getElementById('edit-desc-count');
+
+if (editDescInput && editDescCount) {
+    editDescInput.addEventListener('input', () => {
+        const len = editDescInput.value.length;
+        editDescCount.textContent = len;
+    });
+}
+
 const MAX_DETAIL = 5;
 
 // 상품 수정 모달 이미지 상태
@@ -465,13 +487,9 @@ async function renderProductList() {
         const response = await fetch(API_BASE_URL);
         if (response.ok) {
             productsToRender = await response.json();
-            const el = document.getElementById('summary-total-items');
-            if (el) el.textContent = productsToRender.length + '개';
         } else {
             console.warn('API 호출 실패 (GET /admin/shop). 더미 데이터 사용.');
             productsToRender = products;
-            const el = document.getElementById('summary-total-items');
-            if (el) el.textContent = productsToRender.length + '개';
         }
     } catch (e) {
         console.error('상품 목록 로딩 오류:', e);
@@ -679,6 +697,9 @@ async function handleNewProduct(e) {
     const itemName = formData.get("itemName");
     const priceRaw = formData.get("price");
     const price    = parseInt(priceRaw || "0", 10);
+    const descRaw = (formData.get("description") || "").toString().trim();
+    const description = descRaw.length > 0 ? descRaw : "상품 설명이 없습니다";
+    formData.set("description", description);
 
     // 2. ✅ 이미지 데이터 수집 (전역 객체 사용)
     const mainFile = newProductImages.mainFile;
@@ -712,12 +733,12 @@ async function handleNewProduct(e) {
 
     // 4-A. 대표 이미지 추가 (단일 파일)
     // 서버에서 mainImageFile 이라는 필드명으로 받는다고 가정
-    formData.append("mainImageFile", mainFile);
+    formData.append("mainImage", mainFile);
 
     // 4-B. 상세 이미지 추가 (다중 파일)
     // 서버에서 detailImageFiles 이라는 배열 필드명으로 받는다고 가정
     detailFiles.forEach(file => {
-        formData.append("detailImageFiles", file);
+        formData.append("detailImages", file);
     });
 
     // 5. 서버 통신 (API_BASE_URL + "/additem")
@@ -957,6 +978,21 @@ async function populateEditForm(modalId, itemId) {
             storIdEl.value = item.storId || '';
             storIdEl.disabled = true;
         }
+
+        const editDescEl = document.getElementById('edit-item-description');
+        const editDescCount = document.getElementById('edit-desc-count');
+
+        if (editDescEl) {
+            const value = (item.description && item.description.trim().length > 0)
+                ? item.description
+                : '상품 설명이 없습니다';
+            editDescEl.value = value;
+
+            if (editDescCount) {
+                editDescCount.textContent = value.length;
+            }
+        }
+
 
         // 2) 이미지 리스트 세팅
         if (imgRes.ok) {
@@ -1308,6 +1344,13 @@ async function handleEditProduct(e) {
     formData.append('itemName', document.getElementById('edit-item-name').value);
     formData.append('price', document.getElementById('edit-item-price').value);
     formData.append('storId', document.getElementById('edit-stor-id').value);
+
+    const descEl = document.getElementById('edit-item-description');
+    let desc = (descEl?.value || '').trim();
+    if (desc.length === 0) {
+        desc = '상품 설명이 없습니다';
+    }
+    formData.append('description', desc);
 
     // ✅ 삭제할 이미지 id 리스트 (JSON 문자열로)
     const deleteIdsArray = Array.from(editProductImages.deleteIds);

@@ -491,9 +491,37 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 /* 폼 그룹 간격 추가 (HTML에 form-group이 있다면 더 좋음) */
-#new-product-modal .form-group, #edit-product-modal .form-row {
-    margin-bottom: 30px; /* ✅ 그룹별 간격 확보 */
+#new-product-modal .form-group,
+#edit-product-modal .form-group,
+#edit-product-modal .form-row {
+    margin-bottom: 30px;
 }
+
+.description-help {
+    font-size: 0.8rem;
+    color: #888;
+    margin-left: 4px;
+}
+
+#new-item-description,
+#edit-item-description {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    box-sizing: border-box;
+    resize: vertical;
+    font-size: 14px;
+}
+
+.description-counter {
+    text-align: right;
+    font-size: 0.75rem;
+    color: #999;
+    margin-top: 4px;
+}
+
 
 /* 모달 하단 버튼 영역 스타일 추가 */
 .modal-content .modal-actions {

@@ -22,11 +22,12 @@
             useGeneratedKeys="true"
             keyProperty="itemId"
             keyColumn="ITEM_ID">
-        INSERT INTO SHOP (ITEM_NAME, PRICE, STOR_ID, STATUS)
+        INSERT INTO SHOP (ITEM_NAME, PRICE, STOR_ID, STATUS, DESCRIPTION)
         VALUES (#{itemName},
                 #{price},
                 #{storId},
-                1)
+                1,
+                #{description})
     </insert>
 
 
@@ -34,7 +35,9 @@
         UPDATE SHOP
         SET
             ITEM_NAME = #{itemName},
-            PRICE = #{price}
+            PRICE = #{price},
+            DESCRIPTION = #{description}
+
             WHERE ITEM_ID = #{itemId}
     </update>
 
@@ -54,7 +57,8 @@
             ITEM_NAME,
             PRICE,
             STATUS,
-            STOR_ID
+            STOR_ID,
+            DESCRIPTION
         FROM SHOP
         WHERE ITEM_ID = #{itemId}
     </select>
