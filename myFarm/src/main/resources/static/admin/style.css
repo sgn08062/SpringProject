@@ -495,6 +495,27 @@ input[type="number"]::-webkit-inner-spin-button {
     margin-bottom: 30px; /* ✅ 그룹별 간격 확보 */
 }
 
+.description-help {
+    font-size: 0.8rem;
+    color: #888;
+    margin-left: 4px;
+}
+
+#new-item-description {
+    width: 100%;
+    resize: vertical;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+.description-counter {
+    text-align: right;
+    font-size: 0.75rem;
+    color: #999;
+    margin-top: 4px;
+}
+
+
 /* 모달 하단 버튼 영역 스타일 추가 */
 .modal-content .modal-actions {
     padding-top: 20px;

@@ -22,11 +22,12 @@
             useGeneratedKeys="true"
             keyProperty="itemId"
             keyColumn="ITEM_ID">
-        INSERT INTO SHOP (ITEM_NAME, PRICE, STOR_ID, STATUS)
+        INSERT INTO SHOP (ITEM_NAME, PRICE, STOR_ID, STATUS, DESCRIPTION)
         VALUES (#{itemName},
                 #{price},
                 #{storId},
-                1)
+                1,
+                #{description})
     </insert>
 
 

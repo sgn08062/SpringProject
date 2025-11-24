@@ -11,6 +11,18 @@ const newProductImages = {
     detailFiles: []      // 상세 이미지 파일 목록 (File 객체 배열)
 };
 
+// 새 상품 등록 시 글자 수 실시간 표시
+const descInput  = document.getElementById('new-item-description');
+const descCount  = document.getElementById('desc-count');
+const DESC_MAX   = 255;
+
+if (descInput && descCount) {
+    descInput.addEventListener('input', () => {
+        const len = descInput.value.length;
+        descCount.textContent = len;
+    });
+}
+
 const MAX_DETAIL = 5;
 
 // 상품 수정 모달 이미지 상태
@@ -675,6 +687,9 @@ async function handleNewProduct(e) {
     const itemName = formData.get("itemName");
     const priceRaw = formData.get("price");
     const price    = parseInt(priceRaw || "0", 10);
+    const descRaw = (formData.get("description") || "").toString().trim();
+    const description = descRaw.length > 0 ? descRaw : "상품 설명이 없습니다";
+    formData.set("description", description);
 
     // 2. ✅ 이미지 데이터 수집 (전역 객체 사용)
     const mainFile = newProductImages.mainFile;
