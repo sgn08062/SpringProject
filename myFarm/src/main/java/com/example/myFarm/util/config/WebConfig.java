@@ -16,7 +16,9 @@ public class WebConfig implements WebMvcConfigurer {
                 // 누구나 접근 가능(로그인/회원가입/정적/공개 API 등)
                 .excludePathPatterns(
                         "/", "/account/**", "/common/**",
-                        "/css/**", "/js/**", "/images/**", "/favicon.ico", "/error"
+                        "/css/**", "/js/**", "/images/**", "/favicon.ico", "/error",
+                        "/user/list",      // 공용 페이지
+                        "/user/list/**"    // 리스트 하위 경로도 일단 허용
                 )
                 .order(1);
     }
