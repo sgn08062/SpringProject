@@ -53,7 +53,7 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
         HttpSession session = req.getSession(false);
         Object userId = (session == null) ? null : session.getAttribute("userId");
         String auth = (session == null) ? null : (String) session.getAttribute("auth"); 
-        // "USER" / "ADMIN" 에 따라 분기 나뉨
+        // "USER" / "ADMIN" 에 따라 분기 나뉨 -> USER에서 CONSUMER로 변경 필요
 
         // 1) 로그인 안 된 경우: 기존 로직 그대로
         if (userId == null) {
