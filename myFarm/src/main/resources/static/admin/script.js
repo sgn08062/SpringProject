@@ -465,13 +465,9 @@ async function renderProductList() {
         const response = await fetch(API_BASE_URL);
         if (response.ok) {
             productsToRender = await response.json();
-            const el = document.getElementById('summary-total-items');
-            if (el) el.textContent = productsToRender.length + '개';
         } else {
             console.warn('API 호출 실패 (GET /admin/shop). 더미 데이터 사용.');
             productsToRender = products;
-            const el = document.getElementById('summary-total-items');
-            if (el) el.textContent = productsToRender.length + '개';
         }
     } catch (e) {
         console.error('상품 목록 로딩 오류:', e);
