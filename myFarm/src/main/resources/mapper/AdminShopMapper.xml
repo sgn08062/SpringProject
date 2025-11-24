@@ -35,7 +35,9 @@
         UPDATE SHOP
         SET
             ITEM_NAME = #{itemName},
-            PRICE = #{price}
+            PRICE = #{price},
+            DESCRIPTION = #{description}
+
             WHERE ITEM_ID = #{itemId}
     </update>
 
@@ -55,7 +57,8 @@
             ITEM_NAME,
             PRICE,
             STATUS,
-            STOR_ID
+            STOR_ID,
+            DESCRIPTION
         FROM SHOP
         WHERE ITEM_ID = #{itemId}
     </select>

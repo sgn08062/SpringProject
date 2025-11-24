@@ -23,6 +23,16 @@ if (descInput && descCount) {
     });
 }
 
+const editDescInput = document.getElementById('edit-item-description');
+const editDescCount = document.getElementById('edit-desc-count');
+
+if (editDescInput && editDescCount) {
+    editDescInput.addEventListener('input', () => {
+        const len = editDescInput.value.length;
+        editDescCount.textContent = len;
+    });
+}
+
 const MAX_DETAIL = 5;
 
 // 상품 수정 모달 이미지 상태
@@ -969,6 +979,21 @@ async function populateEditForm(modalId, itemId) {
             storIdEl.disabled = true;
         }
 
+        const editDescEl = document.getElementById('edit-item-description');
+        const editDescCount = document.getElementById('edit-desc-count');
+
+        if (editDescEl) {
+            const value = (item.description && item.description.trim().length > 0)
+                ? item.description
+                : '상품 설명이 없습니다';
+            editDescEl.value = value;
+
+            if (editDescCount) {
+                editDescCount.textContent = value.length;
+            }
+        }
+
+
         // 2) 이미지 리스트 세팅
         if (imgRes.ok) {
             const images = await imgRes.json(); // [{imageId, imageUrl, imageType}, ...]
@@ -1319,6 +1344,13 @@ async function handleEditProduct(e) {
     formData.append('itemName', document.getElementById('edit-item-name').value);
     formData.append('price', document.getElementById('edit-item-price').value);
     formData.append('storId', document.getElementById('edit-stor-id').value);
+
+    const descEl = document.getElementById('edit-item-description');
+    let desc = (descEl?.value || '').trim();
+    if (desc.length === 0) {
+        desc = '상품 설명이 없습니다';
+    }
+    formData.append('description', desc);
 
     // ✅ 삭제할 이미지 id 리스트 (JSON 문자열로)
     const deleteIdsArray = Array.from(editProductImages.deleteIds);
