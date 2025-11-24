@@ -142,6 +142,7 @@
         T1.PRICE,
         T1.STATUS,
         T1.STOR_ID AS storId,
+        t1.description as description,
         COALESCE(T2.AMOUNT, 0) AS inventoryAmount
         FROM SHOP T1
         LEFT JOIN INVENTORY T2 ON T1.STOR_ID = T2.STOR_ID
