@@ -10,32 +10,119 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="/js/auth.js" defer></script>
 
+    <style>
+        /* 챗봇 플로팅 버튼 */
+        #aiChatBtn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background-color: #4CAF50;
+            border-radius: 50%;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.3s;
+        }
+        #aiChatBtn:hover { transform: scale(1.1); }
+        /* 아이콘이 없거나 로드 실패 시 글자로 대체될 수 있도록 대비 */
+        #aiChatBtn img { width: 35px; height: 35px; filter: invert(1); }
+
+        /* 채팅창 컨테이너 */
+        #chatContainer {
+            display: none; /* 기본 숨김 */
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 350px;
+            height: 500px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 9999;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+
+        /* 채팅 헤더 */
+        .chat-header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-close { cursor: pointer; font-size: 1.2rem; }
+
+        /* 채팅 내용 영역 */
+        #chatMessages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* 말풍선 스타일 */
+        .message {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            word-wrap: break-word; /* 긴 텍스트 줄바꿈 */
+        }
+        .message.user {
+            align-self: flex-end;
+            background-color: #4CAF50;
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+        .message.bot {
+            align-self: flex-start;
+            background-color: #e0e0e0;
+            color: #333;
+            border-bottom-left-radius: 2px;
+        }
+
+        /* 입력 영역 */
+        .chat-input-area {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #eee;
+            background-color: white;
+        }
+        #chatInput {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+        }
+        #sendBtn {
+            background-color: transparent;
+            border: none;
+            color: #4CAF50;
+            font-weight: bold;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        #sendBtn:disabled { color: #ccc; cursor: default; }
+    </style>
+
 </head>
 <body class="light">
 
-<header>
-    <div class="header-container">
-        <a th:href="@{/user/list}" class="logo-link">
-            <div class="logo"> <img th:src="@{/img/main_icon.png}" alt="농장직송 로고"> <span>농장직송</span> </div>
-        </a>
-        <div class="header-top">
-            <h2 th:text="${userName} != null ? ${userName} + '님 안녕하세요' : '게스트님 안녕하세요'"></h2>
-
-            <th:block th:if="${isLoggedIn}">
-                <a href="/user/address/">배송지관리</a>
-                <a th:href="@{/uorder/list}">구매목록</a>
-                <a th:href="@{/cart}">장바구니</a>
-            </th:block>
-
-            <th:block th:if="${!isLoggedIn}">
-                <a th:href="@{/account/login}">로그인</a>
-                <a th:href="@{/account/register}">회원가입</a>
-            </th:block>
-
-            <a th:id="logoutBtn" th:if="${isLoggedIn}">로그아웃</a>
-        </div>
-    </div>
-</header>
+<header th:replace="~{common/BaseLayout :: mainHeader(userName=${userName}, isLoggedIn=${isLoggedIn})}"></header>
 
 <div class="main-banner">
     <h1>신선한 농산물 직거래</h1>
@@ -93,29 +180,7 @@
     </div>
 </div>
 
-<footer class="main-footer">
-    <div class="footer-content">
-        <div class="footer-section">
-            <h3>농장직송</h3>
-            <p>신선한 농산물을 농장에서 직접 소비자에게 전달하는 직거래 플랫폼입니다.</p>
-        </div>
-        <div class="footer-section">
-            <h3>고객센터</h3>
-            <p>📞 1588-1234</p>
-            <p>✉️ support@farm.com</p>
-        </div>
-        <div class="footer-section">
-            <a th:href="@{/user/order}">주문 목록</a>
-            <a href="#">이용약관</a>
-            <a href="#">개인정보처리방침</a>
-        </div>
-        <div class="footer-section">
-            <h3>회사 정보</h3>
-            <p>📍 서울특별시 강남구 테헤란로 123</p>
-            <p>대표이사 : 김농부</p>
-        </div>
-    </div>
-</footer>
+<footer th:replace="~{common/BaseLayout :: mainFooter}"></footer>
 
 <div id="loginModal" class="modal">
     <div class="modal-content">
@@ -143,25 +208,28 @@
     </div>
 </div>
 
+<div id="aiChatBtn" onclick="toggleChat()">
+    <img th:src="@{/img/bot_icon.png}" alt="AI" onerror="this.outerHTML='<span style=\'color:white;font-weight:bold;\'>AI</span>'">
+</div>
+
+<div id="chatContainer">
+    <div class="chat-header">
+        <span>🤖 농장직송 AI 도우미</span>
+        <span class="chat-close" onclick="toggleChat()">&times;</span>
+    </div>
+    <div id="chatMessages">
+        <div class="message bot">
+            안녕하세요! 농작물의 **재고**나 **수확시기**가 궁금하시면 물어봐주세요.<br>
+            예) "수박 몇 개 남았어?", "오이 수확시기는?"
+        </div>
+    </div>
+    <div class="chat-input-area">
+        <input type="text" id="chatInput" placeholder="질문을 입력하세요..." onkeypress="handleEnter(event)">
+        <button id="sendBtn" onclick="sendMessage()">전송</button>
+    </div>
+</div>
+
 <script th:inline="javascript">
-
-    /*
-    let loginModal = document.getElementById("loginModal");
-    let loginBtn = document.getElementById("loginModalBtn");
-    let loginClose = document.querySelector("#loginModal .close");
-
-    if(loginBtn) {
-        loginBtn.onclick = function(event) {
-            event.preventDefault();
-            loginModal.style.display = "block";
-        }
-    }
-    if(loginClose) {
-        loginClose.onclick = function() {
-            loginModal.style.display = "none";
-        }
-    }
-     */
 
     let detailModal = document.getElementById("detailModal");
     let detailClose = document.querySelector("#detailModal .close");
@@ -175,11 +243,6 @@
     }
 
     window.onclick = function(event) {
-        /*
-        if (event.target == loginModal) {
-            loginModal.style.display = "none";
-        }
-         */
         if (event.target == detailModal) {
             detailModal.style.display = "none";
             detailContentContainer.innerHTML = '<p style="text-align: center;">Loading...</p>';
@@ -372,6 +435,78 @@ ${detailSectionHtml}
         searchInput.addEventListener('keyup', function(event) {
             executeSearch();
         });
+    }
+
+    const chatApiUrl = '/api/ai/chat';
+
+    function toggleChat() {
+        const chatContainer = document.getElementById('chatContainer');
+        const isHidden = chatContainer.style.display === 'none' || chatContainer.style.display === '';
+
+        chatContainer.style.display = isHidden ? 'flex' : 'none';
+
+        if (isHidden) {
+            document.getElementById('chatInput').focus();
+        }
+    }
+
+    function handleEnter(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    }
+
+    function appendMessage(text, sender) {
+        const chatMessages = document.getElementById('chatMessages');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${sender}`;
+        msgDiv.innerHTML = text;
+        chatMessages.appendChild(msgDiv);
+
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('chatInput');
+        const message = input.value.trim();
+        const sendBtn = document.getElementById('sendBtn');
+
+        if (!message) return;
+
+        appendMessage(message, 'user');
+        input.value = '';
+
+        // 로딩 상태 처리
+        input.disabled = true;
+        sendBtn.disabled = true;
+        appendMessage('... AI가 답변을 생각하는 중입니다 ...', 'bot');
+
+
+        fetch(chatApiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ message: message })
+        })
+            .then(response => response.json())
+            .then(data => {
+                // 로딩 메시지 제거 후 AI 답변 표시
+                const messagesContainer = document.getElementById('chatMessages');
+                messagesContainer.lastChild.remove();
+                appendMessage(data.answer, 'bot');
+            })
+            .catch(error => {
+                console.error('AJAX 오류:', error);
+                const messagesContainer = document.getElementById('chatMessages');
+                messagesContainer.lastChild.remove();
+                appendMessage("🚨 AI 서버 연결 중 오류가 발생했습니다. (백엔드 및 API Key 확인 필요)", 'bot');
+            })
+            .finally(() => {
+                input.disabled = false;
+                sendBtn.disabled = false;
+                input.focus();
+            });
     }
 
 </script>
