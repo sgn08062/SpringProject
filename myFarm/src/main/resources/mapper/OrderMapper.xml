@@ -177,4 +177,8 @@
     </select>
 
 
+    <insert id="insertDummyOrder" parameterType="OrderVO" useGeneratedKeys="true" keyProperty="orderId">
+        INSERT INTO ORDERS ( STATUS, ADDRESS, PHONE, USER_ID, ORD_RECIPIENT_NAME, ORDER_DATE )
+        VALUES ( #{status}, #{address}, #{phone}, #{userId}, #{ordRecipientName}, #{orderDate} )
+    </insert>
 </mapper>

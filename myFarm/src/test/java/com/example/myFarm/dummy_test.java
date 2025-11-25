@@ -80,7 +80,7 @@ public class dummy_test {
             order.setOrderDate(randomOrderDate);
 
             // ⭐ DB에 저장: insertOrder 쿼리 호출 (ORDER_DATE는 insertOrder에는 없지만, keyProperty로 ORDER_ID가 채워짐)
-            orderMapper.insertOrder(order);
+            orderMapper.insertDummyOrder(order);
 
             // ⭐ 주문 총액/대표 상품명 및 ORDER_DATE 업데이트 로직 추가 (updateOrderSummary 쿼리가 ORDER_DATE를 처리한다고 가정)
             orderMapper.updateOrderSummary(order);

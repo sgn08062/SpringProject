@@ -1777,12 +1777,14 @@ async function loadMonthlySalesChart() {
                         }
                     },
                     y: { // 금액 축 (왼쪽)
+                        min: 0,
                         beginAtZero: true,
                         title: {
                             display: true,
                             text: '금액(원)'
                         },
                         ticks: {
+                            stepSize: 500000,
                             callback: function (value) {
                                 return value.toLocaleString() + '원';
                             }
@@ -1799,7 +1801,7 @@ async function loadMonthlySalesChart() {
                             drawOnChartArea: false
                         },
                         ticks: {
-                            stepSize: 1,
+                            stepSize: 10,
                             callback: function (value) {
                                 return value.toLocaleString() + '건';
                             }

@@ -63,4 +63,6 @@ public interface OrderMapper {
             @Param("cri") Criteria cri
     );
 
+    void insertDummyOrder(OrderVO order);
+
 }

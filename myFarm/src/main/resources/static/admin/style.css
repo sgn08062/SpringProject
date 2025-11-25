@@ -289,7 +289,6 @@ input:checked + .slider:before {
 .product-list-in-modal { list-style: disc; padding-left: 20px; margin-bottom: 20px; }
 
 .chart-scroll-wrapper {
-    height: 300px;
     overflow-x: auto;       /* 가로 스크롤 */
     overflow-y: hidden;
     /* 필요하면 최소 폭 지정 가능 */
