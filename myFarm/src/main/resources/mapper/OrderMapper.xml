@@ -172,7 +172,7 @@
         <if test="cri.endDate != null and cri.endDate != ''">
             AND o.ORDER_DATE <![CDATA[ <= ]]> DATE_ADD(DATE(#{cri.endDate}), INTERVAL 1 DAY)
         </if>
-        ORDER BY o.ORDER_ID DESC
+        ORDER BY o.order_date desc, o.ORDER_ID DESC
         LIMIT #{cri.amount} OFFSET #{cri.offset}
     </select>
 

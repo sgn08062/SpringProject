@@ -2,19 +2,15 @@ function resetSearch() {
     document.getElementById('startDate').value = '';
     document.getElementById('endDate').value = '';
 
-    // 탭 초기화
     $('.date-tab').removeClass('active');
     $('.date-tab[data-period="365"]').addClass('active');
 
-    // 페이징 파라미터를 초기화하고 검색 폼을 제출 (첫 페이지로 돌아감)
     const $form = $('#searchForm');
-    // page와 size를 초기화 (Controller의 @RequestParam defaultValue에 맞춤)
     $form.find('input[name="page"]').val(1);
     $form.find('input[name="size"]').val(10);
     $form.submit();
 }
 
-// 날짜를 YYYY-MM-DD 형식으로 포맷
 function formatDate(date) {
     const d = new Date(date);
     let month = '' + (d.getMonth() + 1);
@@ -27,12 +23,19 @@ function formatDate(date) {
     return [year, month, day].join('-');
 }
 
-// ⭐ [추가] 날짜 탭 클릭 이벤트 처리
+function getDaysDifference(startDateStr, endDateStr) {
+    const date1 = new Date(startDateStr);
+    const date2 = new Date(endDateStr);
+    const oneDay = 1000 * 60 * 60 * 24;
+
+    const diffTime = date2.getTime() - date1.getTime();
+    return Math.round(diffTime / oneDay);
+}
+
 function setDateRange(periodDays) {
     const today = new Date();
-    const endDate = formatDate(today); // 오늘 날짜
+    const endDate = formatDate(today);
 
-    // 시작일 계산: 오늘 날짜 - periodDays
     const startDateObj = new Date(today);
     startDateObj.setDate(today.getDate() - periodDays);
     const startDate = formatDate(startDateObj);
@@ -41,55 +44,81 @@ function setDateRange(periodDays) {
     $('#endDate').val(endDate);
 }
 
-// ⭐ [추가] 모달 열기 함수
 function openModal(contentHtml) {
     $('#modalBodyContent').html(contentHtml);
     $('#orderDetailModal').css('display', 'block');
 }
 
-// ⭐ [추가] 모달 닫기 함수
 function closeModal() {
     $('#orderDetailModal').css('display', 'none');
-    $('#modalBodyContent').html('<p>상세 내용을 불러오는 중입니다...</p>'); // 내용 초기화
+    $('#modalBodyContent').html('<p>상세 내용을 불러오는 중입니다...</p>');
 }
 
 $(document).ready(function() {
-    // 초기 로드 시 '최대(1년)' 탭 활성화 (Controller에서 날짜 파라미터가 없으면 1년 조회되도록 가정)
-    if (!$('#startDate').val() && !$('#endDate').val()) {
-        setDateRange(365); // 초기 로딩 시 1년으로 설정
+    const $searchForm = $('#searchForm');
+
+    // 탭 상태 유지 로직 (변경 없음)
+    const startDate = $('#startDate').val();
+    const endDate = $('#endDate').val();
+    let isTabActivated = false;
+
+    if (startDate && endDate) {
+        const daysDifference = getDaysDifference(startDate, endDate);
+
+        $('.date-tab').each(function() {
+            const period = parseInt($(this).data('period'), 10);
+
+            if (period === daysDifference) {
+                $('.date-tab').removeClass('active');
+                $(this).addClass('active');
+                isTabActivated = true;
+                return false;
+            }
+        });
+
+        if (!isTabActivated) {
+            $('.date-tab').removeClass('active');
+        }
+
+    } else {
+        setDateRange(365);
+        $('.date-tab[data-period="365"]').addClass('active');
     }
 
+    // ⭐ [수정] 날짜 탭 클릭 이벤트: 날짜만 설정하고 검색은 실행하지 않음
     $('.date-tab').on('click', function() {
         const period = $(this).data('period');
 
-        // 탭 활성화/비활성화
         $('.date-tab').removeClass('active');
         $(this).addClass('active');
 
-        // 날짜 범위 설정
+        // 날짜 범위만 설정
         setDateRange(period);
+
+        // 이전 코드: $searchForm.find('input[name="page"]').val(1); $searchForm.submit(); (삭제됨)
     });
 
-    // 날짜 필드가 변경되면 탭 비활성화
+    // ⭐ [수정] 검색 폼 제출 이벤트: '조회' 버튼이 눌렸을 때만 페이지를 1로 초기화하고 검색 실행
+    $searchForm.on('submit', function(e) {
+        // 검색 실행 전에 페이지를 1로 초기화
+        $searchForm.find('input[name="page"]').val(1);
+    });
+
     $('#startDate, #endDate').on('change', function() {
         $('.date-tab').removeClass('active');
     });
 
-    // ⭐ [추가] 상세보기 버튼 클릭 이벤트 (모달 로직)
     $('.detail-button').on('click', function(e) {
-        e.preventDefault(); // 기본 링크 동작 방지 (페이지 이동 방지)
+        e.preventDefault();
         const orderId = $(this).data('order-id');
 
         $('#modalBodyContent').html('<p>주문 ID ' + orderId + '의 상세 내용을 불러오는 중입니다...</p>');
         openModal($('#modalBodyContent').html());
 
-        // 서버로 Ajax 요청
         $.ajax({
-            // data-order-id를 사용하여 요청 URL 구성 (HTML에서 수정됨)
             url: '/uorder/detail/' + orderId,
             type: 'GET',
             success: function(data) {
-                // Controller가 주문 상세 정보의 HTML 조각(fragment)을 반환한다고 가정
                 openModal(data);
             },
             error: function(xhr, status, error) {
@@ -102,18 +131,13 @@ $(document).ready(function() {
         });
     });
 
-    // ⭐ [추가] 모달 닫기 이벤트
-    // 1. 닫기 버튼 (X) 클릭
     $('.close-button').on('click', closeModal);
-
-    // 2. 모달 외부 영역 클릭
     $(window).on('click', function(event) {
         if (event.target === document.getElementById('orderDetailModal')) {
             closeModal();
         }
     });
 
-    // 주문 취소 로직 (기존 코드 유지)
     $('.cancel-button').on('click', function() {
         const orderId = $(this).data('order-id');
         const statusText = $(this).text().trim();
@@ -123,7 +147,6 @@ $(document).ready(function() {
             return;
         }
         if ($(this).prop('disabled')) {
-            // '배송 중' 또는 '배송완료' 상태일 때 disabled 속성이 적용됨
             alert("현재 주문 상태(" + statusText + ")에서는 취소가 불가능합니다.");
             return;
         }
@@ -131,7 +154,6 @@ $(document).ready(function() {
         if (confirm(orderId + "번 주문을 정말 취소하시겠습니까? 주문 취소 시 재고가 복구됩니다.")) {
 
             const $form = $('#cancelForm');
-            // OrderController의 POST 경로에 맞게 action을 설정
             $form.attr('action', '/uorder/cancel/' + orderId);
 
             $form.submit();
