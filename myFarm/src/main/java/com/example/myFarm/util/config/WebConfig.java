@@ -18,7 +18,8 @@ public class WebConfig implements WebMvcConfigurer {
                         "/", "/account/**", "/common/**",
                         "/css/**", "/js/**", "/images/**", "/favicon.ico", "/error",
                         "/user/list",      // 공용 페이지
-                        "/user/list/**"    // 리스트 하위 경로도 일단 허용
+                        "/user/list/**",    // 리스트 하위 경로도 일단 허용
+                        "/user/detail/"
                 )
                 .order(1);
     }
