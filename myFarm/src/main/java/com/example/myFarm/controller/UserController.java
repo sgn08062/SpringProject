@@ -29,13 +29,10 @@ public class UserController {
             Model model,
             HttpSession session
     ) {
-        // 1. 사용자 인증 및 정보 조회
-        //int userId = SessionUtil.getCurrentUserId(session);
-        //boolean isLoggedIn = userId != 0;
 
+        // 1. 사용자 인증 및 정보 조회
         boolean isLoggedIn = session.getAttribute(SessionUtil.USER_ID_SESSION_KEY) != null;
         int userId = isLoggedIn ? SessionUtil.getCurrentUserId(session) : 0;
-
 
         String userName = "게스트";
         if (isLoggedIn) {
@@ -62,7 +59,7 @@ public class UserController {
             item.setImages(images);
         }
 
-        // 4. Model 설정
+        // 3. Model 설정
         model.addAttribute("itemList", itemList);
         model.addAttribute("searchKeyword", searchKeyword);
         model.addAttribute("isLoggedIn", isLoggedIn);
@@ -95,55 +92,14 @@ public class UserController {
         return itemList;
     }
 
-/*(
-    @GetMapping("/detail")
-    public String productDetail(@RequestParam Integer itemId, Model model) {
-        // itemId를 사용하여 상세 정보를 조회
-        ShopVO item = userService.getItemDetail(itemId.longValue());
-
-        // 상세 페이지를 위한 모든 이미지 정보 추가
-        List<ImageVO> images = imageService.getImagesByItemId(item.getItemId());
-        item.setImages(images); // ShopVO에 setImages(List<ImageVO> images)가 필요함
-
-        model.addAttribute("isLoggedIn", true); // 세션 확인 로직 필요
-        model.addAttribute("item", item);
-        return "user/detail";
-    }
-
- */
-/*
-    @GetMapping("/item-detail-json/{itemId}")
-    @ResponseBody
-    public ShopVO getItemDetailJson(@PathVariable Long itemId) {
-        ShopVO item = userService.getItemDetail(itemId);
-        List<ImageVO> images = imageService.getImagesByItemId(itemId);
-
-        // ⭐️ Null 체크 추가 ⭐️
-        if (item != null) {
-            item.setImages(images);
-        }
-
-        // item이 null이면 null을 반환하여 프론트엔드에서 .catch()로 처리됨
-        return item;
-    }
-
- */
-
-
     @GetMapping("/select-item-detail-json/{itemId}")
     @ResponseBody
     public ShopVO selectItemDetailJson(@PathVariable Long itemId) {
-        // userService.selectItemDetail()을 호출합니다.
         ShopVO item = userService.selectItemDetail(itemId);
         List<ImageVO> images = imageService.getImagesByItemId(itemId);
-
-        // Null 체크
         if (item != null) {
             item.setImages(images);
         }
-
         return item;
     }
-
-
 }
