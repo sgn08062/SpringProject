@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const text = (await res.text()).trim();
             if (res.ok && text === 'success') {
-                location.href = '/common/main';
+                location.href = '/user/list';
             } else {
                 toast('로그인 실패. 아이디/비밀번호를 확인하세요.');
             }
@@ -78,14 +78,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (res.ok && text === "success") {
                     // 성공: 메인 페이지로 이동
-                    location.href = "/account/login";
+                    location.href = "/user/list";
                 } else {
                     // 실패: 이동하지 않고 토스트만
                     toast("로그아웃 실패. 잠시 후 다시 시도하세요.");
                 }
             } catch (err) {
                 console.error(err);
-                location.href = "/account/login";
+                location.href = "/user/list";
             }
         });
     });

@@ -79,7 +79,7 @@
         INNER JOIN ORDER_AMOUNT oa ON o.ORDER_ID = oa.ORDER_ID
         INNER JOIN SHOP s ON oa.ITEM_ID = s.ITEM_ID
         WHERE o.USER_ID = #{userId}
-        ORDER BY o.ORDER_ID DESC, oa.ITEM_ID ASC
+        ORDER BY o.ORDER_ID DESC, oa.ITEM_ID ASC, o.order_date desc
     </select>
 
     <select id="selectOrderDetail" resultMap="OrderWithItems">

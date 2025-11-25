@@ -63,7 +63,7 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
         }
 
         // 2) 권한 체크 (로그인은 되어 있음)
-        boolean isAdminPage = uri.startsWith("/admin/");
+        boolean isAdminPage = uri.startsWith("/admin");
         boolean isUserPage  = uri.startsWith("/user/");
 
         // USER 권한은 /admin/** 금지
@@ -74,7 +74,7 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
         }
 
         // ADMIN 권한은 /user/** 금지 (요구사항 그대로 반영)
-        if (isUserPage && !"CUSTOMER".equals(auth)) {
+        if (isUserPage && !"CONSUMER".equals(auth)) {
             handleForbidden(req, res);
             System.out.println("ADMIN이 USER 페이지 접근 시도: " + uri);
             return false;
