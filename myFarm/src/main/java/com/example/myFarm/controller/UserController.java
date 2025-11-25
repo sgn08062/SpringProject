@@ -91,15 +91,11 @@ public class UserController {
                     .map(ImageVO::getImageUrl)
                     .findFirst()
                     .orElse("MAIN 이미지 없음");
-
         }
-
-
-
         return itemList;
     }
 
-
+/*(
     @GetMapping("/detail")
     public String productDetail(@RequestParam Integer itemId, Model model) {
         // itemId를 사용하여 상세 정보를 조회
@@ -114,6 +110,8 @@ public class UserController {
         return "user/detail";
     }
 
+ */
+/*
     @GetMapping("/item-detail-json/{itemId}")
     @ResponseBody
     public ShopVO getItemDetailJson(@PathVariable Long itemId) {
@@ -129,6 +127,9 @@ public class UserController {
         return item;
     }
 
+ */
+
+
     @GetMapping("/select-item-detail-json/{itemId}")
     @ResponseBody
     public ShopVO selectItemDetailJson(@PathVariable Long itemId) {
@@ -143,4 +144,6 @@ public class UserController {
 
         return item;
     }
+
+
 }

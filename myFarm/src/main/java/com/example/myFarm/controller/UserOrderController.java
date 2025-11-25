@@ -206,6 +206,7 @@ public class UserOrderController {
         return "redirect:/uorder/address";
     }
 
+    /*
     @PostMapping("/address/delete")
     public String deleteAddress(@RequestParam long addressId, HttpSession session) {
         int userId = SessionUtil.getCurrentUserId(session);
@@ -220,4 +221,5 @@ public class UserOrderController {
         model.addAttribute("userName", userName);
         return "uorder/info";
     }
+     */
 }

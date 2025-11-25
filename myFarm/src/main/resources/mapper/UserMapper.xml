@@ -5,6 +5,7 @@
 
 <mapper namespace="com.example.myFarm.user.UserMapper">
 
+
     <select id="getCartList" parameterType="int" resultType="CartVO">
         SELECT c.USER_ID AS userId,
         c.ITEM_ID AS itemId,
@@ -40,6 +41,7 @@
     <delete id="clearCart" parameterType="int">
         DELETE FROM CART WHERE USER_ID = #{userId}
     </delete>
+
 
     <select id="selectAddressDetail" resultType="AddressVO">
         SELECT
@@ -111,6 +113,7 @@
         ORDER BY ADDRESS_ID DESC
         LIMIT 1,9999999
     </select>
+
 
     <select id="selectUserName" resultType="String">
         SELECT USER_NAME

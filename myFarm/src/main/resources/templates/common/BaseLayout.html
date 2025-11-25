@@ -1,5 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+<head>
+</head>
+
 <body>
 
 <header th:fragment="mainHeader(userName, isLoggedIn)">
@@ -25,6 +28,32 @@
         </div>
     </div>
 </header>
+
+<header th:fragment="subHeader" style="width: 100%; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);">
+    <div class="header-container" style="
+        width: 100%;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 5px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-sizing: border-box;
+    ">
+
+        <a th:href="@{/user/list}" class="logo-link">
+            <div class="logo"> <img th:src="@{/img/main_icon.png}" alt="농장직송 로고"> <span>농장직송</span> </div>
+        </a>
+        <div class="header-top">
+            <a href="/user/address/">배송지관리</a>
+            <a th:href="@{/uorder/list}">구매목록</a>
+            <a th:href="@{/cart}">장바구니</a>
+
+            <a th:id="logoutBtn">로그아웃</a>
+        </div>
+    </div>
+</header>
+
 
 <footer class="main-footer" th:fragment="mainFooter">
     <div class="footer-content">
